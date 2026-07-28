@@ -1,0 +1,20 @@
+DROP TABLE IF EXISTS public.evolutionpeek CASCADE;
+DROP TABLE IF EXISTS public.pasttypes CASCADE;
+DROP TABLE IF EXISTS public.pastmovevalues CASCADE;
+DROP TABLE IF EXISTS public.movedetails CASCADE;
+DROP TABLE IF EXISTS public.move CASCADE;
+DROP TABLE IF EXISTS public.dexnumber CASCADE;
+DROP TABLE IF EXISTS public.dexentries CASCADE;
+DROP TABLE IF EXISTS public.evolution CASCADE;
+DROP TABLE IF EXISTS public.abilitydetails CASCADE;
+DROP TABLE IF EXISTS public.ability CASCADE;
+DROP TABLE IF EXISTS public.pokemon CASCADE;
+DROP TABLE IF EXISTS public.species CASCADE;
+
+DROP TYPE IF EXISTS public.dex;
+DROP TYPE IF EXISTS public."group";
+DROP TYPE IF EXISTS public.learnmethod;
+DROP TYPE IF EXISTS public.mclass;
+DROP TYPE IF EXISTS public.ptype;
+DROP DOMAIN IF EXISTS public.stat;
+DROP DOMAIN IF EXISTS public.generation;
