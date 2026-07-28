@@ -8,10 +8,9 @@ import (
 )
 
 func (s *Server) registerRoutes(r chi.Router) {
-	pokemonStore := store.NewPokemonStore(s.pool)
-
 	healthHandler := handlers.NewHealthHandler(s.pool)
-	pokemonHandler := handlers.NewPokemonHandler(pokemonStore)
+	pokemonQueries := store.New(s.pool)
+	pokemonHandler := handlers.NewPokemonHandler(pokemonQueries)
 
 	r.Get("/healthz", healthHandler.Check)
 

@@ -14,15 +14,15 @@ import (
 )
 
 type PokemonHandler struct {
-	store *store.PokemonStore
+	queries *store.Queries
 }
 
-func NewPokemonHandler(s *store.PokemonStore) *PokemonHandler {
-	return &PokemonHandler{store: s}
+func NewPokemonHandler(q *store.Queries) *PokemonHandler {
+	return &PokemonHandler{queries: q}
 }
 
 func (h *PokemonHandler) List(w http.ResponseWriter, r *http.Request) {
-	list, err := h.store.List(r.Context())
+	list, err := h.queries.ListPokemon(r.Context())
 	if err != nil {
 		http.Error(w, "failed to list pokemon", http.StatusInternalServerError)
 		return
@@ -38,7 +38,7 @@ func (h *PokemonHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := h.store.Get(r.Context(), int32(id))
+	p, err := h.queries.GetPokemon(r.Context(), int32(id))
 	if errors.Is(err, pgx.ErrNoRows) {
 		http.Error(w, "pokemon not found", http.StatusNotFound)
 		return
