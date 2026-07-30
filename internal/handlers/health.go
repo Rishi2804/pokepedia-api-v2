@@ -24,7 +24,11 @@ func (h *HealthHandler) Check(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusServiceUnavailable
 	}
 
+	writeJSON(w, code, map[string]string{"status": status})
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(map[string]string{"status": status})
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(v)
 }

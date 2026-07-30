@@ -3,6 +3,8 @@ sql:
   - engine: "postgresql"
     queries: "db/queries"
     schema: "db/migrations"
+    database:
+      uri: "postgres://postgres:admin%40123@localhost:5432/pokepediadb?sslmode=disable"
     gen:
       go:
         package: "store"
@@ -10,3 +12,21 @@ sql:
         sql_package: "pgx/v5"
         emit_json_tags: true
         emit_interface: false
+        emit_pointers_for_null_types: true
+        overrides:
+          - db_type: "public.generation"
+            go_type: "int32"
+          - db_type: "public.stat"
+            go_type: "int32"
+          - db_type: "public.ptype"
+            go_type: "string"
+          - db_type: "public.dex"
+            go_type: "string"
+          - db_type: "public.learnmethod"
+            go_type: "string"
+          - db_type: "public.mclass"
+            go_type: "string"
+          - db_type: "public.group"
+            go_type: "string"
+          - db_type: "pg_catalog.numeric"
+            go_type: "float64"

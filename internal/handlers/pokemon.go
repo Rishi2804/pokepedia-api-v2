@@ -1,35 +1,25 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
+	"github.com/Rishi2804/pokepedia-api-v2/internal/service"
 )
 
 type PokemonHandler struct {
-	queries *store.Queries
+	service *service.PokemonService
 }
 
-func NewPokemonHandler(q *store.Queries) *PokemonHandler {
-	return &PokemonHandler{queries: q}
+func NewPokemonHandler(s *service.PokemonService) *PokemonHandler {
+	return &PokemonHandler{service: s}
 }
 
-func (h *PokemonHandler) List(w http.ResponseWriter, r *http.Request) {
-	list, err := h.queries.ListPokemon(r.Context())
-	if err != nil {
-		http.Error(w, "failed to list pokemon", http.StatusInternalServerError)
-		return
-	}
-	writeJSON(w, http.StatusOK, list)
-}
-
+// Get mirrors PokemonController.getPokemon(Integer id) — the {id:\d+} route.
 func (h *PokemonHandler) Get(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idParam)
@@ -38,21 +28,30 @@ func (h *PokemonHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := h.queries.GetPokemon(r.Context(), int32(id))
+	detail, err := h.service.GetPokemonDetail(r.Context(), int32(id))
 	if errors.Is(err, pgx.ErrNoRows) {
-		http.Error(w, "pokemon not found", http.StatusNotFound)
+		http.Error(w, "no pokemon exists of id "+idParam, http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		log.Printf("get pokemon error: %v", err)
 		http.Error(w, "failed to get pokemon", http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, http.StatusOK, p)
+	writeJSON(w, http.StatusOK, detail)
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+// GetByName mirrors PokemonController.getPokemon(String name) — the {name} route.
+func (h *PokemonHandler) GetByName(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+
+	detail, err := h.service.GetPokemonDetailByName(r.Context(), name)
+	if errors.Is(err, pgx.ErrNoRows) {
+		http.Error(w, "no pokemon exists of name "+name, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to get pokemon", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, detail)
 }

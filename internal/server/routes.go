@@ -4,18 +4,21 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/handlers"
+	"github.com/Rishi2804/pokepedia-api-v2/internal/service"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
 )
 
 func (s *Server) registerRoutes(r chi.Router) {
-	healthHandler := handlers.NewHealthHandler(s.pool)
 	pokemonQueries := store.New(s.pool)
-	pokemonHandler := handlers.NewPokemonHandler(pokemonQueries)
+	pokemonService := service.NewPokemonService(pokemonQueries)
+
+	healthHandler := handlers.NewHealthHandler(s.pool)
+	pokemonHandler := handlers.NewPokemonHandler(pokemonService)
 
 	r.Get("/healthz", healthHandler.Check)
 
 	r.Route("/api/v1/pokemon", func(r chi.Router) {
-		r.Get("/", pokemonHandler.List)
-		r.Get("/{id}", pokemonHandler.Get)
+		r.Get("/{id:[0-9]+}", pokemonHandler.Get)
+		r.Get("/{name}", pokemonHandler.GetByName)
 	})
 }

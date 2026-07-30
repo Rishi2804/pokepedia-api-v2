@@ -7,35 +7,129 @@ package store
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getDexEntries = `-- name: GetDexEntries :many
+SELECT pokemon_id, game, entry
+FROM dexentries
+WHERE pokemon_id = $1
+`
+
+func (q *Queries) GetDexEntries(ctx context.Context, pokemonID int32) ([]Dexentry, error) {
+	rows, err := q.db.Query(ctx, getDexEntries, pokemonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Dexentry
+	for rows.Next() {
+		var i Dexentry
+		if err := rows.Scan(&i.PokemonID, &i.Game, &i.Entry); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDexNumbers = `-- name: GetDexNumbers :many
+SELECT species_id, name, num, default_variate, alt_variates
+FROM dexnumber
+WHERE default_variate = $1 OR alt_variates @> ARRAY[$1::int]
+`
+
+func (q *Queries) GetDexNumbers(ctx context.Context, defaultVariate int32) ([]Dexnumber, error) {
+	rows, err := q.db.Query(ctx, getDexNumbers, defaultVariate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Dexnumber
+	for rows.Next() {
+		var i Dexnumber
+		if err := rows.Scan(
+			&i.SpeciesID,
+			&i.Name,
+			&i.Num,
+			&i.DefaultVariate,
+			&i.AltVariates,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEvolutionChain = `-- name: GetEvolutionChain :many
+SELECT chain_id, id, from_pokemon, from_display, to_pokemon, to_display,
+       details, region, alt_form, next_evo, prev_evo
+FROM get_evolution_chain_by_id($1)
+`
+
+func (q *Queries) GetEvolutionChain(ctx context.Context, pID int32) ([]Evolution, error) {
+	rows, err := q.db.Query(ctx, getEvolutionChain, pID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Evolution
+	for rows.Next() {
+		var i Evolution
+		if err := rows.Scan(
+			&i.ChainID,
+			&i.ID,
+			&i.FromPokemon,
+			&i.FromDisplay,
+			&i.ToPokemon,
+			&i.ToDisplay,
+			&i.Details,
+			&i.Region,
+			&i.AltForm,
+			&i.NextEvo,
+			&i.PrevEvo,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPokemon = `-- name: GetPokemon :one
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, gen, type1, COALESCE(type2::text, '') AS type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE id = $1
 `
 
 type GetPokemonRow struct {
-	ID         int32          `json:"id"`
-	SpeciesID  int32          `json:"species_id"`
-	Name       string         `json:"name"`
-	Gen        interface{}    `json:"gen"`
-	Type1      Ptype          `json:"type1"`
-	Type2      NullPtype      `json:"type2"`
-	Weight     pgtype.Numeric `json:"weight"`
-	Height     pgtype.Numeric `json:"height"`
-	GenderRate int32          `json:"gender_rate"`
-	Hp         interface{}    `json:"hp"`
-	Atk        interface{}    `json:"atk"`
-	Def        interface{}    `json:"def"`
-	Spatk      interface{}    `json:"spatk"`
-	Spdef      interface{}    `json:"spdef"`
-	Speed      interface{}    `json:"speed"`
-	Bst        int32          `json:"bst"`
-	Forms      []string       `json:"forms"`
+	ID         int32    `json:"id"`
+	SpeciesID  int32    `json:"species_id"`
+	Name       string   `json:"name"`
+	Gen        int32    `json:"gen"`
+	Type1      string   `json:"type1"`
+	Type2      *string  `json:"type2"`
+	Weight     float64  `json:"weight"`
+	Height     float64  `json:"height"`
+	GenderRate int32    `json:"gender_rate"`
+	Hp         int32    `json:"hp"`
+	Atk        int32    `json:"atk"`
+	Def        int32    `json:"def"`
+	Spatk      int32    `json:"spatk"`
+	Spdef      int32    `json:"spdef"`
+	Speed      int32    `json:"speed"`
+	Bst        int32    `json:"bst"`
+	Forms      []string `json:"forms"`
 }
 
 func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, error) {
@@ -63,31 +157,73 @@ func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, erro
 	return i, err
 }
 
+const getPokemonAbilities = `-- name: GetPokemonAbilities :many
+SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
+       d.hidden, COALESCE(d.gen::int, 0) AS gen_removed
+FROM abilitydetails d
+JOIN ability a ON a.id = d.ability_id
+WHERE d.pokemon_id = $1
+`
+
+type GetPokemonAbilitiesRow struct {
+	AbilityID   int32  `json:"ability_id"`
+	AbilityName string `json:"ability_name"`
+	AbilityGen  int32  `json:"ability_gen"`
+	Hidden      bool   `json:"hidden"`
+	GenRemoved  *int32 `json:"gen_removed"`
+}
+
+func (q *Queries) GetPokemonAbilities(ctx context.Context, pokemonID int32) ([]GetPokemonAbilitiesRow, error) {
+	rows, err := q.db.Query(ctx, getPokemonAbilities, pokemonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPokemonAbilitiesRow
+	for rows.Next() {
+		var i GetPokemonAbilitiesRow
+		if err := rows.Scan(
+			&i.AbilityID,
+			&i.AbilityName,
+			&i.AbilityGen,
+			&i.Hidden,
+			&i.GenRemoved,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPokemonByName = `-- name: GetPokemonByName :one
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, gen, type1, COALESCE(type2::text, '') AS type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE name = $1
 `
 
 type GetPokemonByNameRow struct {
-	ID         int32          `json:"id"`
-	SpeciesID  int32          `json:"species_id"`
-	Name       string         `json:"name"`
-	Gen        interface{}    `json:"gen"`
-	Type1      Ptype          `json:"type1"`
-	Type2      NullPtype      `json:"type2"`
-	Weight     pgtype.Numeric `json:"weight"`
-	Height     pgtype.Numeric `json:"height"`
-	GenderRate int32          `json:"gender_rate"`
-	Hp         interface{}    `json:"hp"`
-	Atk        interface{}    `json:"atk"`
-	Def        interface{}    `json:"def"`
-	Spatk      interface{}    `json:"spatk"`
-	Spdef      interface{}    `json:"spdef"`
-	Speed      interface{}    `json:"speed"`
-	Bst        int32          `json:"bst"`
-	Forms      []string       `json:"forms"`
+	ID         int32    `json:"id"`
+	SpeciesID  int32    `json:"species_id"`
+	Name       string   `json:"name"`
+	Gen        int32    `json:"gen"`
+	Type1      string   `json:"type1"`
+	Type2      *string  `json:"type2"`
+	Weight     float64  `json:"weight"`
+	Height     float64  `json:"height"`
+	GenderRate int32    `json:"gender_rate"`
+	Hp         int32    `json:"hp"`
+	Atk        int32    `json:"atk"`
+	Def        int32    `json:"def"`
+	Spatk      int32    `json:"spatk"`
+	Spdef      int32    `json:"spdef"`
+	Speed      int32    `json:"speed"`
+	Bst        int32    `json:"bst"`
+	Forms      []string `json:"forms"`
 }
 
 func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemonByNameRow, error) {
@@ -115,61 +251,52 @@ func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemon
 	return i, err
 }
 
-const listPokemon = `-- name: ListPokemon :many
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
-       hp, atk, def, spatk, spdef, speed, bst, forms
-FROM pokemon
-ORDER BY id
-LIMIT 50
+const getPokemonMoves = `-- name: GetPokemonMoves :many
+SELECT
+    d.move_id, m.name, m.type, d.level_learned, d.method,
+    COALESCE(d.version::text, '') AS version, m.class,
+    COALESCE(pmv.power, m.power) AS power,
+    COALESCE(pmv.accuracy, m.accuracy) AS accuracy,
+    COALESCE(pmv.pp, m.pp) AS pp
+FROM movedetails d
+JOIN move m ON d.move_id = m.id
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+WHERE d.pokemon_id = $1
 `
 
-type ListPokemonRow struct {
-	ID         int32          `json:"id"`
-	SpeciesID  int32          `json:"species_id"`
-	Name       string         `json:"name"`
-	Gen        interface{}    `json:"gen"`
-	Type1      Ptype          `json:"type1"`
-	Type2      NullPtype      `json:"type2"`
-	Weight     pgtype.Numeric `json:"weight"`
-	Height     pgtype.Numeric `json:"height"`
-	GenderRate int32          `json:"gender_rate"`
-	Hp         interface{}    `json:"hp"`
-	Atk        interface{}    `json:"atk"`
-	Def        interface{}    `json:"def"`
-	Spatk      interface{}    `json:"spatk"`
-	Spdef      interface{}    `json:"spdef"`
-	Speed      interface{}    `json:"speed"`
-	Bst        int32          `json:"bst"`
-	Forms      []string       `json:"forms"`
+type GetPokemonMovesRow struct {
+	MoveID       int32   `json:"move_id"`
+	Name         string  `json:"name"`
+	Type         string  `json:"type"`
+	LevelLearned int32   `json:"level_learned"`
+	Method       string  `json:"method"`
+	Version      *string `json:"version"`
+	Class        string  `json:"class"`
+	Power        *int32  `json:"power"`
+	Accuracy     *int32  `json:"accuracy"`
+	Pp           *int32  `json:"pp"`
 }
 
-func (q *Queries) ListPokemon(ctx context.Context) ([]ListPokemonRow, error) {
-	rows, err := q.db.Query(ctx, listPokemon)
+func (q *Queries) GetPokemonMoves(ctx context.Context, pokemonID int32) ([]GetPokemonMovesRow, error) {
+	rows, err := q.db.Query(ctx, getPokemonMoves, pokemonID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListPokemonRow
+	var items []GetPokemonMovesRow
 	for rows.Next() {
-		var i ListPokemonRow
+		var i GetPokemonMovesRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.SpeciesID,
+			&i.MoveID,
 			&i.Name,
-			&i.Gen,
-			&i.Type1,
-			&i.Type2,
-			&i.Weight,
-			&i.Height,
-			&i.GenderRate,
-			&i.Hp,
-			&i.Atk,
-			&i.Def,
-			&i.Spatk,
-			&i.Spdef,
-			&i.Speed,
-			&i.Bst,
-			&i.Forms,
+			&i.Type,
+			&i.LevelLearned,
+			&i.Method,
+			&i.Version,
+			&i.Class,
+			&i.Power,
+			&i.Accuracy,
+			&i.Pp,
 		); err != nil {
 			return nil, err
 		}

@@ -7,9 +7,229 @@ package store
 import (
 	"database/sql/driver"
 	"fmt"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Dex string
+
+const (
+	DexNational         Dex = "national"
+	DexKanto            Dex = "kanto"
+	DexOriginalJohto    Dex = "original-johto"
+	DexHoenn            Dex = "hoenn"
+	DexOriginalSinnoh   Dex = "original-sinnoh"
+	DexExtendedSinnoh   Dex = "extended-sinnoh"
+	DexUpdatedJohto     Dex = "updated-johto"
+	DexOriginalUnova    Dex = "original-unova"
+	DexUpdatedUnova     Dex = "updated-unova"
+	DexKalosCentral     Dex = "kalos-central"
+	DexKalosCoastal     Dex = "kalos-coastal"
+	DexKalosMountain    Dex = "kalos-mountain"
+	DexUpdatedHoenn     Dex = "updated-hoenn"
+	DexOriginalAlola    Dex = "original-alola"
+	DexOriginalMelemele Dex = "original-melemele"
+	DexOriginalAkala    Dex = "original-akala"
+	DexOriginalUlaula   Dex = "original-ulaula"
+	DexOriginalPoni     Dex = "original-poni"
+	DexUpdatedAlola     Dex = "updated-alola"
+	DexUpdatedMelemele  Dex = "updated-melemele"
+	DexUpdatedAkala     Dex = "updated-akala"
+	DexUpdatedUlaula    Dex = "updated-ulaula"
+	DexUpdatedPoni      Dex = "updated-poni"
+	DexLetsgoKanto      Dex = "letsgo-kanto"
+	DexGalar            Dex = "galar"
+	DexIsleOfArmor      Dex = "isle-of-armor"
+	DexCrownTundra      Dex = "crown-tundra"
+	DexHisui            Dex = "hisui"
+	DexPaldea           Dex = "paldea"
+	DexKitakami         Dex = "kitakami"
+	DexBlueberry        Dex = "blueberry"
+)
+
+func (e *Dex) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Dex(s)
+	case string:
+		*e = Dex(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Dex: %T", src)
+	}
+	return nil
+}
+
+type NullDex struct {
+	Dex   Dex  `json:"dex"`
+	Valid bool `json:"valid"` // Valid is true if Dex is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDex) Scan(value interface{}) error {
+	if value == nil {
+		ns.Dex, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Dex.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDex) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Dex), nil
+}
+
+type Group string
+
+const (
+	GroupRedBlue                         Group = "red-blue"
+	GroupYellow                          Group = "yellow"
+	GroupGoldSilver                      Group = "gold-silver"
+	GroupCrystal                         Group = "crystal"
+	GroupRubySapphire                    Group = "ruby-sapphire"
+	GroupEmerald                         Group = "emerald"
+	GroupFireredLeafgreen                Group = "firered-leafgreen"
+	GroupDiamondPearl                    Group = "diamond-pearl"
+	GroupPlatinum                        Group = "platinum"
+	GroupHeartgoldSoulsilver             Group = "heartgold-soulsilver"
+	GroupBlackWhite                      Group = "black-white"
+	GroupBlack2White2                    Group = "black-2-white-2"
+	GroupXY                              Group = "x-y"
+	GroupOmegaRubyAlphaSapphire          Group = "omega-ruby-alpha-sapphire"
+	GroupSunMoon                         Group = "sun-moon"
+	GroupUltraSunUltraMoon               Group = "ultra-sun-ultra-moon"
+	GroupLetsGoPikachuLetsGoEevee        Group = "lets-go-pikachu-lets-go-eevee"
+	GroupSwordShield                     Group = "sword-shield"
+	GroupBrilliantDiamondAndShiningPearl Group = "brilliant-diamond-and-shining-pearl"
+	GroupLegendsArceus                   Group = "legends-arceus"
+	GroupScarletViolet                   Group = "scarlet-violet"
+)
+
+func (e *Group) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Group(s)
+	case string:
+		*e = Group(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Group: %T", src)
+	}
+	return nil
+}
+
+type NullGroup struct {
+	Group Group `json:"group"`
+	Valid bool  `json:"valid"` // Valid is true if Group is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGroup) Scan(value interface{}) error {
+	if value == nil {
+		ns.Group, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Group.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGroup) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Group), nil
+}
+
+type Learnmethod string
+
+const (
+	LearnmethodLevelUp      Learnmethod = "level-up"
+	LearnmethodEgg          Learnmethod = "egg"
+	LearnmethodTutor        Learnmethod = "tutor"
+	LearnmethodMachine      Learnmethod = "machine"
+	LearnmethodLightBallEgg Learnmethod = "light-ball-egg"
+	LearnmethodFormChange   Learnmethod = "form-change"
+	LearnmethodZygardeCube  Learnmethod = "zygarde-cube"
+)
+
+func (e *Learnmethod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Learnmethod(s)
+	case string:
+		*e = Learnmethod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Learnmethod: %T", src)
+	}
+	return nil
+}
+
+type NullLearnmethod struct {
+	Learnmethod Learnmethod `json:"learnmethod"`
+	Valid       bool        `json:"valid"` // Valid is true if Learnmethod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLearnmethod) Scan(value interface{}) error {
+	if value == nil {
+		ns.Learnmethod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Learnmethod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLearnmethod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Learnmethod), nil
+}
+
+type Mclass string
+
+const (
+	MclassPhysical Mclass = "physical"
+	MclassSpecial  Mclass = "special"
+	MclassStatus   Mclass = "status"
+)
+
+func (e *Mclass) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Mclass(s)
+	case string:
+		*e = Mclass(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Mclass: %T", src)
+	}
+	return nil
+}
+
+type NullMclass struct {
+	Mclass Mclass `json:"mclass"`
+	Valid  bool   `json:"valid"` // Valid is true if Mclass is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMclass) Scan(value interface{}) error {
+	if value == nil {
+		ns.Mclass, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Mclass.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMclass) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Mclass), nil
+}
 
 type Ptype string
 
@@ -70,23 +290,112 @@ func (ns NullPtype) Value() (driver.Value, error) {
 	return string(ns.Ptype), nil
 }
 
+type Ability struct {
+	ID           int32    `json:"id"`
+	Name         string   `json:"name"`
+	Gen          int32    `json:"gen"`
+	Descriptions [][]byte `json:"descriptions"`
+	Effect       *string  `json:"effect"`
+}
+
+type Abilitydetail struct {
+	PokemonID int32       `json:"pokemon_id"`
+	AbilityID int32       `json:"ability_id"`
+	Hidden    bool        `json:"hidden"`
+	Gen       interface{} `json:"gen"`
+}
+
+type Dexentry struct {
+	PokemonID int32  `json:"pokemon_id"`
+	Game      string `json:"game"`
+	Entry     string `json:"entry"`
+}
+
+type Dexnumber struct {
+	SpeciesID      int32   `json:"species_id"`
+	Name           string  `json:"name"`
+	Num            int32   `json:"num"`
+	DefaultVariate int32   `json:"default_variate"`
+	AltVariates    []int32 `json:"alt_variates"`
+}
+
+type Evolution struct {
+	ChainID     int32    `json:"chain_id"`
+	ID          int32    `json:"id"`
+	FromPokemon int32    `json:"from_pokemon"`
+	FromDisplay string   `json:"from_display"`
+	ToPokemon   int32    `json:"to_pokemon"`
+	ToDisplay   string   `json:"to_display"`
+	Details     []string `json:"details"`
+	Region      *string  `json:"region"`
+	AltForm     int32    `json:"alt_form"`
+	NextEvo     []int32  `json:"next_evo"`
+	PrevEvo     []int32  `json:"prev_evo"`
+}
+
+type Evolutionpeek struct {
+	ChainID   int32 `json:"chain_id"`
+	PokemonID int32 `json:"pokemon_id"`
+}
+
+type Move struct {
+	ID           int32    `json:"id"`
+	Name         string   `json:"name"`
+	Gen          int32    `json:"gen"`
+	Type         string   `json:"type"`
+	Class        string   `json:"class"`
+	Power        *int32   `json:"power"`
+	Accuracy     *int32   `json:"accuracy"`
+	Pp           *int32   `json:"pp"`
+	Descriptions [][]byte `json:"descriptions"`
+	Effect       *string  `json:"effect"`
+}
+
+type Movedetail struct {
+	PokemonID    int32  `json:"pokemon_id"`
+	MoveID       int32  `json:"move_id"`
+	Method       string `json:"method"`
+	LevelLearned int32  `json:"level_learned"`
+	Version      *Group `json:"version"`
+}
+
+type Pastmovevalue struct {
+	ID            int32    `json:"id"`
+	Power         *int32   `json:"power"`
+	Accuracy      *int32   `json:"accuracy"`
+	Pp            *int32   `json:"pp"`
+	VersionGroups []string `json:"version_groups"`
+}
+
+type Pasttype struct {
+	PokemonID int32  `json:"pokemon_id"`
+	Type1     string `json:"type1"`
+	Type2     *Ptype `json:"type2"`
+	Gen       int32  `json:"gen"`
+}
+
 type Pokemon struct {
-	ID         int32          `json:"id"`
-	Name       string         `json:"name"`
-	Gen        interface{}    `json:"gen"`
-	Type1      Ptype          `json:"type1"`
-	Type2      NullPtype      `json:"type2"`
-	Weight     pgtype.Numeric `json:"weight"`
-	Height     pgtype.Numeric `json:"height"`
-	GenderRate int32          `json:"gender_rate"`
-	Hp         interface{}    `json:"hp"`
-	Atk        interface{}    `json:"atk"`
-	Def        interface{}    `json:"def"`
-	Spatk      interface{}    `json:"spatk"`
-	Spdef      interface{}    `json:"spdef"`
-	Speed      interface{}    `json:"speed"`
-	Bst        int32          `json:"bst"`
-	DexEntries [][]byte       `json:"dex_entries"`
-	SpeciesID  int32          `json:"species_id"`
-	Forms      []string       `json:"forms"`
+	ID         int32    `json:"id"`
+	Name       string   `json:"name"`
+	Gen        int32    `json:"gen"`
+	Type1      string   `json:"type1"`
+	Type2      *Ptype   `json:"type2"`
+	Weight     float64  `json:"weight"`
+	Height     float64  `json:"height"`
+	GenderRate int32    `json:"gender_rate"`
+	Hp         int32    `json:"hp"`
+	Atk        int32    `json:"atk"`
+	Def        int32    `json:"def"`
+	Spatk      int32    `json:"spatk"`
+	Spdef      int32    `json:"spdef"`
+	Speed      int32    `json:"speed"`
+	Bst        int32    `json:"bst"`
+	DexEntries [][]byte `json:"dex_entries"`
+	SpeciesID  int32    `json:"species_id"`
+	Forms      []string `json:"forms"`
+}
+
+type Species struct {
+	ID   int32   `json:"id"`
+	Name *string `json:"name"`
 }
