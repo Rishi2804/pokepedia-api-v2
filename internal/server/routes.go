@@ -9,16 +9,23 @@ import (
 )
 
 func (s *Server) registerRoutes(r chi.Router) {
-	pokemonQueries := store.New(s.pool)
-	pokemonService := service.NewPokemonService(pokemonQueries)
+	queries := store.New(s.pool)
+	pokemonService := service.NewPokemonService(queries)
+	speciesService := service.NewSpeciesService(queries)
 
 	healthHandler := handlers.NewHealthHandler(s.pool)
 	pokemonHandler := handlers.NewPokemonHandler(pokemonService)
+	speciesHandler := handlers.NewSpeciesHandler(speciesService)
 
 	r.Get("/healthz", healthHandler.Check)
 
 	r.Route("/api/v1/pokemon", func(r chi.Router) {
 		r.Get("/{id:[0-9]+}", pokemonHandler.Get)
 		r.Get("/{name}", pokemonHandler.GetByName)
+	})
+
+	r.Route("/api/v1/species", func(r chi.Router) {
+		r.Get("/{id:[0-9]+}", speciesHandler.Get)
+		r.Get("/{name}", speciesHandler.GetByName)
 	})
 }
