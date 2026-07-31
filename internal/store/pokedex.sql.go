@@ -163,20 +163,21 @@ func (q *Queries) GetTeamCandidatesByRegion(ctx context.Context, arg GetTeamCand
 }
 
 const getTeamCandidatesNational = `-- name: GetTeamCandidatesNational :many
-SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, COALESCE(p.type2::text, '') AS type2
+SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, COALESCE(p.type2::text, '') AS type2, p.gender_rate
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 ORDER BY s.id, p.id ASC
 `
 
 type GetTeamCandidatesNationalRow struct {
-	Num       int32   `json:"num"`
-	SpeciesID int32   `json:"species_id"`
-	ID        int32   `json:"id"`
-	Name      *string `json:"name"`
-	Gen       int32   `json:"gen"`
-	Type1     string  `json:"type1"`
-	Type2     *string `json:"type2"`
+	Num        int32   `json:"num"`
+	SpeciesID  int32   `json:"species_id"`
+	ID         int32   `json:"id"`
+	Name       *string `json:"name"`
+	Gen        int32   `json:"gen"`
+	Type1      string  `json:"type1"`
+	Type2      *string `json:"type2"`
+	GenderRate int32   `json:"gender_rate"`
 }
 
 func (q *Queries) GetTeamCandidatesNational(ctx context.Context) ([]GetTeamCandidatesNationalRow, error) {
@@ -196,6 +197,7 @@ func (q *Queries) GetTeamCandidatesNational(ctx context.Context) ([]GetTeamCandi
 			&i.Gen,
 			&i.Type1,
 			&i.Type2,
+			&i.GenderRate,
 		); err != nil {
 			return nil, err
 		}

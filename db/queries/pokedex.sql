@@ -16,7 +16,7 @@ WHERE d.name = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END;
 
 -- name: GetTeamCandidatesNational :many
-SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, COALESCE(p.type2::text, '') AS type2
+SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, COALESCE(p.type2::text, '') AS type2, p.gender_rate
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 ORDER BY s.id, p.id ASC;

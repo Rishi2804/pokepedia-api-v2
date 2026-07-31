@@ -121,10 +121,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 	}
 
 	if versionName == "national" {
-		rows, err := s.q.GetTeamCandidatesNationalByVersionGroup(ctx, store.GetTeamCandidatesNationalByVersionGroupParams{
-			Gen:     vg.Gen,
-			Version: store.Group(versionName),
-		})
+		rows, err := s.q.GetTeamCandidatesNational(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +129,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		candidates := []dto.TeamCandidate{}
 		for _, r := range rows {
 			candidates = append(candidates, dto.TeamCandidate{
-				ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
+				ID: r.ID, Name: util.FormatName(*r.Name, true), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
 			})
 		}
