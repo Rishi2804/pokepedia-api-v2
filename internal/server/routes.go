@@ -12,10 +12,12 @@ func (s *Server) registerRoutes(r chi.Router) {
 	queries := store.New(s.pool)
 	pokemonService := service.NewPokemonService(queries)
 	speciesService := service.NewSpeciesService(queries)
+	pokedexService := service.NewPokedexService(queries)
 
 	healthHandler := handlers.NewHealthHandler(s.pool)
 	pokemonHandler := handlers.NewPokemonHandler(pokemonService)
 	speciesHandler := handlers.NewSpeciesHandler(speciesService)
+	pokedexHandler := handlers.NewPokedexHandler(pokedexService)
 
 	r.Get("/healthz", healthHandler.Check)
 
@@ -28,4 +30,7 @@ func (s *Server) registerRoutes(r chi.Router) {
 		r.Get("/{id:[0-9]+}", speciesHandler.Get)
 		r.Get("/{name}", speciesHandler.GetByName)
 	})
+
+	r.Get("/api/v1/pokedex/{name}", pokedexHandler.GetDex)
+	r.Get("/api/v1/team-building/{version}", pokedexHandler.GetTeamCandidates)
 }
