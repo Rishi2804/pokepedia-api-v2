@@ -13,11 +13,13 @@ func (s *Server) registerRoutes(r chi.Router) {
 	pokemonService := service.NewPokemonService(queries)
 	speciesService := service.NewSpeciesService(queries)
 	pokedexService := service.NewPokedexService(queries)
+	movesService := service.NewMovesService(queries)
 
 	healthHandler := handlers.NewHealthHandler(s.pool)
 	pokemonHandler := handlers.NewPokemonHandler(pokemonService)
 	speciesHandler := handlers.NewSpeciesHandler(speciesService)
 	pokedexHandler := handlers.NewPokedexHandler(pokedexService)
+	movesHandler := handlers.NewMovesHandler(movesService)
 
 	r.Get("/healthz", healthHandler.Check)
 
@@ -33,4 +35,10 @@ func (s *Server) registerRoutes(r chi.Router) {
 
 	r.Get("/api/v1/pokedex/{name}", pokedexHandler.GetDex)
 	r.Get("/api/v1/team-building/{version}", pokedexHandler.GetTeamCandidates)
+
+	r.Route("/api/v1/move", func(r chi.Router) {
+		r.Get("/", movesHandler.Get)
+		r.Get("/{id:[0-9]+}", movesHandler.GetDetail)
+		r.Get("/{name}", movesHandler.GetByName)
+	})
 }
