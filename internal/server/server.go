@@ -26,6 +26,7 @@ func (s *Server) Router() http.Handler {
 	r.Use(appmiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
+	r.Use(appmiddleware.CORS())
 
 	s.registerRoutes(r)
 
