@@ -128,10 +128,15 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 
 		candidates := []dto.TeamCandidate{}
 		for _, r := range rows {
-			candidates = append(candidates, dto.TeamCandidate{
+			plain := dto.TeamCandidate{
 				ID: r.ID, Name: util.FormatName(*r.Name, true), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
-			})
+			}
+			detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
+			if err != nil {
+				return nil, err
+			}
+			candidates = append(candidates, detail)
 		}
 
 		return []dto.TeamBuildingGroup{
@@ -158,10 +163,15 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		candidates := []dto.TeamCandidate{}
 		for _, r := range rows {
 			seen[r.ID] = true
-			candidates = append(candidates, dto.TeamCandidate{
+			plain := dto.TeamCandidate{
 				ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
-			})
+			}
+			detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
+			if err != nil {
+				return nil, err
+			}
+			candidates = append(candidates, detail)
 		}
 
 		result = append(result, dto.TeamBuildingGroup{
@@ -182,10 +192,15 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		if seen[r.ID] {
 			continue
 		}
-		national = append(national, dto.TeamCandidate{
+		plain := dto.TeamCandidate{
 			ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
 			Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
-		})
+		}
+		detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
+		if err != nil {
+			return nil, err
+		}
+		national = append(national, detail)
 	}
 
 	if len(national) > 0 {
@@ -195,6 +210,94 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 	}
 
 	return result, nil
+}
+
+func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.TeamCandidate, versionGroupName string, gen int32) (dto.TeamCandidate, error) {
+	abilities, err := s.q.GetPokemonAbilities(ctx, cand.ID)
+	if err != nil {
+		return dto.TeamCandidate{}, err
+	}
+	moveRows, err := s.q.GetPokemonMoves(ctx, cand.ID)
+	if err != nil {
+		return dto.TeamCandidate{}, err
+	}
+
+	abilitiesDto := []dto.CandidateAbility{}
+
+	var matched *store.GetPokemonAbilitiesRow
+	for i := range abilities {
+		if abilities[i].GenRemoved != nil {
+			matched = &abilities[i]
+			break
+		}
+	}
+
+	if matched != nil && gen <= *matched.GenRemoved {
+		hiddenRemoved := false
+		for _, a := range abilities {
+			if a.GenRemoved != nil && a.Hidden {
+				hiddenRemoved = true
+				break
+			}
+		}
+		if hiddenRemoved {
+			for _, a := range abilities {
+				if a.GenRemoved == nil && a.Hidden {
+					continue
+				}
+				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
+					ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
+				})
+			}
+		} else {
+			// special cases, ported verbatim
+			switch cand.ID {
+			case 94:
+				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{ID: 26, Name: "Levitate"})
+			case 275:
+				for _, a := range abilities {
+					if a.AbilityID == 274 {
+						continue
+					}
+					abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
+						ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
+					})
+				}
+			}
+		}
+	} else {
+		for _, a := range abilities {
+			if a.AbilityGen <= gen && a.GenRemoved == nil {
+				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
+					ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
+				})
+			}
+		}
+	}
+
+	seenMoves := map[int32]bool{}
+	movesDto := []dto.CandidateMove{}
+	for _, m := range moveRows {
+		if versionGroupName != "national" {
+			if m.Version == nil || *m.Version != versionGroupName {
+				continue
+			}
+		}
+		if seenMoves[m.MoveID] {
+			continue
+		}
+		seenMoves[m.MoveID] = true
+		movesDto = append(movesDto, dto.CandidateMove{
+			ID: m.MoveID, Name: util.FormatName(m.Name, false),
+			Type: pokeenum.ToDisplay(m.Type), MoveClass: pokeenum.ToDisplay(m.Class),
+		})
+	}
+
+	return dto.TeamCandidate{
+		ID: cand.ID, Name: cand.Name, Type1: cand.Type1, Type2: cand.Type2,
+		Gen: cand.Gen, GenderRate: cand.GenderRate,
+		Abilities: abilitiesDto, Moves: movesDto,
+	}, nil
 }
 
 func nilIfEmptyPtr(s *string) *string {

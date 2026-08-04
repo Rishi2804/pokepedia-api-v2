@@ -21,10 +21,24 @@ type TeamBuildingGroup struct {
 }
 
 type TeamCandidate struct {
-	ID         int32   `json:"id"`
-	Name       string  `json:"name"`
-	Gen        int32   `json:"gen"`
-	Type1      string  `json:"type1"`
-	Type2      *string `json:"type2"`
-	GenderRate int32   `json:"genderRate"`
+	ID         int32              `json:"id"`
+	Name       string             `json:"name"`
+	Gen        int32              `json:"gen"`
+	Type1      string             `json:"type1"`
+	Type2      *string            `json:"type2"`
+	GenderRate int32              `json:"genderRate"`
+	Abilities  []CandidateAbility `json:"abilities"`
+	Moves      []CandidateMove    `json:"moves"`
+}
+
+type CandidateMove struct {
+	ID        int32  `json:"id"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	MoveClass string `json:"moveClass"`
+}
+
+type CandidateAbility struct {
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
 }
