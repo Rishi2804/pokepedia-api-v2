@@ -1,2 +1,5 @@
 .env
 bin/
+
+object_store/data/
+object_store/seed/
