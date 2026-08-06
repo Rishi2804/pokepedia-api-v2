@@ -13,17 +13,20 @@ WHERE name = $1;
 -- name: GetDexNumbers :many
 SELECT species_id, name, num, default_variate, alt_variates
 FROM dexnumber
-WHERE default_variate = $1 OR alt_variates @> ARRAY[$1::int];
+WHERE default_variate = $1 OR alt_variates @> ARRAY[$1::int]
+ORDER BY name;
 
 -- name: GetDexEntries :many
 SELECT pokemon_id, game, entry
 FROM dexentries
-WHERE pokemon_id = $1;
+WHERE pokemon_id = $1
+ORDER BY game;
 
 -- name: GetEvolutionChain :many
 SELECT chain_id, id, from_pokemon, from_display, to_pokemon, to_display,
        details, region, alt_form, next_evo, prev_evo
-FROM get_evolution_chain_by_id($1);
+FROM get_evolution_chain_by_id($1)
+ORDER BY id;
 
 -- name: GetPokemonMoves :many
 SELECT
@@ -35,11 +38,13 @@ SELECT
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
 LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
-WHERE d.pokemon_id = $1;
+WHERE d.pokemon_id = $1
+ORDER BY d.version, d.method, d.level_learned, d.move_id;
 
 -- name: GetPokemonAbilities :many
 SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
        d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
-WHERE d.pokemon_id = $1;
+WHERE d.pokemon_id = $1
+ORDER BY d.hidden, a.id;

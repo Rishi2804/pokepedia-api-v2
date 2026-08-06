@@ -13,6 +13,7 @@ const getDexEntries = `-- name: GetDexEntries :many
 SELECT pokemon_id, game, entry
 FROM dexentries
 WHERE pokemon_id = $1
+ORDER BY game
 `
 
 func (q *Queries) GetDexEntries(ctx context.Context, pokemonID int32) ([]Dexentry, error) {
@@ -39,6 +40,7 @@ const getDexNumbers = `-- name: GetDexNumbers :many
 SELECT species_id, name, num, default_variate, alt_variates
 FROM dexnumber
 WHERE default_variate = $1 OR alt_variates @> ARRAY[$1::int]
+ORDER BY name
 `
 
 func (q *Queries) GetDexNumbers(ctx context.Context, defaultVariate int32) ([]Dexnumber, error) {
@@ -71,6 +73,7 @@ const getEvolutionChain = `-- name: GetEvolutionChain :many
 SELECT chain_id, id, from_pokemon, from_display, to_pokemon, to_display,
        details, region, alt_form, next_evo, prev_evo
 FROM get_evolution_chain_by_id($1)
+ORDER BY id
 `
 
 func (q *Queries) GetEvolutionChain(ctx context.Context, pID int32) ([]Evolution, error) {
@@ -163,6 +166,7 @@ SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
 WHERE d.pokemon_id = $1
+ORDER BY d.hidden, a.id
 `
 
 type GetPokemonAbilitiesRow struct {
@@ -262,6 +266,7 @@ FROM movedetails d
 JOIN move m ON d.move_id = m.id
 LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
 WHERE d.pokemon_id = $1
+ORDER BY d.version, d.method, d.level_learned, d.move_id
 `
 
 type GetPokemonMovesRow struct {

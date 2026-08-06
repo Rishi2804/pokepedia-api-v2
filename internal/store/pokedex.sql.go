@@ -18,7 +18,7 @@ JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE d.name = $2
-ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END
+ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id
 `
 
 type GetDexByRegionParams struct {
@@ -116,7 +116,7 @@ JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE d.name = $2
-ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END
+ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id
 `
 
 type GetTeamCandidatesByRegionParams struct {

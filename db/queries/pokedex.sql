@@ -13,7 +13,7 @@ JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE d.name = $2
-ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END;
+ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id;
 
 -- name: GetTeamCandidatesNational :many
 SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
@@ -30,7 +30,7 @@ JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE d.name = $2
-ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END;
+ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id;
 
 -- name: GetTeamCandidatesNationalByVersionGroup :many
 SELECT DISTINCT p.id, p.name, p.gen, p.gender_rate, p.species_id,
