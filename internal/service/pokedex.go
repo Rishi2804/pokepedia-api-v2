@@ -226,7 +226,7 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 
 	var matched *store.GetPokemonAbilitiesRow
 	for i := range abilities {
-		if abilities[i].GenRemoved != nil {
+		if genRemovedValue(abilities[i].GenRemoved) != 0 {
 			matched = &abilities[i]
 			break
 		}
@@ -235,14 +235,14 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 	if matched != nil && gen <= *matched.GenRemoved {
 		hiddenRemoved := false
 		for _, a := range abilities {
-			if a.GenRemoved != nil && a.Hidden {
+			if genRemovedValue(a.GenRemoved) != 0 && a.Hidden {
 				hiddenRemoved = true
 				break
 			}
 		}
 		if hiddenRemoved {
 			for _, a := range abilities {
-				if a.GenRemoved == nil && a.Hidden {
+				if genRemovedValue(a.GenRemoved) == 0 && a.Hidden {
 					continue
 				}
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
@@ -267,7 +267,7 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 		}
 	} else {
 		for _, a := range abilities {
-			if a.AbilityGen <= gen && a.GenRemoved == nil {
+			if a.AbilityGen <= gen && genRemovedValue(a.GenRemoved) == 0 {
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
 					ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
 				})
@@ -306,4 +306,11 @@ func nilIfEmptyPtr(s *string) *string {
 	}
 	display := pokeenum.ToDisplay(*s)
 	return &display
+}
+
+func genRemovedValue(g *int32) int32 {
+	if g == nil {
+		return 0
+	}
+	return *g
 }

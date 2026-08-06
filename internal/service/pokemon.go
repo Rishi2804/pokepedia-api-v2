@@ -67,6 +67,7 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 		Name:       util.FormatName(p.Name, true),
 		Gen:        p.Gen,
 		Type1:      pokeenum.ToDisplay(p.Type1),
+		Type2:      nilIfEmptyPtr(p.Type2),
 		GenderRate: p.GenderRate,
 		Weight:     p.Weight,
 		Height:     p.Height,
@@ -77,18 +78,16 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 		},
 	}
 
-	if p.Type2 != nil {
-		t2 := pokeenum.ToDisplay(*p.Type2)
-		result.Type2 = &t2
-	}
-
 	for _, a := range abilities {
 		result.Abilities = append(result.Abilities, dto.AbilityInfo{
-			AbilityID:  a.AbilityID,
-			Name:       util.FormatName(a.AbilityName, false),
-			Hidden:     a.Hidden,
-			GenRemoved: a.GenRemoved,
+			ID:       a.AbilityID,
+			Name:     util.FormatName(a.AbilityName, false),
+			IsHidden: a.Hidden,
 		})
+
+		if a.GenRemoved == nil || *a.GenRemoved == 0 {
+			result.Abilities[len(result.Abilities)-1].GenRemoved = nil
+		}
 	}
 
 	// Dex entries: sort by real game release order (Game.ORDER) BEFORE
@@ -107,8 +106,8 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 
 	for _, d := range dexNumbers {
 		result.DexNumbers = append(result.DexNumbers, dto.DexNumberInfo{
-			Region: pokeenum.ToDisplay(d.Name),
-			Num:    d.Num,
+			DexName:   pokeenum.ToDisplay(d.Name),
+			DexNumber: d.Num,
 		})
 	}
 
@@ -125,7 +124,7 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 		})
 	}
 
-	result.Moveset = groupMoveset(moves)
+	result.Movesets = groupMoveset(moves)
 
 	return result, nil
 }
@@ -142,7 +141,7 @@ func groupMoveset(moves []store.GetPokemonMovesRow) []dto.VersionMoveset {
 		byVersion[*m.Version] = append(byVersion[*m.Version], m)
 	}
 
-	var versions []string
+	versions := []string{}
 	for v := range byVersion {
 		versions = append(versions, v)
 	}
@@ -150,14 +149,14 @@ func groupMoveset(moves []store.GetPokemonMovesRow) []dto.VersionMoveset {
 		return pokeenum.VersionGroupIndex(versions[i]) < pokeenum.VersionGroupIndex(versions[j])
 	})
 
-	var result []dto.VersionMoveset
+	result := []dto.VersionMoveset{}
 	for _, v := range versions {
 		byMethod := map[string][]store.GetPokemonMovesRow{}
 		for _, m := range byVersion[v] {
 			byMethod[m.Method] = append(byMethod[m.Method], m)
 		}
 
-		var methods []string
+		methods := []string{}
 		for m := range byMethod {
 			methods = append(methods, m)
 		}
@@ -165,20 +164,20 @@ func groupMoveset(moves []store.GetPokemonMovesRow) []dto.VersionMoveset {
 			return pokeenum.LearnMethodIndex(methods[i]) < pokeenum.LearnMethodIndex(methods[j])
 		})
 
-		var methodSets []dto.LearnMethodSet
+		methodSets := []dto.LearnMethodSet{}
 		for _, method := range methods {
 			moveList := byMethod[method]
 			sort.SliceStable(moveList, func(i, j int) bool {
 				return moveList[i].LevelLearned < moveList[j].LevelLearned
 			})
 
-			var moveInfos []dto.MoveInfo
+			moveInfos := []dto.MoveInfo{}
 			for _, m := range moveList {
 				moveInfos = append(moveInfos, dto.MoveInfo{
-					MoveID:       m.MoveID,
+					ID:           m.MoveID,
 					Name:         util.FormatName(m.Name, false),
 					Type:         pokeenum.ToDisplay(m.Type),
-					Class:        pokeenum.ToDisplay(m.Class),
+					MoveClass:    pokeenum.ToDisplay(m.Class),
 					Power:        m.Power,
 					Accuracy:     m.Accuracy,
 					PP:           m.Pp,

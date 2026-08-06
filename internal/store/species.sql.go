@@ -9,40 +9,23 @@ import (
 	"context"
 )
 
-const getPokemonSummariesBySpeciesID = `-- name: GetPokemonSummariesBySpeciesID :many
-SELECT id, name, gen, type1, COALESCE(type2::text, '') AS type2
-FROM pokemon
-WHERE species_id = $1
-ORDER BY id
+const getPokemonIdsBySpeciesID = `-- name: GetPokemonIdsBySpeciesID :many
+SELECT id FROM pokemon WHERE species_id = $1 ORDER BY id ASC
 `
 
-type GetPokemonSummariesBySpeciesIDRow struct {
-	ID    int32   `json:"id"`
-	Name  string  `json:"name"`
-	Gen   int32   `json:"gen"`
-	Type1 string  `json:"type1"`
-	Type2 *string `json:"type2"`
-}
-
-func (q *Queries) GetPokemonSummariesBySpeciesID(ctx context.Context, speciesID int32) ([]GetPokemonSummariesBySpeciesIDRow, error) {
-	rows, err := q.db.Query(ctx, getPokemonSummariesBySpeciesID, speciesID)
+func (q *Queries) GetPokemonIdsBySpeciesID(ctx context.Context, speciesID int32) ([]int32, error) {
+	rows, err := q.db.Query(ctx, getPokemonIdsBySpeciesID, speciesID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetPokemonSummariesBySpeciesIDRow
+	var items []int32
 	for rows.Next() {
-		var i GetPokemonSummariesBySpeciesIDRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Gen,
-			&i.Type1,
-			&i.Type2,
-		); err != nil {
+		var id int32
+		if err := rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -70,4 +53,15 @@ func (q *Queries) GetSpeciesByName(ctx context.Context, name *string) (Species, 
 	var i Species
 	err := row.Scan(&i.ID, &i.Name)
 	return i, err
+}
+
+const getSpeciesIdFromPokemon = `-- name: GetSpeciesIdFromPokemon :one
+SELECT species_id FROM pokemon WHERE id = $1
+`
+
+func (q *Queries) GetSpeciesIdFromPokemon(ctx context.Context, id int32) (int32, error) {
+	row := q.db.QueryRow(ctx, getSpeciesIdFromPokemon, id)
+	var species_id int32
+	err := row.Scan(&species_id)
+	return species_id, err
 }

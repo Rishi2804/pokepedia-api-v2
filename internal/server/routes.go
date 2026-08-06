@@ -11,7 +11,7 @@ import (
 func (s *Server) registerRoutes(r chi.Router) {
 	queries := store.New(s.pool)
 	pokemonService := service.NewPokemonService(queries)
-	speciesService := service.NewSpeciesService(queries)
+	speciesService := service.NewSpeciesService(queries, pokemonService)
 	pokedexService := service.NewPokedexService(queries)
 	movesService := service.NewMovesService(queries)
 	abilitiesService := service.NewAbilitiesService(queries)

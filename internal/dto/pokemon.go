@@ -16,7 +16,7 @@ type PokemonDetail struct {
 	DexEntries []DexEntry       `json:"dexEntries"`
 	DexNumbers []DexNumberInfo  `json:"dexNumbers"`
 	Evolution  []EvolutionLine  `json:"evolutionChain"`
-	Moveset    []VersionMoveset `json:"moveset"`
+	Movesets   []VersionMoveset `json:"movesets"`
 }
 
 type Stats struct {
@@ -30,9 +30,9 @@ type Stats struct {
 }
 
 type AbilityInfo struct {
-	AbilityID  int32  `json:"abilityId"`
+	ID         int32  `json:"id"`
 	Name       string `json:"name"`
-	Hidden     bool   `json:"hidden"`
+	IsHidden   bool   `json:"isHidden"`
 	GenRemoved *int32 `json:"genRemoved"`
 }
 
@@ -42,8 +42,8 @@ type DexEntry struct {
 }
 
 type DexNumberInfo struct {
-	Region string `json:"region"`
-	Num    int32  `json:"num"`
+	DexName   string `json:"dexName"`
+	DexNumber int32  `json:"dexNumber"`
 }
 
 type EvolutionLine struct {
@@ -63,15 +63,15 @@ type VersionMoveset struct {
 }
 
 type LearnMethodSet struct {
-	Method string     `json:"learnMethod"`
+	Method string     `json:"method"`
 	Moves  []MoveInfo `json:"moves"`
 }
 
 type MoveInfo struct {
-	MoveID       int32  `json:"moveId"`
+	ID           int32  `json:"id"`
 	Name         string `json:"name"`
 	Type         string `json:"type"`
-	Class        string `json:"class"`
+	MoveClass    string `json:"moveClass"`
 	Power        *int32 `json:"power"`
 	Accuracy     *int32 `json:"accuracy"`
 	PP           *int32 `json:"pp"`
