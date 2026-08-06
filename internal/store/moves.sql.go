@@ -162,7 +162,7 @@ func (q *Queries) GetPastMoveValues(ctx context.Context, id int32) ([]Pastmoveva
 }
 
 const getPokemonLearnableMove = `-- name: GetPokemonLearnableMove :many
-SELECT DISTINCT p.species_id, p.id, p.name, p.type1, COALESCE(type2::text, '') AS type2, md.method
+SELECT DISTINCT p.species_id, p.id, p.name, p.type1, type2, md.method
 FROM movedetails md
 JOIN pokemon p ON p.id = md.pokemon_id
 WHERE md.move_id = $1

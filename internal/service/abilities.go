@@ -67,7 +67,7 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRo
 			ID:        p.ID,
 			Name:      util.FormatName(p.Name, true),
 			Type1:     pokeenum.ToDisplay(p.Type1),
-			Type2:     nilIfEmptyPtr(p.Type2),
+			Type2:     displayPtr(p.Type2),
 		})
 	}
 

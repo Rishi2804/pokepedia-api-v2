@@ -1,11 +1,11 @@
 -- name: GetPokemon :one
-SELECT id, species_id, name, gen, type1, COALESCE(type2::text, '') AS type2, weight, height, gender_rate,
+SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE id = $1;
 
 -- name: GetPokemonByName :one
-SELECT id, species_id, name, gen, type1, COALESCE(type2::text, '') AS type2, weight, height, gender_rate,
+SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE name = $1;
@@ -28,7 +28,7 @@ FROM get_evolution_chain_by_id($1);
 -- name: GetPokemonMoves :many
 SELECT
     d.move_id, m.name, m.type, d.level_learned, d.method,
-    COALESCE(d.version::text, '') AS version, m.class,
+    d.version, m.class,
     COALESCE(pmv.power, m.power) AS power,
     COALESCE(pmv.accuracy, m.accuracy) AS accuracy,
     COALESCE(pmv.pp, m.pp) AS pp
@@ -39,7 +39,7 @@ WHERE d.pokemon_id = $1;
 
 -- name: GetPokemonAbilities :many
 SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
-       d.hidden, COALESCE(d.gen::int, 0) AS gen_removed
+       d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
 WHERE d.pokemon_id = $1;

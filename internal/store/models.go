@@ -299,10 +299,10 @@ type Ability struct {
 }
 
 type Abilitydetail struct {
-	PokemonID int32       `json:"pokemon_id"`
-	AbilityID int32       `json:"ability_id"`
-	Hidden    bool        `json:"hidden"`
-	Gen       interface{} `json:"gen"`
+	PokemonID int32  `json:"pokemon_id"`
+	AbilityID int32  `json:"ability_id"`
+	Hidden    bool   `json:"hidden"`
+	Gen       *int32 `json:"gen"`
 }
 
 type Dexentry struct {
@@ -352,11 +352,11 @@ type Move struct {
 }
 
 type Movedetail struct {
-	PokemonID    int32  `json:"pokemon_id"`
-	MoveID       int32  `json:"move_id"`
-	Method       string `json:"method"`
-	LevelLearned int32  `json:"level_learned"`
-	Version      *Group `json:"version"`
+	PokemonID    int32   `json:"pokemon_id"`
+	MoveID       int32   `json:"move_id"`
+	Method       string  `json:"method"`
+	LevelLearned int32   `json:"level_learned"`
+	Version      *string `json:"version"`
 }
 
 type Pastmovevalue struct {
@@ -368,10 +368,10 @@ type Pastmovevalue struct {
 }
 
 type Pasttype struct {
-	PokemonID int32  `json:"pokemon_id"`
-	Type1     string `json:"type1"`
-	Type2     *Ptype `json:"type2"`
-	Gen       int32  `json:"gen"`
+	PokemonID int32   `json:"pokemon_id"`
+	Type1     string  `json:"type1"`
+	Type2     *string `json:"type2"`
+	Gen       int32   `json:"gen"`
 }
 
 type Pokemon struct {
@@ -379,7 +379,7 @@ type Pokemon struct {
 	Name       string   `json:"name"`
 	Gen        int32    `json:"gen"`
 	Type1      string   `json:"type1"`
-	Type2      *Ptype   `json:"type2"`
+	Type2      *string  `json:"type2"`
 	Weight     float64  `json:"weight"`
 	Height     float64  `json:"height"`
 	GenderRate int32    `json:"gender_rate"`

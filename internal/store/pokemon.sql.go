@@ -106,7 +106,7 @@ func (q *Queries) GetEvolutionChain(ctx context.Context, pID int32) ([]Evolution
 }
 
 const getPokemon = `-- name: GetPokemon :one
-SELECT id, species_id, name, gen, type1, COALESCE(type2::text, '') AS type2, weight, height, gender_rate,
+SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE id = $1
@@ -159,7 +159,7 @@ func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, erro
 
 const getPokemonAbilities = `-- name: GetPokemonAbilities :many
 SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
-       d.hidden, COALESCE(d.gen::int, 0) AS gen_removed
+       d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
 WHERE d.pokemon_id = $1
@@ -200,7 +200,7 @@ func (q *Queries) GetPokemonAbilities(ctx context.Context, pokemonID int32) ([]G
 }
 
 const getPokemonByName = `-- name: GetPokemonByName :one
-SELECT id, species_id, name, gen, type1, COALESCE(type2::text, '') AS type2, weight, height, gender_rate,
+SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE name = $1
@@ -254,7 +254,7 @@ func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemon
 const getPokemonMoves = `-- name: GetPokemonMoves :many
 SELECT
     d.move_id, m.name, m.type, d.level_learned, d.method,
-    COALESCE(d.version::text, '') AS version, m.class,
+    d.version, m.class,
     COALESCE(pmv.power, m.power) AS power,
     COALESCE(pmv.accuracy, m.accuracy) AS accuracy,
     COALESCE(pmv.pp, m.pp) AS pp

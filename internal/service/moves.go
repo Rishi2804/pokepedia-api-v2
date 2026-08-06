@@ -150,7 +150,7 @@ func groupPokemonLearnable(rows []store.GetPokemonLearnableMoveRow) []dto.Pokemo
 				ID:        r.ID,
 				Name:      util.FormatName(r.Name, true),
 				Type1:     pokeenum.ToDisplay(r.Type1),
-				Type2:     nilIfEmptyPtr(r.Type2),
+				Type2:     displayPtr(r.Type2),
 			}
 			pokemon = append(pokemon, entry)
 		}

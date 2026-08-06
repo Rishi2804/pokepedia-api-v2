@@ -46,7 +46,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 					DexNumber: r.SpeciesID, SpeciesID: r.SpeciesID, PokemonID: r.ID,
 					Name: formatNullableName(r.Name), Gen: r.Gen,
 					Type1: pokeenum.ToDisplay(r.Type1),
-					Type2: nilIfEmptyPtr(r.Type2),
+					Type2: displayPtr(r.Type2),
 				})
 			}
 
@@ -99,7 +99,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 				DexNumber: r.Num, SpeciesID: r.SpeciesID, PokemonID: r.ID,
 				Name: formatNullableName(r.Name), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1),
-				Type2: nilIfEmptyPtr(r.Type2),
+				Type2: displayPtr(r.Type2),
 			})
 		}
 		response = append(response, dto.PokedexRegionGroup{
@@ -130,7 +130,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		for _, r := range rows {
 			plain := dto.TeamCandidate{
 				ID: r.ID, Name: util.FormatName(*r.Name, true), Gen: r.Gen,
-				Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
+				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 			detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
 			if err != nil {
@@ -165,7 +165,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			seen[r.ID] = true
 			plain := dto.TeamCandidate{
 				ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
-				Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
+				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 			detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
 			if err != nil {
@@ -194,7 +194,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		}
 		plain := dto.TeamCandidate{
 			ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
-			Type1: pokeenum.ToDisplay(r.Type1), Type2: nilIfEmptyPtr(r.Type2), GenderRate: r.GenderRate,
+			Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 		}
 		detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
 		if err != nil {
@@ -226,7 +226,7 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 
 	var matched *store.GetPokemonAbilitiesRow
 	for i := range abilities {
-		if genRemovedValue(abilities[i].GenRemoved) != 0 {
+		if abilities[i].GenRemoved != nil {
 			matched = &abilities[i]
 			break
 		}
@@ -235,14 +235,14 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 	if matched != nil && gen <= *matched.GenRemoved {
 		hiddenRemoved := false
 		for _, a := range abilities {
-			if genRemovedValue(a.GenRemoved) != 0 && a.Hidden {
+			if a.GenRemoved != nil && a.Hidden {
 				hiddenRemoved = true
 				break
 			}
 		}
 		if hiddenRemoved {
 			for _, a := range abilities {
-				if genRemovedValue(a.GenRemoved) == 0 && a.Hidden {
+				if a.GenRemoved == nil && a.Hidden {
 					continue
 				}
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
@@ -267,7 +267,7 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 		}
 	} else {
 		for _, a := range abilities {
-			if a.AbilityGen <= gen && genRemovedValue(a.GenRemoved) == 0 {
+			if a.AbilityGen <= gen && a.GenRemoved == nil {
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
 					ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
 				})
@@ -300,17 +300,10 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 	}, nil
 }
 
-func nilIfEmptyPtr(s *string) *string {
-	if s == nil || *s == "" {
+func displayPtr(s *string) *string {
+	if s == nil {
 		return nil
 	}
 	display := pokeenum.ToDisplay(*s)
 	return &display
-}
-
-func genRemovedValue(g *int32) int32 {
-	if g == nil {
-		return 0
-	}
-	return *g
 }

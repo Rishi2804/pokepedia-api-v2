@@ -67,7 +67,7 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 		Name:       util.FormatName(p.Name, true),
 		Gen:        p.Gen,
 		Type1:      pokeenum.ToDisplay(p.Type1),
-		Type2:      nilIfEmptyPtr(p.Type2),
+		Type2:      displayPtr(p.Type2),
 		GenderRate: p.GenderRate,
 		Weight:     p.Weight,
 		Height:     p.Height,
@@ -80,14 +80,11 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 
 	for _, a := range abilities {
 		result.Abilities = append(result.Abilities, dto.AbilityInfo{
-			ID:       a.AbilityID,
-			Name:     util.FormatName(a.AbilityName, false),
-			IsHidden: a.Hidden,
+			ID:         a.AbilityID,
+			Name:       util.FormatName(a.AbilityName, false),
+			IsHidden:   a.Hidden,
+			GenRemoved: a.GenRemoved,
 		})
-
-		if a.GenRemoved == nil || *a.GenRemoved == 0 {
-			result.Abilities[len(result.Abilities)-1].GenRemoved = nil
-		}
 	}
 
 	// Dex entries: sort by real game release order (Game.ORDER) BEFORE

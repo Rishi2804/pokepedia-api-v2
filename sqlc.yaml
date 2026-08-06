@@ -13,13 +13,35 @@ sql:
         emit_json_tags: true
         emit_interface: false
         emit_pointers_for_null_types: true
+        # Nullable variants (nullable: true) are required in addition to the plain
+        # entries above so that nullable enum columns resolve to *string/*int32
+        # instead of the auto-generated *Ptype/*Group wrapper types. The unqualified
+        # "ptype" entry (no "public." prefix) is additionally needed because sqlc
+        # resolves CASE-expression result columns (e.g. pasttypes fallback queries)
+        # under the bare type name, not the schema-qualified one — the qualified
+        # nullable override alone does not match those columns.
         overrides:
           - db_type: "public.generation"
             go_type: "int32"
+          - db_type: "public.generation"
+            nullable: true
+            go_type:
+              type: "int32"
+              pointer: true
           - db_type: "public.stat"
             go_type: "int32"
           - db_type: "public.ptype"
             go_type: "string"
+          - db_type: "public.ptype"
+            nullable: true
+            go_type:
+              type: "string"
+              pointer: true
+          - db_type: "ptype"
+            nullable: true
+            go_type:
+              type: "string"
+              pointer: true
           - db_type: "public.dex"
             go_type: "string"
           - db_type: "public.learnmethod"
@@ -28,5 +50,10 @@ sql:
             go_type: "string"
           - db_type: "public.group"
             go_type: "string"
+          - db_type: "public.group"
+            nullable: true
+            go_type:
+              type: "string"
+              pointer: true
           - db_type: "pg_catalog.numeric"
             go_type: "float64"

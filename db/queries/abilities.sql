@@ -14,7 +14,7 @@ FROM ability
 WHERE name = $1;
 
 -- name: GetPokemonLearnableAbility :many
-SELECT DISTINCT p.id, p.name, p.gen, p.type1, COALESCE(p.type2::text, '') AS type2, p.species_id 
+SELECT DISTINCT p.id, p.name, p.gen, p.type1, p.type2, p.species_id
 FROM abilitydetails
 JOIN pokemon p ON p.id = pokemon_id
 WHERE ability_id = $1
