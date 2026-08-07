@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
@@ -9,6 +10,10 @@ import (
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
+
+// ErrVersionNotFound signals an unrecognised version group name, so handlers can
+// answer 400 rather than conflating it with a missing row or a DB failure.
+var ErrVersionNotFound = errors.New("version group not found")
 
 type PokedexService struct {
 	q *store.Queries
@@ -231,6 +236,49 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 	}
 
 	return result, nil
+}
+
+// GetTeamCandidate returns the single candidate GetTeamCandidates would have placed
+// in one of its groups. The Pokemon must belong to the version group — enforced in
+// SQL — so an id absent from that game yields pgx.ErrNoRows, same as an unknown id.
+func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName string, id int32) (dto.TeamCandidate, error) {
+	vg, err := pokeenum.GetVersionGroup(versionName)
+	if err != nil {
+		return dto.TeamCandidate{}, fmt.Errorf("%w: %s", ErrVersionNotFound, versionName)
+	}
+
+	var plain dto.TeamCandidate
+	if versionName == "national" {
+		row, err := s.q.GetTeamCandidateNationalByID(ctx, id)
+		if err != nil {
+			return dto.TeamCandidate{}, err
+		}
+		plain = dto.TeamCandidate{
+			ID: row.ID, Name: util.FormatName(*row.Name, true), Gen: row.Gen,
+			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
+		}
+	} else {
+		row, err := s.q.GetTeamCandidateByID(ctx, store.GetTeamCandidateByIDParams{
+			Gen:       vg.Gen,
+			PokemonID: id,
+			Regions:   vg.Regions,
+			Version:   versionName,
+		})
+		if err != nil {
+			return dto.TeamCandidate{}, err
+		}
+		plain = dto.TeamCandidate{
+			ID: row.ID, Name: util.FormatName(row.Name, true), Gen: row.Gen,
+			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
+		}
+	}
+
+	abilitiesByID, movesByID, err := s.batchCandidateDetails(ctx, []int32{id}, versionName)
+	if err != nil {
+		return dto.TeamCandidate{}, err
+	}
+
+	return buildCandidateDetail(plain, abilitiesByID[id], movesByID[id], vg.Gen), nil
 }
 
 // batchCandidateDetails fetches abilities and moves for every id in one round

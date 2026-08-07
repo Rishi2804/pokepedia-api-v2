@@ -42,6 +42,44 @@ LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE md.version = $2
 ORDER BY p.species_id, p.id;
 
+-- name: GetTeamCandidateByID :one
+-- Single candidate for a non-national version group. The EXISTS pair is the same
+-- membership union the list endpoint builds — in one of the version group's regional
+-- dexes, or learning a move in that version — so a Pokemon absent from the game
+-- yields no row. The lateral picks the earliest applicable past-typing record
+-- deterministically, which a plain LEFT JOIN could not guarantee for a :one query.
+SELECT p.id, p.name, p.gen, p.gender_rate,
+       COALESCE(pt.type1, p.type1) AS type1,
+       CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
+FROM pokemon p
+LEFT JOIN LATERAL (
+    SELECT type1, type2
+    FROM pasttypes
+    WHERE pokemon_id = p.id AND gen >= sqlc.arg(gen)::public.generation
+    ORDER BY gen
+    LIMIT 1
+) pt ON TRUE
+WHERE p.id = sqlc.arg(pokemon_id)::int
+  AND (
+    EXISTS (
+      SELECT 1 FROM dexnumber d
+      WHERE d.name::text = ANY(sqlc.arg(regions)::text[])
+        AND (d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id])
+    )
+    OR EXISTS (
+      SELECT 1 FROM movedetails md
+      WHERE md.pokemon_id = p.id AND md.version = sqlc.arg(version)::public."group"
+    )
+  );
+
+-- name: GetTeamCandidateNationalByID :one
+-- Mirrors GetTeamCandidatesNational: species name, raw types, and no membership
+-- check since the national list contains every Pokemon.
+SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+FROM pokemon p
+JOIN species s ON s.id = p.species_id
+WHERE p.id = $1;
+
 -- name: GetCandidateAbilitiesByIDs :many
 SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
        d.hidden, d.gen AS gen_removed

@@ -36,7 +36,10 @@ func (s *Server) registerRoutes(r chi.Router) {
 	})
 
 	r.Get("/api/v1/pokedex/{name}", pokedexHandler.GetDex)
-	r.Get("/api/v1/team-building/{version}", pokedexHandler.GetTeamCandidates)
+	r.Route("/api/v1/team-building", func(r chi.Router) {
+		r.Get("/{version}", pokedexHandler.GetTeamCandidates)
+		r.Get("/{version}/{id:[0-9]+}", pokedexHandler.GetTeamCandidate)
+	})
 
 	r.Route("/api/v1/move", func(r chi.Router) {
 		r.Get("/", movesHandler.Get)

@@ -241,6 +241,104 @@ func (q *Queries) GetDexNational(ctx context.Context) ([]GetDexNationalRow, erro
 	return items, nil
 }
 
+const getTeamCandidateByID = `-- name: GetTeamCandidateByID :one
+SELECT p.id, p.name, p.gen, p.gender_rate,
+       COALESCE(pt.type1, p.type1) AS type1,
+       CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
+FROM pokemon p
+LEFT JOIN LATERAL (
+    SELECT type1, type2
+    FROM pasttypes
+    WHERE pokemon_id = p.id AND gen >= $1::public.generation
+    ORDER BY gen
+    LIMIT 1
+) pt ON TRUE
+WHERE p.id = $2::int
+  AND (
+    EXISTS (
+      SELECT 1 FROM dexnumber d
+      WHERE d.name::text = ANY($3::text[])
+        AND (d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id])
+    )
+    OR EXISTS (
+      SELECT 1 FROM movedetails md
+      WHERE md.pokemon_id = p.id AND md.version = $4::public."group"
+    )
+  )
+`
+
+type GetTeamCandidateByIDParams struct {
+	Gen       int32    `json:"gen"`
+	PokemonID int32    `json:"pokemon_id"`
+	Regions   []string `json:"regions"`
+	Version   string   `json:"version"`
+}
+
+type GetTeamCandidateByIDRow struct {
+	ID         int32   `json:"id"`
+	Name       string  `json:"name"`
+	Gen        int32   `json:"gen"`
+	GenderRate int32   `json:"gender_rate"`
+	Type1      string  `json:"type1"`
+	Type2      *string `json:"type2"`
+}
+
+// Single candidate for a non-national version group. The EXISTS pair is the same
+// membership union the list endpoint builds — in one of the version group's regional
+// dexes, or learning a move in that version — so a Pokemon absent from the game
+// yields no row. The lateral picks the earliest applicable past-typing record
+// deterministically, which a plain LEFT JOIN could not guarantee for a :one query.
+func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidateByIDParams) (GetTeamCandidateByIDRow, error) {
+	row := q.db.QueryRow(ctx, getTeamCandidateByID,
+		arg.Gen,
+		arg.PokemonID,
+		arg.Regions,
+		arg.Version,
+	)
+	var i GetTeamCandidateByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Gen,
+		&i.GenderRate,
+		&i.Type1,
+		&i.Type2,
+	)
+	return i, err
+}
+
+const getTeamCandidateNationalByID = `-- name: GetTeamCandidateNationalByID :one
+SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+FROM pokemon p
+JOIN species s ON s.id = p.species_id
+WHERE p.id = $1
+`
+
+type GetTeamCandidateNationalByIDRow struct {
+	ID         int32   `json:"id"`
+	Name       *string `json:"name"`
+	Gen        int32   `json:"gen"`
+	Type1      string  `json:"type1"`
+	Type2      *string `json:"type2"`
+	GenderRate int32   `json:"gender_rate"`
+}
+
+// Mirrors GetTeamCandidatesNational: species name, raw types, and no membership
+// check since the national list contains every Pokemon.
+func (q *Queries) GetTeamCandidateNationalByID(ctx context.Context, id int32) (GetTeamCandidateNationalByIDRow, error) {
+	row := q.db.QueryRow(ctx, getTeamCandidateNationalByID, id)
+	var i GetTeamCandidateNationalByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Gen,
+		&i.Type1,
+		&i.Type2,
+		&i.GenderRate,
+	)
+	return i, err
+}
+
 const getTeamCandidatesByRegion = `-- name: GetTeamCandidatesByRegion :many
 SELECT d.num, p.id, p.name, p.gen, p.gender_rate,
        COALESCE(pt.type1, p.type1) AS type1,
