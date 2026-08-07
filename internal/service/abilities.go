@@ -26,7 +26,7 @@ func (s *AbilitiesService) GetAbilityList(ctx context.Context) ([]dto.AbilitySna
 	for _, r := range rows {
 		response = append(response, dto.AbilitySnap{
 			ID:   r.ID,
-			Name: r.Name,
+			Name: util.FormatName(r.Name, false),
 			Gen:  r.Gen,
 		})
 	}

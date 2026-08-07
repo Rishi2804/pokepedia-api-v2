@@ -93,7 +93,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 		if err != nil {
 			return nil, err
 		}
-		var entries []dto.PokedexEntry
+		entries := []dto.PokedexEntry{}
 		for _, r := range rows {
 			entries = append(entries, dto.PokedexEntry{
 				DexNumber: r.Num, SpeciesID: r.SpeciesID, PokemonID: r.ID,

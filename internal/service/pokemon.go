@@ -128,6 +128,12 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 			HP: p.Hp, Atk: p.Atk, Def: p.Def,
 			SpAtk: p.Spatk, SpDef: p.Spdef, Speed: p.Speed, BST: p.Bst,
 		},
+		// Pre-initialized (not nil) so an empty result serializes as [] to
+		// match legacy behavior, instead of Go's default null for nil slices.
+		Abilities:  []dto.AbilityInfo{},
+		DexEntries: []dto.DexEntry{},
+		DexNumbers: []dto.DexNumberInfo{},
+		Evolution:  []dto.EvolutionLine{},
 	}
 
 	for _, a := range abilities {
