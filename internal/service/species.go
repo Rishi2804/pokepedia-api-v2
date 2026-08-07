@@ -45,7 +45,7 @@ func (s *SpeciesService) GetSpeciesDetailByName(ctx context.Context, name string
 }
 
 func (s *SpeciesService) buildDetail(ctx context.Context, id int32, name *string) (*dto.SpeciesDetail, error) {
-	ids, err := s.q.GetPokemonIdsBySpeciesID(ctx, id)
+	rows, err := s.q.GetPokemonBySpeciesID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,12 +56,16 @@ func (s *SpeciesService) buildDetail(ctx context.Context, id int32, name *string
 	}
 
 	result := &dto.SpeciesDetail{ID: id, Name: displayName, Pokemon: []dto.PokemonDetail{}}
-	for _, pid := range ids {
-		detail, err := s.pokemonService.GetPokemonDetail(ctx, pid)
-		if err != nil {
-			return nil, err
-		}
-		result.Pokemon = append(result.Pokemon, *detail)
+
+	ps := make([]store.GetPokemonRow, len(rows))
+	for i, r := range rows {
+		ps[i] = store.GetPokemonRow(r)
 	}
+	details, err := s.pokemonService.buildDetails(ctx, ps)
+	if err != nil {
+		return nil, err
+	}
+	result.Pokemon = append(result.Pokemon, details...)
+
 	return result, nil
 }

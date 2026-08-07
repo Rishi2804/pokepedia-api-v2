@@ -126,17 +126,24 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			return nil, err
 		}
 
-		candidates := []dto.TeamCandidate{}
-		for _, r := range rows {
-			plain := dto.TeamCandidate{
+		ids := make([]int32, len(rows))
+		plains := make([]dto.TeamCandidate, len(rows))
+		for i, r := range rows {
+			ids[i] = r.ID
+			plains[i] = dto.TeamCandidate{
 				ID: r.ID, Name: util.FormatName(*r.Name, true), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
-			detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
-			if err != nil {
-				return nil, err
-			}
-			candidates = append(candidates, detail)
+		}
+
+		abilitiesByID, movesByID, err := s.batchCandidateDetails(ctx, ids, versionName)
+		if err != nil {
+			return nil, err
+		}
+
+		candidates := make([]dto.TeamCandidate, len(plains))
+		for i, plain := range plains {
+			candidates[i] = buildCandidateDetail(plain, abilitiesByID[plain.ID], movesByID[plain.ID], vg.Gen)
 		}
 
 		return []dto.TeamBuildingGroup{
@@ -160,18 +167,25 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			return nil, err
 		}
 
-		candidates := []dto.TeamCandidate{}
-		for _, r := range rows {
+		ids := make([]int32, len(rows))
+		plains := make([]dto.TeamCandidate, len(rows))
+		for i, r := range rows {
 			seen[r.ID] = true
-			plain := dto.TeamCandidate{
+			ids[i] = r.ID
+			plains[i] = dto.TeamCandidate{
 				ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
-			detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
-			if err != nil {
-				return nil, err
-			}
-			candidates = append(candidates, detail)
+		}
+
+		abilitiesByID, movesByID, err := s.batchCandidateDetails(ctx, ids, versionName)
+		if err != nil {
+			return nil, err
+		}
+
+		candidates := make([]dto.TeamCandidate, len(plains))
+		for i, plain := range plains {
+			candidates[i] = buildCandidateDetail(plain, abilitiesByID[plain.ID], movesByID[plain.ID], vg.Gen)
 		}
 
 		result = append(result, dto.TeamBuildingGroup{
@@ -187,23 +201,30 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		return nil, err
 	}
 
-	national := []dto.TeamCandidate{}
+	nationalIDs := make([]int32, 0, len(nationalRows))
+	nationalPlains := make([]dto.TeamCandidate, 0, len(nationalRows))
 	for _, r := range nationalRows {
 		if seen[r.ID] {
 			continue
 		}
-		plain := dto.TeamCandidate{
+		nationalIDs = append(nationalIDs, r.ID)
+		nationalPlains = append(nationalPlains, dto.TeamCandidate{
 			ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
 			Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
-		}
-		detail, err := s.buildCandidateDetail(ctx, plain, versionName, vg.Gen)
+		})
+	}
+
+	if len(nationalPlains) > 0 {
+		abilitiesByID, movesByID, err := s.batchCandidateDetails(ctx, nationalIDs, versionName)
 		if err != nil {
 			return nil, err
 		}
-		national = append(national, detail)
-	}
 
-	if len(national) > 0 {
+		national := make([]dto.TeamCandidate, len(nationalPlains))
+		for i, plain := range nationalPlains {
+			national[i] = buildCandidateDetail(plain, abilitiesByID[plain.ID], movesByID[plain.ID], vg.Gen)
+		}
+
 		result = append(result, dto.TeamBuildingGroup{
 			ListName: "National", Pokemon: national,
 		})
@@ -212,19 +233,57 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 	return result, nil
 }
 
-func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.TeamCandidate, versionGroupName string, gen int32) (dto.TeamCandidate, error) {
-	abilities, err := s.q.GetPokemonAbilities(ctx, cand.ID)
+// batchCandidateDetails fetches abilities and moves for every id in one round
+// trip each, grouped by pokemon_id. The version filter that buildCandidateDetail
+// used to apply in Go is now expressed as a choice between two SQL queries.
+func (s *PokedexService) batchCandidateDetails(ctx context.Context, ids []int32, versionGroupName string) (
+	map[int32][]store.GetCandidateAbilitiesByIDsRow,
+	map[int32][]store.GetCandidateMovesByIDsRow,
+	error,
+) {
+	abilities, err := s.q.GetCandidateAbilitiesByIDs(ctx, ids)
 	if err != nil {
-		return dto.TeamCandidate{}, err
-	}
-	moveRows, err := s.q.GetPokemonMoves(ctx, cand.ID)
-	if err != nil {
-		return dto.TeamCandidate{}, err
+		return nil, nil, err
 	}
 
+	var moves []store.GetCandidateMovesByIDsRow
+	if versionGroupName == "national" {
+		moves, err = s.q.GetCandidateMovesByIDs(ctx, ids)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		versioned, err := s.q.GetCandidateMovesByIDsAndVersion(ctx, store.GetCandidateMovesByIDsAndVersionParams{
+			PokemonIds: ids,
+			Version:    store.Group(versionGroupName),
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+		moves = make([]store.GetCandidateMovesByIDsRow, len(versioned))
+		for i, m := range versioned {
+			moves[i] = store.GetCandidateMovesByIDsRow(m)
+		}
+	}
+
+	abilitiesByID := map[int32][]store.GetCandidateAbilitiesByIDsRow{}
+	for _, a := range abilities {
+		abilitiesByID[a.PokemonID] = append(abilitiesByID[a.PokemonID], a)
+	}
+	movesByID := map[int32][]store.GetCandidateMovesByIDsRow{}
+	for _, m := range moves {
+		movesByID[m.PokemonID] = append(movesByID[m.PokemonID], m)
+	}
+
+	return abilitiesByID, movesByID, nil
+}
+
+// buildCandidateDetail mirrors the original per-candidate DB-backed version but
+// is pure: abilities/moves are pre-fetched in bulk by batchCandidateDetails.
+func buildCandidateDetail(cand dto.TeamCandidate, abilities []store.GetCandidateAbilitiesByIDsRow, moveRows []store.GetCandidateMovesByIDsRow, gen int32) dto.TeamCandidate {
 	abilitiesDto := []dto.CandidateAbility{}
 
-	var matched *store.GetPokemonAbilitiesRow
+	var matched *store.GetCandidateAbilitiesByIDsRow
 	for i := range abilities {
 		if abilities[i].GenRemoved != nil {
 			matched = &abilities[i]
@@ -278,11 +337,6 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 	seenMoves := map[int32]bool{}
 	movesDto := []dto.CandidateMove{}
 	for _, m := range moveRows {
-		if versionGroupName != "national" {
-			if m.Version == nil || *m.Version != versionGroupName {
-				continue
-			}
-		}
 		if seenMoves[m.MoveID] {
 			continue
 		}
@@ -297,7 +351,7 @@ func (s *PokedexService) buildCandidateDetail(ctx context.Context, cand dto.Team
 		ID: cand.ID, Name: cand.Name, Type1: cand.Type1, Type2: cand.Type2,
 		Gen: cand.Gen, GenderRate: cand.GenderRate,
 		Abilities: abilitiesDto, Moves: movesDto,
-	}, nil
+	}
 }
 
 func displayPtr(s *string) *string {

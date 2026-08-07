@@ -41,3 +41,25 @@ JOIN movedetails md ON p.id = md.pokemon_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE md.version = $2
 ORDER BY p.species_id, p.id;
+
+-- name: GetCandidateAbilitiesByIDs :many
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
+       d.hidden, d.gen AS gen_removed
+FROM abilitydetails d
+JOIN ability a ON a.id = d.ability_id
+WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
+ORDER BY d.pokemon_id, d.hidden, a.id;
+
+-- name: GetCandidateMovesByIDsAndVersion :many
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+FROM movedetails d
+JOIN move m ON d.move_id = m.id
+WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[]) AND d.version = sqlc.arg(version)
+ORDER BY d.pokemon_id, d.move_id;
+
+-- name: GetCandidateMovesByIDs :many
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+FROM movedetails d
+JOIN move m ON d.move_id = m.id
+WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
+ORDER BY d.pokemon_id, d.move_id;

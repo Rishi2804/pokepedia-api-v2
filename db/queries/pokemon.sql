@@ -10,27 +10,28 @@ SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
 FROM pokemon
 WHERE name = $1;
 
--- name: GetDexNumbers :many
-SELECT species_id, name, num, default_variate, alt_variates
-FROM dexnumber
-WHERE default_variate = $1 OR alt_variates @> ARRAY[$1::int]
-ORDER BY name;
+-- name: GetDexNumbersByIDs :many
+SELECT ids.pokemon_id, d.species_id, d.name, d.num, d.default_variate, d.alt_variates
+FROM unnest(sqlc.arg(pokemon_ids)::int[]) AS ids(pokemon_id)
+JOIN dexnumber d ON d.default_variate = ids.pokemon_id OR d.alt_variates @> ARRAY[ids.pokemon_id]
+ORDER BY ids.pokemon_id, d.name;
 
--- name: GetDexEntries :many
+-- name: GetDexEntriesByIDs :many
 SELECT pokemon_id, game, entry
 FROM dexentries
-WHERE pokemon_id = $1
-ORDER BY game;
+WHERE pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
+ORDER BY pokemon_id, game;
 
--- name: GetEvolutionChain :many
-SELECT chain_id, id, from_pokemon, from_display, to_pokemon, to_display,
-       details, region, alt_form, next_evo, prev_evo
-FROM get_evolution_chain_by_id($1)
-ORDER BY id;
+-- name: GetEvolutionChainByIDs :many
+SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_display, e.to_pokemon,
+       e.to_display, e.details, e.region, e.alt_form, e.next_evo, e.prev_evo
+FROM unnest(sqlc.arg(pokemon_ids)::int[]) AS ids(pokemon_id)
+CROSS JOIN LATERAL get_evolution_chain_by_id(ids.pokemon_id) e
+ORDER BY ids.pokemon_id, e.id;
 
--- name: GetPokemonMoves :many
+-- name: GetPokemonMovesByIDs :many
 SELECT
-    d.move_id, m.name, m.type, d.level_learned, d.method,
+    d.pokemon_id, d.move_id, m.name, m.type, d.level_learned, d.method,
     d.version, m.class,
     COALESCE(pmv.power, m.power) AS power,
     COALESCE(pmv.accuracy, m.accuracy) AS accuracy,
@@ -38,13 +39,13 @@ SELECT
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
 LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
-WHERE d.pokemon_id = $1
-ORDER BY d.version, d.method, d.level_learned, d.move_id;
+WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
+ORDER BY d.pokemon_id, d.version, d.method, d.level_learned, d.move_id;
 
--- name: GetPokemonAbilities :many
-SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
+-- name: GetPokemonAbilitiesByIDs :many
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
        d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
-WHERE d.pokemon_id = $1
-ORDER BY d.hidden, a.id;
+WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
+ORDER BY d.pokemon_id, d.hidden, a.id;

@@ -9,23 +9,65 @@ import (
 	"context"
 )
 
-const getPokemonIdsBySpeciesID = `-- name: GetPokemonIdsBySpeciesID :many
-SELECT id FROM pokemon WHERE species_id = $1 ORDER BY id ASC
+const getPokemonBySpeciesID = `-- name: GetPokemonBySpeciesID :many
+SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+       hp, atk, def, spatk, spdef, speed, bst, forms
+FROM pokemon
+WHERE species_id = $1
+ORDER BY id
 `
 
-func (q *Queries) GetPokemonIdsBySpeciesID(ctx context.Context, speciesID int32) ([]int32, error) {
-	rows, err := q.db.Query(ctx, getPokemonIdsBySpeciesID, speciesID)
+type GetPokemonBySpeciesIDRow struct {
+	ID         int32    `json:"id"`
+	SpeciesID  int32    `json:"species_id"`
+	Name       string   `json:"name"`
+	Gen        int32    `json:"gen"`
+	Type1      string   `json:"type1"`
+	Type2      *string  `json:"type2"`
+	Weight     float64  `json:"weight"`
+	Height     float64  `json:"height"`
+	GenderRate int32    `json:"gender_rate"`
+	Hp         int32    `json:"hp"`
+	Atk        int32    `json:"atk"`
+	Def        int32    `json:"def"`
+	Spatk      int32    `json:"spatk"`
+	Spdef      int32    `json:"spdef"`
+	Speed      int32    `json:"speed"`
+	Bst        int32    `json:"bst"`
+	Forms      []string `json:"forms"`
+}
+
+func (q *Queries) GetPokemonBySpeciesID(ctx context.Context, speciesID int32) ([]GetPokemonBySpeciesIDRow, error) {
+	rows, err := q.db.Query(ctx, getPokemonBySpeciesID, speciesID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int32
+	var items []GetPokemonBySpeciesIDRow
 	for rows.Next() {
-		var id int32
-		if err := rows.Scan(&id); err != nil {
+		var i GetPokemonBySpeciesIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SpeciesID,
+			&i.Name,
+			&i.Gen,
+			&i.Type1,
+			&i.Type2,
+			&i.Weight,
+			&i.Height,
+			&i.GenderRate,
+			&i.Hp,
+			&i.Atk,
+			&i.Def,
+			&i.Spatk,
+			&i.Spdef,
+			&i.Speed,
+			&i.Bst,
+			&i.Forms,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

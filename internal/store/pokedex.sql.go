@@ -9,6 +9,140 @@ import (
 	"context"
 )
 
+const getCandidateAbilitiesByIDs = `-- name: GetCandidateAbilitiesByIDs :many
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
+       d.hidden, d.gen AS gen_removed
+FROM abilitydetails d
+JOIN ability a ON a.id = d.ability_id
+WHERE d.pokemon_id = ANY($1::int[])
+ORDER BY d.pokemon_id, d.hidden, a.id
+`
+
+type GetCandidateAbilitiesByIDsRow struct {
+	PokemonID   int32  `json:"pokemon_id"`
+	AbilityID   int32  `json:"ability_id"`
+	AbilityName string `json:"ability_name"`
+	AbilityGen  int32  `json:"ability_gen"`
+	Hidden      bool   `json:"hidden"`
+	GenRemoved  *int32 `json:"gen_removed"`
+}
+
+func (q *Queries) GetCandidateAbilitiesByIDs(ctx context.Context, pokemonIds []int32) ([]GetCandidateAbilitiesByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getCandidateAbilitiesByIDs, pokemonIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCandidateAbilitiesByIDsRow
+	for rows.Next() {
+		var i GetCandidateAbilitiesByIDsRow
+		if err := rows.Scan(
+			&i.PokemonID,
+			&i.AbilityID,
+			&i.AbilityName,
+			&i.AbilityGen,
+			&i.Hidden,
+			&i.GenRemoved,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCandidateMovesByIDs = `-- name: GetCandidateMovesByIDs :many
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+FROM movedetails d
+JOIN move m ON d.move_id = m.id
+WHERE d.pokemon_id = ANY($1::int[])
+ORDER BY d.pokemon_id, d.move_id
+`
+
+type GetCandidateMovesByIDsRow struct {
+	PokemonID int32  `json:"pokemon_id"`
+	MoveID    int32  `json:"move_id"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Class     string `json:"class"`
+}
+
+func (q *Queries) GetCandidateMovesByIDs(ctx context.Context, pokemonIds []int32) ([]GetCandidateMovesByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getCandidateMovesByIDs, pokemonIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCandidateMovesByIDsRow
+	for rows.Next() {
+		var i GetCandidateMovesByIDsRow
+		if err := rows.Scan(
+			&i.PokemonID,
+			&i.MoveID,
+			&i.Name,
+			&i.Type,
+			&i.Class,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCandidateMovesByIDsAndVersion = `-- name: GetCandidateMovesByIDsAndVersion :many
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+FROM movedetails d
+JOIN move m ON d.move_id = m.id
+WHERE d.pokemon_id = ANY($1::int[]) AND d.version = $2
+ORDER BY d.pokemon_id, d.move_id
+`
+
+type GetCandidateMovesByIDsAndVersionParams struct {
+	PokemonIds []int32     `json:"pokemon_ids"`
+	Version    interface{} `json:"version"`
+}
+
+type GetCandidateMovesByIDsAndVersionRow struct {
+	PokemonID int32  `json:"pokemon_id"`
+	MoveID    int32  `json:"move_id"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Class     string `json:"class"`
+}
+
+func (q *Queries) GetCandidateMovesByIDsAndVersion(ctx context.Context, arg GetCandidateMovesByIDsAndVersionParams) ([]GetCandidateMovesByIDsAndVersionRow, error) {
+	rows, err := q.db.Query(ctx, getCandidateMovesByIDsAndVersion, arg.PokemonIds, arg.Version)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCandidateMovesByIDsAndVersionRow
+	for rows.Next() {
+		var i GetCandidateMovesByIDsAndVersionRow
+		if err := rows.Scan(
+			&i.PokemonID,
+			&i.MoveID,
+			&i.Name,
+			&i.Type,
+			&i.Class,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDexByRegion = `-- name: GetDexByRegion :many
 SELECT d.num, p.id, s.name, s.id AS species_id, p.gen,
        COALESCE(pt.type1, p.type1) AS type1,

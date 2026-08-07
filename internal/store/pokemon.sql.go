@@ -9,15 +9,15 @@ import (
 	"context"
 )
 
-const getDexEntries = `-- name: GetDexEntries :many
+const getDexEntriesByIDs = `-- name: GetDexEntriesByIDs :many
 SELECT pokemon_id, game, entry
 FROM dexentries
-WHERE pokemon_id = $1
-ORDER BY game
+WHERE pokemon_id = ANY($1::int[])
+ORDER BY pokemon_id, game
 `
 
-func (q *Queries) GetDexEntries(ctx context.Context, pokemonID int32) ([]Dexentry, error) {
-	rows, err := q.db.Query(ctx, getDexEntries, pokemonID)
+func (q *Queries) GetDexEntriesByIDs(ctx context.Context, pokemonIds []int32) ([]Dexentry, error) {
+	rows, err := q.db.Query(ctx, getDexEntriesByIDs, pokemonIds)
 	if err != nil {
 		return nil, err
 	}
@@ -36,23 +36,33 @@ func (q *Queries) GetDexEntries(ctx context.Context, pokemonID int32) ([]Dexentr
 	return items, nil
 }
 
-const getDexNumbers = `-- name: GetDexNumbers :many
-SELECT species_id, name, num, default_variate, alt_variates
-FROM dexnumber
-WHERE default_variate = $1 OR alt_variates @> ARRAY[$1::int]
-ORDER BY name
+const getDexNumbersByIDs = `-- name: GetDexNumbersByIDs :many
+SELECT ids.pokemon_id, d.species_id, d.name, d.num, d.default_variate, d.alt_variates
+FROM unnest($1::int[]) AS ids(pokemon_id)
+JOIN dexnumber d ON d.default_variate = ids.pokemon_id OR d.alt_variates @> ARRAY[ids.pokemon_id]
+ORDER BY ids.pokemon_id, d.name
 `
 
-func (q *Queries) GetDexNumbers(ctx context.Context, defaultVariate int32) ([]Dexnumber, error) {
-	rows, err := q.db.Query(ctx, getDexNumbers, defaultVariate)
+type GetDexNumbersByIDsRow struct {
+	PokemonID      *int32  `json:"pokemon_id"`
+	SpeciesID      int32   `json:"species_id"`
+	Name           string  `json:"name"`
+	Num            int32   `json:"num"`
+	DefaultVariate int32   `json:"default_variate"`
+	AltVariates    []int32 `json:"alt_variates"`
+}
+
+func (q *Queries) GetDexNumbersByIDs(ctx context.Context, pokemonIds []int32) ([]GetDexNumbersByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getDexNumbersByIDs, pokemonIds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Dexnumber
+	var items []GetDexNumbersByIDsRow
 	for rows.Next() {
-		var i Dexnumber
+		var i GetDexNumbersByIDsRow
 		if err := rows.Scan(
+			&i.PokemonID,
 			&i.SpeciesID,
 			&i.Name,
 			&i.Num,
@@ -69,23 +79,40 @@ func (q *Queries) GetDexNumbers(ctx context.Context, defaultVariate int32) ([]De
 	return items, nil
 }
 
-const getEvolutionChain = `-- name: GetEvolutionChain :many
-SELECT chain_id, id, from_pokemon, from_display, to_pokemon, to_display,
-       details, region, alt_form, next_evo, prev_evo
-FROM get_evolution_chain_by_id($1)
-ORDER BY id
+const getEvolutionChainByIDs = `-- name: GetEvolutionChainByIDs :many
+SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_display, e.to_pokemon,
+       e.to_display, e.details, e.region, e.alt_form, e.next_evo, e.prev_evo
+FROM unnest($1::int[]) AS ids(pokemon_id)
+CROSS JOIN LATERAL get_evolution_chain_by_id(ids.pokemon_id) e
+ORDER BY ids.pokemon_id, e.id
 `
 
-func (q *Queries) GetEvolutionChain(ctx context.Context, pID int32) ([]Evolution, error) {
-	rows, err := q.db.Query(ctx, getEvolutionChain, pID)
+type GetEvolutionChainByIDsRow struct {
+	PokemonID   *int32   `json:"pokemon_id"`
+	ChainID     int32    `json:"chain_id"`
+	ID          int32    `json:"id"`
+	FromPokemon int32    `json:"from_pokemon"`
+	FromDisplay string   `json:"from_display"`
+	ToPokemon   int32    `json:"to_pokemon"`
+	ToDisplay   string   `json:"to_display"`
+	Details     []string `json:"details"`
+	Region      *string  `json:"region"`
+	AltForm     int32    `json:"alt_form"`
+	NextEvo     []int32  `json:"next_evo"`
+	PrevEvo     []int32  `json:"prev_evo"`
+}
+
+func (q *Queries) GetEvolutionChainByIDs(ctx context.Context, pokemonIds []int32) ([]GetEvolutionChainByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getEvolutionChainByIDs, pokemonIds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Evolution
+	var items []GetEvolutionChainByIDsRow
 	for rows.Next() {
-		var i Evolution
+		var i GetEvolutionChainByIDsRow
 		if err := rows.Scan(
+			&i.PokemonID,
 			&i.ChainID,
 			&i.ID,
 			&i.FromPokemon,
@@ -160,16 +187,17 @@ func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, erro
 	return i, err
 }
 
-const getPokemonAbilities = `-- name: GetPokemonAbilities :many
-SELECT a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
+const getPokemonAbilitiesByIDs = `-- name: GetPokemonAbilitiesByIDs :many
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
        d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
-WHERE d.pokemon_id = $1
-ORDER BY d.hidden, a.id
+WHERE d.pokemon_id = ANY($1::int[])
+ORDER BY d.pokemon_id, d.hidden, a.id
 `
 
-type GetPokemonAbilitiesRow struct {
+type GetPokemonAbilitiesByIDsRow struct {
+	PokemonID   int32  `json:"pokemon_id"`
 	AbilityID   int32  `json:"ability_id"`
 	AbilityName string `json:"ability_name"`
 	AbilityGen  int32  `json:"ability_gen"`
@@ -177,16 +205,17 @@ type GetPokemonAbilitiesRow struct {
 	GenRemoved  *int32 `json:"gen_removed"`
 }
 
-func (q *Queries) GetPokemonAbilities(ctx context.Context, pokemonID int32) ([]GetPokemonAbilitiesRow, error) {
-	rows, err := q.db.Query(ctx, getPokemonAbilities, pokemonID)
+func (q *Queries) GetPokemonAbilitiesByIDs(ctx context.Context, pokemonIds []int32) ([]GetPokemonAbilitiesByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getPokemonAbilitiesByIDs, pokemonIds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetPokemonAbilitiesRow
+	var items []GetPokemonAbilitiesByIDsRow
 	for rows.Next() {
-		var i GetPokemonAbilitiesRow
+		var i GetPokemonAbilitiesByIDsRow
 		if err := rows.Scan(
+			&i.PokemonID,
 			&i.AbilityID,
 			&i.AbilityName,
 			&i.AbilityGen,
@@ -255,9 +284,9 @@ func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemon
 	return i, err
 }
 
-const getPokemonMoves = `-- name: GetPokemonMoves :many
+const getPokemonMovesByIDs = `-- name: GetPokemonMovesByIDs :many
 SELECT
-    d.move_id, m.name, m.type, d.level_learned, d.method,
+    d.pokemon_id, d.move_id, m.name, m.type, d.level_learned, d.method,
     d.version, m.class,
     COALESCE(pmv.power, m.power) AS power,
     COALESCE(pmv.accuracy, m.accuracy) AS accuracy,
@@ -265,11 +294,12 @@ SELECT
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
 LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
-WHERE d.pokemon_id = $1
-ORDER BY d.version, d.method, d.level_learned, d.move_id
+WHERE d.pokemon_id = ANY($1::int[])
+ORDER BY d.pokemon_id, d.version, d.method, d.level_learned, d.move_id
 `
 
-type GetPokemonMovesRow struct {
+type GetPokemonMovesByIDsRow struct {
+	PokemonID    int32   `json:"pokemon_id"`
 	MoveID       int32   `json:"move_id"`
 	Name         string  `json:"name"`
 	Type         string  `json:"type"`
@@ -282,16 +312,17 @@ type GetPokemonMovesRow struct {
 	Pp           *int32  `json:"pp"`
 }
 
-func (q *Queries) GetPokemonMoves(ctx context.Context, pokemonID int32) ([]GetPokemonMovesRow, error) {
-	rows, err := q.db.Query(ctx, getPokemonMoves, pokemonID)
+func (q *Queries) GetPokemonMovesByIDs(ctx context.Context, pokemonIds []int32) ([]GetPokemonMovesByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getPokemonMovesByIDs, pokemonIds)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetPokemonMovesRow
+	var items []GetPokemonMovesByIDsRow
 	for rows.Next() {
-		var i GetPokemonMovesRow
+		var i GetPokemonMovesByIDsRow
 		if err := rows.Scan(
+			&i.PokemonID,
 			&i.MoveID,
 			&i.Name,
 			&i.Type,

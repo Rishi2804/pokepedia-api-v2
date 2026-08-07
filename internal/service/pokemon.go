@@ -25,7 +25,11 @@ func (s *PokemonService) GetPokemonDetail(ctx context.Context, id int32) (*dto.P
 	if err != nil {
 		return nil, err
 	}
-	return s.buildDetail(ctx, p)
+	details, err := s.buildDetails(ctx, []store.GetPokemonRow{p})
+	if err != nil {
+		return nil, err
+	}
+	return &details[0], nil
 }
 
 // GetPokemonDetailByName mirrors getPokemonByName. GetPokemonRow and
@@ -36,32 +40,80 @@ func (s *PokemonService) GetPokemonDetailByName(ctx context.Context, name string
 	if err != nil {
 		return nil, err
 	}
-	return s.buildDetail(ctx, store.GetPokemonRow(p))
+	details, err := s.buildDetails(ctx, []store.GetPokemonRow{store.GetPokemonRow(p)})
+	if err != nil {
+		return nil, err
+	}
+	return &details[0], nil
 }
 
-func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow) (*dto.PokemonDetail, error) {
-	dexNumbers, err := s.q.GetDexNumbers(ctx, p.ID)
+// buildDetails composes the detail response for a batch of pokemon rows using
+// five bulk queries (one round trip each) instead of five per pokemon.
+func (s *PokemonService) buildDetails(ctx context.Context, ps []store.GetPokemonRow) ([]dto.PokemonDetail, error) {
+	ids := make([]int32, len(ps))
+	for i, p := range ps {
+		ids[i] = p.ID
+	}
+
+	dexNumbers, err := s.q.GetDexNumbersByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
-	dexEntries, err := s.q.GetDexEntries(ctx, p.ID)
+	dexEntries, err := s.q.GetDexEntriesByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
-	evolution, err := s.q.GetEvolutionChain(ctx, p.ID)
+	evolution, err := s.q.GetEvolutionChainByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
-	moves, err := s.q.GetPokemonMoves(ctx, p.ID)
+	moves, err := s.q.GetPokemonMovesByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
-	abilities, err := s.q.GetPokemonAbilities(ctx, p.ID)
+	abilities, err := s.q.GetPokemonAbilitiesByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &dto.PokemonDetail{
+	dexNumbersByID := map[int32][]store.GetDexNumbersByIDsRow{}
+	for _, d := range dexNumbers {
+		if d.PokemonID == nil {
+			continue
+		}
+		dexNumbersByID[*d.PokemonID] = append(dexNumbersByID[*d.PokemonID], d)
+	}
+	dexEntriesByID := map[int32][]store.Dexentry{}
+	for _, d := range dexEntries {
+		dexEntriesByID[d.PokemonID] = append(dexEntriesByID[d.PokemonID], d)
+	}
+	evolutionByID := map[int32][]store.GetEvolutionChainByIDsRow{}
+	for _, e := range evolution {
+		if e.PokemonID == nil {
+			continue
+		}
+		evolutionByID[*e.PokemonID] = append(evolutionByID[*e.PokemonID], e)
+	}
+	movesByID := map[int32][]store.GetPokemonMovesByIDsRow{}
+	for _, m := range moves {
+		movesByID[m.PokemonID] = append(movesByID[m.PokemonID], m)
+	}
+	abilitiesByID := map[int32][]store.GetPokemonAbilitiesByIDsRow{}
+	for _, a := range abilities {
+		abilitiesByID[a.PokemonID] = append(abilitiesByID[a.PokemonID], a)
+	}
+
+	results := make([]dto.PokemonDetail, len(ps))
+	for i, p := range ps {
+		results[i] = assembleDetail(p, dexNumbersByID[p.ID], dexEntriesByID[p.ID], evolutionByID[p.ID], movesByID[p.ID], abilitiesByID[p.ID])
+	}
+	return results, nil
+}
+
+// assembleDetail is the pure assembly step split out of the old buildDetail:
+// no ctx, no DB, just DTO composition from already-fetched rows.
+func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDsRow, dexEntries []store.Dexentry, evolution []store.GetEvolutionChainByIDsRow, moves []store.GetPokemonMovesByIDsRow, abilities []store.GetPokemonAbilitiesByIDsRow) dto.PokemonDetail {
+	result := dto.PokemonDetail{
 		ID:         p.ID,
 		SpeciesID:  p.SpeciesID,
 		Name:       util.FormatName(p.Name, true),
@@ -123,14 +175,14 @@ func (s *PokemonService) buildDetail(ctx context.Context, p store.GetPokemonRow)
 
 	result.Movesets = groupMoveset(moves)
 
-	return result, nil
+	return result
 }
 
 // groupMoveset mirrors mapToMovesetDtoHelper: group by version group
 // (sorted by VersionGroup.ORDER), then by learn method (sorted by
 // LearnMethod.ORDER), then moves sorted by level learned within each group.
-func groupMoveset(moves []store.GetPokemonMovesRow) []dto.VersionMoveset {
-	byVersion := map[string][]store.GetPokemonMovesRow{}
+func groupMoveset(moves []store.GetPokemonMovesByIDsRow) []dto.VersionMoveset {
+	byVersion := map[string][]store.GetPokemonMovesByIDsRow{}
 	for _, m := range moves {
 		if m.Version == nil {
 			continue // schema allows null; shouldn't occur in practice
@@ -148,7 +200,7 @@ func groupMoveset(moves []store.GetPokemonMovesRow) []dto.VersionMoveset {
 
 	result := []dto.VersionMoveset{}
 	for _, v := range versions {
-		byMethod := map[string][]store.GetPokemonMovesRow{}
+		byMethod := map[string][]store.GetPokemonMovesByIDsRow{}
 		for _, m := range byVersion[v] {
 			byMethod[m.Method] = append(byMethod[m.Method], m)
 		}
