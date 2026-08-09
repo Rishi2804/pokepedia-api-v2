@@ -28,6 +28,7 @@ type TeamBuildingGroup struct {
 type TeamCandidateSummary struct {
 	ID         int32   `json:"id"`
 	Name       string  `json:"name"`
+	Slug       string  `json:"slug"`
 	Gen        int32   `json:"gen"`
 	Type1      string  `json:"type1"`
 	Type2      *string `json:"type2"`

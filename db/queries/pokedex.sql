@@ -16,7 +16,10 @@ WHERE d.name = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id;
 
 -- name: GetTeamCandidatesNational :many
-SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+-- p.name (not s.name) so an alternate form's own name/slug is used, not its
+-- species' base name — a national Alolan Raichu must read "raichu-alola",
+-- not "raichu", the same way the regional queries below already do.
+SELECT s.id AS num, s.id AS species_id, p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 ORDER BY s.id, p.id ASC;
@@ -74,12 +77,12 @@ WHERE p.id = sqlc.arg(pokemon_id)::int
   );
 
 -- name: GetTeamCandidateNationalByID :one
--- Mirrors GetTeamCandidatesNational: species name, raw types, and no membership
--- check since the national list contains every Pokemon.
-SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate,
+-- Mirrors GetTeamCandidatesNational: the pokemon's own name (so an alternate
+-- form's name/slug is used, not its species' base name), raw types, and no
+-- membership check since the national list contains every Pokemon.
+SELECT p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate,
        p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst
 FROM pokemon p
-JOIN species s ON s.id = p.species_id
 WHERE p.id = $1;
 
 -- name: GetCandidateAbilitiesByIDs :many

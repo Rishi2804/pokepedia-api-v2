@@ -134,7 +134,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		candidates := make([]dto.TeamCandidateSummary, len(rows))
 		for i, r := range rows {
 			candidates[i] = dto.TeamCandidateSummary{
-				ID: r.ID, Name: util.FormatName(*r.Name, true), Gen: r.Gen,
+				ID: r.ID, Name: util.FormatName(r.Name, true), Slug: r.Name, Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 		}
@@ -164,7 +164,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		for i, r := range rows {
 			seen[r.ID] = true
 			candidates[i] = dto.TeamCandidateSummary{
-				ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
+				ID: r.ID, Name: util.FormatName(r.Name, true), Slug: r.Name, Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 		}
@@ -188,7 +188,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			continue
 		}
 		national = append(national, dto.TeamCandidateSummary{
-			ID: r.ID, Name: util.FormatName(r.Name, true), Gen: r.Gen,
+			ID: r.ID, Name: util.FormatName(r.Name, true), Slug: r.Name, Gen: r.Gen,
 			Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 		})
 	}
@@ -219,7 +219,7 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 			return dto.TeamCandidate{}, err
 		}
 		plain = dto.TeamCandidateSummary{
-			ID: row.ID, Name: util.FormatName(*row.Name, true), Gen: row.Gen,
+			ID: row.ID, Name: util.FormatName(row.Name, true), Slug: row.Name, Gen: row.Gen,
 			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
 		}
 		stats = dto.Stats{
@@ -237,7 +237,7 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 			return dto.TeamCandidate{}, err
 		}
 		plain = dto.TeamCandidateSummary{
-			ID: row.ID, Name: util.FormatName(row.Name, true), Gen: row.Gen,
+			ID: row.ID, Name: util.FormatName(row.Name, true), Slug: row.Name, Gen: row.Gen,
 			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
 		}
 		stats = dto.Stats{
