@@ -49,6 +49,7 @@ ORDER BY p.species_id, p.id;
 -- yields no row. The lateral picks the earliest applicable past-typing record
 -- deterministically, which a plain LEFT JOIN could not guarantee for a :one query.
 SELECT p.id, p.name, p.gen, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM pokemon p
@@ -75,7 +76,8 @@ WHERE p.id = sqlc.arg(pokemon_id)::int
 -- name: GetTeamCandidateNationalByID :one
 -- Mirrors GetTeamCandidatesNational: species name, raw types, and no membership
 -- check since the national list contains every Pokemon.
-SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 WHERE p.id = $1;

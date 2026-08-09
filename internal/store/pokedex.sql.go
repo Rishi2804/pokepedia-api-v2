@@ -243,6 +243,7 @@ func (q *Queries) GetDexNational(ctx context.Context) ([]GetDexNationalRow, erro
 
 const getTeamCandidateByID = `-- name: GetTeamCandidateByID :one
 SELECT p.id, p.name, p.gen, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM pokemon p
@@ -279,6 +280,13 @@ type GetTeamCandidateByIDRow struct {
 	Name       string  `json:"name"`
 	Gen        int32   `json:"gen"`
 	GenderRate int32   `json:"gender_rate"`
+	Hp         int32   `json:"hp"`
+	Atk        int32   `json:"atk"`
+	Def        int32   `json:"def"`
+	Spatk      int32   `json:"spatk"`
+	Spdef      int32   `json:"spdef"`
+	Speed      int32   `json:"speed"`
+	Bst        int32   `json:"bst"`
 	Type1      string  `json:"type1"`
 	Type2      *string `json:"type2"`
 }
@@ -301,6 +309,13 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 		&i.Name,
 		&i.Gen,
 		&i.GenderRate,
+		&i.Hp,
+		&i.Atk,
+		&i.Def,
+		&i.Spatk,
+		&i.Spdef,
+		&i.Speed,
+		&i.Bst,
 		&i.Type1,
 		&i.Type2,
 	)
@@ -308,7 +323,8 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 }
 
 const getTeamCandidateNationalByID = `-- name: GetTeamCandidateNationalByID :one
-SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 WHERE p.id = $1
@@ -321,6 +337,13 @@ type GetTeamCandidateNationalByIDRow struct {
 	Type1      string  `json:"type1"`
 	Type2      *string `json:"type2"`
 	GenderRate int32   `json:"gender_rate"`
+	Hp         int32   `json:"hp"`
+	Atk        int32   `json:"atk"`
+	Def        int32   `json:"def"`
+	Spatk      int32   `json:"spatk"`
+	Spdef      int32   `json:"spdef"`
+	Speed      int32   `json:"speed"`
+	Bst        int32   `json:"bst"`
 }
 
 // Mirrors GetTeamCandidatesNational: species name, raw types, and no membership
@@ -335,6 +358,13 @@ func (q *Queries) GetTeamCandidateNationalByID(ctx context.Context, id int32) (G
 		&i.Type1,
 		&i.Type2,
 		&i.GenderRate,
+		&i.Hp,
+		&i.Atk,
+		&i.Def,
+		&i.Spatk,
+		&i.Spdef,
+		&i.Speed,
+		&i.Bst,
 	)
 	return i, err
 }
