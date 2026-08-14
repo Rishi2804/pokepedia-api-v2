@@ -243,6 +243,7 @@ func (q *Queries) GetDexNational(ctx context.Context) ([]GetDexNationalRow, erro
 
 const getTeamCandidateByID = `-- name: GetTeamCandidateByID :one
 SELECT p.id, p.name, p.gen, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM pokemon p
@@ -279,6 +280,13 @@ type GetTeamCandidateByIDRow struct {
 	Name       string  `json:"name"`
 	Gen        int32   `json:"gen"`
 	GenderRate int32   `json:"gender_rate"`
+	Hp         int32   `json:"hp"`
+	Atk        int32   `json:"atk"`
+	Def        int32   `json:"def"`
+	Spatk      int32   `json:"spatk"`
+	Spdef      int32   `json:"spdef"`
+	Speed      int32   `json:"speed"`
+	Bst        int32   `json:"bst"`
 	Type1      string  `json:"type1"`
 	Type2      *string `json:"type2"`
 }
@@ -301,6 +309,13 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 		&i.Name,
 		&i.Gen,
 		&i.GenderRate,
+		&i.Hp,
+		&i.Atk,
+		&i.Def,
+		&i.Spatk,
+		&i.Spdef,
+		&i.Speed,
+		&i.Bst,
 		&i.Type1,
 		&i.Type2,
 	)
@@ -308,23 +323,31 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 }
 
 const getTeamCandidateNationalByID = `-- name: GetTeamCandidateNationalByID :one
-SELECT p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+SELECT p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst
 FROM pokemon p
-JOIN species s ON s.id = p.species_id
 WHERE p.id = $1
 `
 
 type GetTeamCandidateNationalByIDRow struct {
 	ID         int32   `json:"id"`
-	Name       *string `json:"name"`
+	Name       string  `json:"name"`
 	Gen        int32   `json:"gen"`
 	Type1      string  `json:"type1"`
 	Type2      *string `json:"type2"`
 	GenderRate int32   `json:"gender_rate"`
+	Hp         int32   `json:"hp"`
+	Atk        int32   `json:"atk"`
+	Def        int32   `json:"def"`
+	Spatk      int32   `json:"spatk"`
+	Spdef      int32   `json:"spdef"`
+	Speed      int32   `json:"speed"`
+	Bst        int32   `json:"bst"`
 }
 
-// Mirrors GetTeamCandidatesNational: species name, raw types, and no membership
-// check since the national list contains every Pokemon.
+// Mirrors GetTeamCandidatesNational: the pokemon's own name (so an alternate
+// form's name/slug is used, not its species' base name), raw types, and no
+// membership check since the national list contains every Pokemon.
 func (q *Queries) GetTeamCandidateNationalByID(ctx context.Context, id int32) (GetTeamCandidateNationalByIDRow, error) {
 	row := q.db.QueryRow(ctx, getTeamCandidateNationalByID, id)
 	var i GetTeamCandidateNationalByIDRow
@@ -335,6 +358,13 @@ func (q *Queries) GetTeamCandidateNationalByID(ctx context.Context, id int32) (G
 		&i.Type1,
 		&i.Type2,
 		&i.GenderRate,
+		&i.Hp,
+		&i.Atk,
+		&i.Def,
+		&i.Spatk,
+		&i.Spdef,
+		&i.Speed,
+		&i.Bst,
 	)
 	return i, err
 }
@@ -395,7 +425,7 @@ func (q *Queries) GetTeamCandidatesByRegion(ctx context.Context, arg GetTeamCand
 }
 
 const getTeamCandidatesNational = `-- name: GetTeamCandidatesNational :many
-SELECT s.id AS num, s.id AS species_id, p.id, s.name, p.gen, p.type1, p.type2, p.gender_rate
+SELECT s.id AS num, s.id AS species_id, p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 ORDER BY s.id, p.id ASC
@@ -405,13 +435,16 @@ type GetTeamCandidatesNationalRow struct {
 	Num        int32   `json:"num"`
 	SpeciesID  int32   `json:"species_id"`
 	ID         int32   `json:"id"`
-	Name       *string `json:"name"`
+	Name       string  `json:"name"`
 	Gen        int32   `json:"gen"`
 	Type1      string  `json:"type1"`
 	Type2      *string `json:"type2"`
 	GenderRate int32   `json:"gender_rate"`
 }
 
+// p.name (not s.name) so an alternate form's own name/slug is used, not its
+// species' base name — a national Alolan Raichu must read "raichu-alola",
+// not "raichu", the same way the regional queries below already do.
 func (q *Queries) GetTeamCandidatesNational(ctx context.Context) ([]GetTeamCandidatesNationalRow, error) {
 	rows, err := q.db.Query(ctx, getTeamCandidatesNational)
 	if err != nil {

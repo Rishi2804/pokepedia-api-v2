@@ -16,19 +16,32 @@ type PokedexEntry struct {
 }
 
 type TeamBuildingGroup struct {
-	ListName string          `json:"listName"`
-	Pokemon  []TeamCandidate `json:"pokemon"`
+	ListName string                 `json:"listName"`
+	Pokemon  []TeamCandidateSummary `json:"pokemon"`
 }
 
+// TeamCandidateSummary is what the list endpoint returns: enough to render and
+// filter a candidate card, and nothing else. Abilities, moves and base stats are
+// deliberately absent — the team builder's set editor works on one Pokemon at a
+// time and fetches them from the single-candidate endpoint, so putting them here
+// meant serialising every learnable move for every Pokemon in the version group.
+type TeamCandidateSummary struct {
+	ID         int32   `json:"id"`
+	Name       string  `json:"name"`
+	Slug       string  `json:"slug"`
+	Gen        int32   `json:"gen"`
+	Type1      string  `json:"type1"`
+	Type2      *string `json:"type2"`
+	GenderRate int32   `json:"genderRate"`
+}
+
+// TeamCandidate is the single-candidate shape. The embedded summary flattens into
+// the same JSON object, so the wire format stays one flat record.
 type TeamCandidate struct {
-	ID         int32              `json:"id"`
-	Name       string             `json:"name"`
-	Gen        int32              `json:"gen"`
-	Type1      string             `json:"type1"`
-	Type2      *string            `json:"type2"`
-	GenderRate int32              `json:"genderRate"`
-	Abilities  []CandidateAbility `json:"abilities"`
-	Moves      []CandidateMove    `json:"moves"`
+	TeamCandidateSummary
+	Stats     Stats              `json:"stats"`
+	Abilities []CandidateAbility `json:"abilities"`
+	Moves     []CandidateMove    `json:"moves"`
 }
 
 type CandidateMove struct {
