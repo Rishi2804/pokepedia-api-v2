@@ -1,7 +1,7 @@
 include .env
 export
 
-.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force docker-up docker-down
+.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force docker-up docker-down cache-flush
 
 run:
 	go run ./cmd/api
@@ -29,3 +29,6 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+cache-flush:
+	docker compose exec -T redis redis-cli FLUSHDB

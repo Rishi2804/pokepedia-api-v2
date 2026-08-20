@@ -26,33 +26,31 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "5050:80"
-  # springboot-app:
-  #   container_name: "pokepedia-api"
-  #   image: pokepedia/api:latest
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     minio:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://pokepedia-db:5432/pokepediadb
-  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-  #     SPRING_REDIS_HOST: pokepedia-cache
-  #     SPRING_REDIS_PORT: 6379
-  #   restart: always
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  go-api:
+    container_name: "pokepedia-api"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      APP_ENV: docker
+      DATABASE_URL: ${DOCKER_DATABASE_URL}
+      REDIS_URL: ${DOCKER_REDIS_URL}
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   minio:
     image: minio/minio:RELEASE.2022-11-11T03-44-20Z
     container_name: "pokepedia-image-store"
@@ -85,14 +83,30 @@ services:
     container_name: pokepedia-cache
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
+    restart: always
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       retries: 5
       timeout: 5s
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: "pokepedia-redis-insight"
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
 volumes:
   minio_data:
   postgres_data:
-  redis_data:
+  redisinsight_data:
