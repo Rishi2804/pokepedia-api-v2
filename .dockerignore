@@ -3,3 +3,5 @@
 bin
 *.md
 .env
+object_store
+db

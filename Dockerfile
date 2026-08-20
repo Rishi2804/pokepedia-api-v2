@@ -11,7 +11,9 @@ FROM alpine:latest
 WORKDIR /app
 
 RUN apk --no-cache add ca-certificates
+RUN adduser -D -u 10001 appuser
 COPY --from=builder /app/bin/api .
+USER appuser
 
 EXPOSE 8080
 CMD ["./api"]

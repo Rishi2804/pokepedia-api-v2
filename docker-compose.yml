@@ -46,6 +46,11 @@ services:
       DATABASE_URL: ${DOCKER_DATABASE_URL}
       REDIS_URL: ${DOCKER_REDIS_URL}
     restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   minio:
     image: minio/minio:RELEASE.2022-11-11T03-44-20Z
     container_name: "pokepedia-image-store"
@@ -78,6 +83,7 @@ services:
     container_name: pokepedia-cache
     ports:
       - "6379:6379"
+    restart: always
     command: >
       redis-server
       --maxmemory 512mb
