@@ -3,6 +3,7 @@ module github.com/Rishi2804/pokepedia-api-v2
 go 1.26.5
 
 require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/go-chi/chi/v5 v5.3.1 // indirect
 	github.com/go-chi/cors v1.2.2 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -10,6 +11,8 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/redis/go-redis/v9 v9.20.1 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 )
