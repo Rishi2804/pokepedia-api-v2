@@ -1,22 +1,30 @@
 package dto
 
 type PokemonDetail struct {
-	ID         int32            `json:"id"`
-	SpeciesID  int32            `json:"speciesId"`
-	Name       string           `json:"name"`
-	Gen        int32            `json:"gen"`
-	Type1      string           `json:"type1"`
-	Type2      *string          `json:"type2"`
-	Abilities  []AbilityInfo    `json:"abilities"`
-	Weight     float64          `json:"weight"`
-	Height     float64          `json:"height"`
-	GenderRate int32            `json:"genderRate"`
-	Stats      Stats            `json:"stats"`
-	Forms      []string         `json:"forms"`
-	DexEntries []DexEntry       `json:"dexEntries"`
-	DexNumbers []DexNumberInfo  `json:"dexNumbers"`
-	Evolution  []EvolutionLine  `json:"evolutionChain"`
-	Movesets   []VersionMoveset `json:"movesets"`
+	ID           int32                `json:"id"`
+	SpeciesID    int32                `json:"speciesId"`
+	Name         string               `json:"name"`
+	Gen          int32                `json:"gen"`
+	Type1        string               `json:"type1"`
+	Type2        *string              `json:"type2"`
+	Abilities    []AbilityInfo        `json:"abilities"`
+	Weight       float64              `json:"weight"`
+	Height       float64              `json:"height"`
+	GenderRate   int32                `json:"genderRate"`
+	Stats        Stats                `json:"stats"`
+	Forms        []string             `json:"forms"`
+	Descriptions []PokemonDescription `json:"descriptions"`
+	DexNumbers   []DexNumberInfo      `json:"dexNumbers"`
+	Evolution    []EvolutionLine      `json:"evolutionChain"`
+	Movesets     []VersionMoveset     `json:"movesets"`
+}
+
+// PokemonDescription is one Pokedex entry for one game. Unlike move and ability
+// descriptions, these are not grouped server-side — the UI collapses runs of
+// identical text per generation, so it needs them per game.
+type PokemonDescription struct {
+	Game string `json:"game"`
+	Text string `json:"text"`
 }
 
 type Stats struct {
@@ -34,11 +42,6 @@ type AbilityInfo struct {
 	Name       string `json:"name"`
 	IsHidden   bool   `json:"isHidden"`
 	GenRemoved *int32 `json:"genRemoved"`
-}
-
-type DexEntry struct {
-	Game  string `json:"game"`
-	Entry string `json:"entry"`
 }
 
 type DexNumberInfo struct {

@@ -42,57 +42,74 @@ func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, 
 }
 
 const getAbility = `-- name: GetAbility :one
-SELECT id, name, gen, effect, descriptions::text[] AS descriptions
+SELECT id, name, gen, effect
 FROM ability 
 WHERE id = $1
 `
 
-type GetAbilityRow struct {
-	ID           int32    `json:"id"`
-	Name         string   `json:"name"`
-	Gen          int32    `json:"gen"`
-	Effect       *string  `json:"effect"`
-	Descriptions []string `json:"descriptions"`
-}
-
-func (q *Queries) GetAbility(ctx context.Context, id int32) (GetAbilityRow, error) {
+func (q *Queries) GetAbility(ctx context.Context, id int32) (Ability, error) {
 	row := q.db.QueryRow(ctx, getAbility, id)
-	var i GetAbilityRow
+	var i Ability
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Gen,
 		&i.Effect,
-		&i.Descriptions,
 	)
 	return i, err
 }
 
 const getAbilityByName = `-- name: GetAbilityByName :one
-SELECT id, name, gen, effect, descriptions::text[] AS descriptions
+SELECT id, name, gen, effect
 FROM ability 
 WHERE name = $1
 `
 
-type GetAbilityByNameRow struct {
-	ID           int32    `json:"id"`
-	Name         string   `json:"name"`
-	Gen          int32    `json:"gen"`
-	Effect       *string  `json:"effect"`
-	Descriptions []string `json:"descriptions"`
-}
-
-func (q *Queries) GetAbilityByName(ctx context.Context, name string) (GetAbilityByNameRow, error) {
+func (q *Queries) GetAbilityByName(ctx context.Context, name string) (Ability, error) {
 	row := q.db.QueryRow(ctx, getAbilityByName, name)
-	var i GetAbilityByNameRow
+	var i Ability
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Gen,
 		&i.Effect,
-		&i.Descriptions,
 	)
 	return i, err
+}
+
+const getAbilityDescriptions = `-- name: GetAbilityDescriptions :many
+SELECT array_agg(version ORDER BY version)::text[] AS games,
+       text
+FROM abilitydescriptions
+WHERE ability_id = $1
+GROUP BY text
+ORDER BY min(version)
+`
+
+type GetAbilityDescriptionsRow struct {
+	Games []string `json:"games"`
+	Text  string   `json:"text"`
+}
+
+// Same grouping as GetPokemonDescriptionsByIDs; see the note there.
+func (q *Queries) GetAbilityDescriptions(ctx context.Context, abilityID int32) ([]GetAbilityDescriptionsRow, error) {
+	rows, err := q.db.Query(ctx, getAbilityDescriptions, abilityID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAbilityDescriptionsRow
+	for rows.Next() {
+		var i GetAbilityDescriptionsRow
+		if err := rows.Scan(&i.Games, &i.Text); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPokemonLearnableAbility = `-- name: GetPokemonLearnableAbility :many

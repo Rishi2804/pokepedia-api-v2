@@ -9,33 +9,6 @@ import (
 	"context"
 )
 
-const getDexEntriesByIDs = `-- name: GetDexEntriesByIDs :many
-SELECT pokemon_id, game, entry
-FROM dexentries
-WHERE pokemon_id = ANY($1::int[])
-ORDER BY pokemon_id, game
-`
-
-func (q *Queries) GetDexEntriesByIDs(ctx context.Context, pokemonIds []int32) ([]Dexentry, error) {
-	rows, err := q.db.Query(ctx, getDexEntriesByIDs, pokemonIds)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Dexentry
-	for rows.Next() {
-		var i Dexentry
-		if err := rows.Scan(&i.PokemonID, &i.Game, &i.Entry); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getDexNumbersByIDs = `-- name: GetDexNumbersByIDs :many
 SELECT ids.pokemon_id, d.species_id, d.name, d.num, d.default_variate, d.alt_variates
 FROM unnest($1::int[]) AS ids(pokemon_id)
@@ -282,6 +255,35 @@ func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemon
 		&i.Forms,
 	)
 	return i, err
+}
+
+const getPokemonDescriptionsByIDs = `-- name: GetPokemonDescriptionsByIDs :many
+SELECT pokemon_id, version, text
+FROM pokemondescriptions
+WHERE pokemon_id = ANY($1::int[])
+ORDER BY pokemon_id, version
+`
+
+// One row per game. `version` is the public.game enum, declared in release
+// order, so ORDER BY sorts chronologically with no Go-side sort needed.
+func (q *Queries) GetPokemonDescriptionsByIDs(ctx context.Context, pokemonIds []int32) ([]Pokemondescription, error) {
+	rows, err := q.db.Query(ctx, getPokemonDescriptionsByIDs, pokemonIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Pokemondescription
+	for rows.Next() {
+		var i Pokemondescription
+		if err := rows.Scan(&i.PokemonID, &i.Version, &i.Text); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPokemonMovesByIDs = `-- name: GetPokemonMovesByIDs :many

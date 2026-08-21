@@ -46,14 +46,17 @@ func (s *AbilitiesService) GetAbilityByName(ctx context.Context, name string) (*
 	if err != nil {
 		return nil, err
 	}
-	return s.buildDetail(ctx, store.GetAbilityRow(a))
+	return s.buildDetail(ctx, a)
 }
 
-func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRow) (*dto.AbilityDetail, error) {
-	descriptions, err := parseDescriptions(a.Descriptions)
+func (s *AbilitiesService) buildDetail(ctx context.Context, a store.Ability) (*dto.AbilityDetail, error) {
+	descriptionRows, err := s.q.GetAbilityDescriptions(ctx, a.ID)
 	if err != nil {
 		return nil, err
 	}
+	descriptions := toDescriptions(descriptionRows, func(r store.GetAbilityDescriptionsRow) ([]string, string) {
+		return r.Games, r.Text
+	})
 
 	pokemon, err := s.q.GetPokemonLearnableAbility(ctx, a.ID)
 	if err != nil {

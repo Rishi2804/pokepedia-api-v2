@@ -16,6 +16,9 @@ WHERE d.name = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id;
 
 -- name: GetTeamCandidatesNational :many
+-- p.name (not s.name) so an alternate form's own name/slug is used, not its
+-- species' base name — a national Alolan Raichu must read "raichu-alola",
+-- not "raichu", the same way the regional queries below already do.
 SELECT s.id AS num, s.id AS species_id, p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate
 FROM pokemon p
 JOIN species s ON s.id = p.species_id

@@ -17,7 +17,7 @@ import (
 // KeyVersion is embedded in every cache key. Bump it in the same commit that
 // changes a cached DTO's shape — old keys orphan instantly and age out via
 // TTL, no flush required.
-const KeyVersion = "v1"
+const KeyVersion = "v3"
 
 const (
 	breakerThreshold = 5

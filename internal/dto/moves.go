@@ -33,9 +33,12 @@ type PastMoveValues struct {
 	VersionGroup []string `json:"versionGroups"`
 }
 
+// Description is the one shape every versioned text uses — Pokedex flavor,
+// move descriptions and ability descriptions alike. Games is the set of game
+// versions sharing this exact wording, in release order.
 type Description struct {
-	VersionGroups []string `json:"versionGroups"`
-	Description   string   `json:"description"`
+	Games []string `json:"games"`
+	Text  string   `json:"text"`
 }
 
 type PokemonLearnable struct {
