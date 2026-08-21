@@ -93,9 +93,8 @@ func (c *Cache) Enabled() bool {
 	return c != nil && c.rdb != nil
 }
 
-// Get returns (nil, false) for a miss, a disabled cache, an open breaker, or
-// any Redis error. Callers cannot distinguish and must not care — a cache
-// failure is always just a miss from the caller's perspective.
+// Get treats every failure mode as a miss — callers cannot distinguish and
+// must not care.
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool) {
 	if !c.Enabled() || !c.breaker.allow() {
 		return nil, false

@@ -32,9 +32,8 @@ func (s *PokemonService) GetPokemonDetail(ctx context.Context, id int32) (*dto.P
 	return &details[0], nil
 }
 
-// GetPokemonDetailByName mirrors getPokemonByName. GetPokemonRow and
-// GetPokemonByNameRow select identical columns in the same order, so
-// they're structurally convertible via a plain type conversion.
+// GetPokemonRow and GetPokemonByNameRow select identical columns in the same
+// order, so the plain type conversion below is safe.
 func (s *PokemonService) GetPokemonDetailByName(ctx context.Context, name string) (*dto.PokemonDetail, error) {
 	p, err := s.q.GetPokemonByName(ctx, name)
 	if err != nil {
@@ -145,9 +144,7 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 		})
 	}
 
-	// Ordered by release date in SQL — public.game is declared in release
-	// order, so no Go-side sort is needed. One entry per game; the UI collapses
-	// runs of identical text within a generation.
+	// Ordered by release date in SQL — public.game is declared in release order
 	for _, d := range dexEntries {
 		result.Descriptions = append(result.Descriptions, dto.PokemonDescription{
 			Game: pokeenum.ToDisplay(d.Version),
@@ -180,7 +177,6 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 	return result
 }
 
-// groupMoveset mirrors mapToMovesetDtoHelper: group by version group
 // (sorted by VersionGroup.ORDER), then by learn method (sorted by
 // LearnMethod.ORDER), then moves sorted by level learned within each group.
 func groupMoveset(moves []store.GetPokemonMovesByIDsRow) []dto.VersionMoveset {

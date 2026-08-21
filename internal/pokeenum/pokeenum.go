@@ -15,10 +15,6 @@ var LearnMethodOrder = []string{
 	"level-up", "machine", "tutor", "egg", "light-ball-egg", "form-change", "zygarde-cube",
 }
 
-// Game release order now lives in the public.game enum's declaration order, so
-// the database sorts description rows and no Go-side GameOrder/GameIndex pair
-// is needed.
-
 // VersionGroupOrder mirrors VersionGroup's declared order (VersionGroup.ORDER).
 var VersionGroupOrder = []string{
 	"national", "red-blue", "yellow", "gold-silver", "crystal", "ruby-sapphire",
