@@ -367,6 +367,50 @@ func (ns NullPtype) Value() (driver.Value, error) {
 	return string(ns.Ptype), nil
 }
 
+type Region string
+
+const (
+	RegionAlola  Region = "alola"
+	RegionGalar  Region = "galar"
+	RegionHisui  Region = "hisui"
+	RegionPaldea Region = "paldea"
+)
+
+func (e *Region) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Region(s)
+	case string:
+		*e = Region(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Region: %T", src)
+	}
+	return nil
+}
+
+type NullRegion struct {
+	Region Region `json:"region"`
+	Valid  bool   `json:"valid"` // Valid is true if Region is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRegion) Scan(value interface{}) error {
+	if value == nil {
+		ns.Region, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Region.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRegion) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Region), nil
+}
+
 type Ability struct {
 	ID     int32   `json:"id"`
 	Name   string  `json:"name"`
