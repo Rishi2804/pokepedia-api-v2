@@ -4,14 +4,23 @@ FROM ability
 ORDER BY id, gen ASC;
 
 -- name: GetAbility :one
-SELECT id, name, gen, effect, descriptions::text[] AS descriptions
+SELECT id, name, gen, effect
 FROM ability 
 WHERE id = $1;
 
 -- name: GetAbilityByName :one
-SELECT id, name, gen, effect, descriptions::text[] AS descriptions
+SELECT id, name, gen, effect
 FROM ability 
 WHERE name = $1;
+
+-- name: GetAbilityDescriptions :many
+-- Same grouping as GetPokemonDescriptionsByIDs; see the note there.
+SELECT array_agg(version ORDER BY version)::text[] AS games,
+       text
+FROM abilitydescriptions
+WHERE ability_id = $1
+GROUP BY text
+ORDER BY min(version);
 
 -- name: GetPokemonLearnableAbility :many
 SELECT DISTINCT p.id, p.name, p.gen, p.type1, p.type2, p.species_id

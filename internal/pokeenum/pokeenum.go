@@ -15,16 +15,6 @@ var LearnMethodOrder = []string{
 	"level-up", "machine", "tutor", "egg", "light-ball-egg", "form-change", "zygarde-cube",
 }
 
-// GameOrder mirrors Game's declared order (Game.ORDER) — release order, not alphabetical.
-var GameOrder = []string{
-	"red", "blue", "yellow", "gold", "silver", "crystal", "ruby", "sapphire",
-	"emerald", "firered", "leafgreen", "diamond", "pearl", "platinum",
-	"heartgold", "soulsilver", "black", "white", "black-2", "white-2",
-	"x", "y", "omega-ruby", "alpha-sapphire", "sun", "moon", "ultra-sun",
-	"ultra-moon", "lets-go-pikachu", "lets-go-eevee", "sword", "shield",
-	"brilliant-diamond", "shining-pearl", "legends-arceus", "scarlet", "violet",
-}
-
 // VersionGroupOrder mirrors VersionGroup's declared order (VersionGroup.ORDER).
 var VersionGroupOrder = []string{
 	"national", "red-blue", "yellow", "gold-silver", "crystal", "ruby-sapphire",
@@ -45,5 +35,4 @@ func indexOf(list []string, value string) int {
 }
 
 func LearnMethodIndex(dbValue string) int  { return indexOf(LearnMethodOrder, dbValue) }
-func GameIndex(dbValue string) int         { return indexOf(GameOrder, dbValue) }
 func VersionGroupIndex(dbValue string) int { return indexOf(VersionGroupOrder, dbValue) }

@@ -80,6 +80,83 @@ func (ns NullDex) Value() (driver.Value, error) {
 	return string(ns.Dex), nil
 }
 
+type Game string
+
+const (
+	GameRed              Game = "red"
+	GameBlue             Game = "blue"
+	GameYellow           Game = "yellow"
+	GameGold             Game = "gold"
+	GameSilver           Game = "silver"
+	GameCrystal          Game = "crystal"
+	GameRuby             Game = "ruby"
+	GameSapphire         Game = "sapphire"
+	GameEmerald          Game = "emerald"
+	GameFirered          Game = "firered"
+	GameLeafgreen        Game = "leafgreen"
+	GameDiamond          Game = "diamond"
+	GamePearl            Game = "pearl"
+	GamePlatinum         Game = "platinum"
+	GameHeartgold        Game = "heartgold"
+	GameSoulsilver       Game = "soulsilver"
+	GameBlack            Game = "black"
+	GameWhite            Game = "white"
+	GameBlack2           Game = "black-2"
+	GameWhite2           Game = "white-2"
+	GameX                Game = "x"
+	GameY                Game = "y"
+	GameOmegaRuby        Game = "omega-ruby"
+	GameAlphaSapphire    Game = "alpha-sapphire"
+	GameSun              Game = "sun"
+	GameMoon             Game = "moon"
+	GameUltraSun         Game = "ultra-sun"
+	GameUltraMoon        Game = "ultra-moon"
+	GameLetsGoPikachu    Game = "lets-go-pikachu"
+	GameLetsGoEevee      Game = "lets-go-eevee"
+	GameSword            Game = "sword"
+	GameShield           Game = "shield"
+	GameBrilliantDiamond Game = "brilliant-diamond"
+	GameShiningPearl     Game = "shining-pearl"
+	GameLegendsArceus    Game = "legends-arceus"
+	GameScarlet          Game = "scarlet"
+	GameViolet           Game = "violet"
+)
+
+func (e *Game) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Game(s)
+	case string:
+		*e = Game(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Game: %T", src)
+	}
+	return nil
+}
+
+type NullGame struct {
+	Game  Game `json:"game"`
+	Valid bool `json:"valid"` // Valid is true if Game is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGame) Scan(value interface{}) error {
+	if value == nil {
+		ns.Game, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Game.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGame) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Game), nil
+}
+
 type Group string
 
 const (
@@ -290,12 +367,61 @@ func (ns NullPtype) Value() (driver.Value, error) {
 	return string(ns.Ptype), nil
 }
 
+type Region string
+
+const (
+	RegionAlola  Region = "alola"
+	RegionGalar  Region = "galar"
+	RegionHisui  Region = "hisui"
+	RegionPaldea Region = "paldea"
+)
+
+func (e *Region) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Region(s)
+	case string:
+		*e = Region(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Region: %T", src)
+	}
+	return nil
+}
+
+type NullRegion struct {
+	Region Region `json:"region"`
+	Valid  bool   `json:"valid"` // Valid is true if Region is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRegion) Scan(value interface{}) error {
+	if value == nil {
+		ns.Region, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Region.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRegion) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Region), nil
+}
+
 type Ability struct {
-	ID           int32    `json:"id"`
-	Name         string   `json:"name"`
-	Gen          int32    `json:"gen"`
-	Descriptions [][]byte `json:"descriptions"`
-	Effect       *string  `json:"effect"`
+	ID     int32   `json:"id"`
+	Name   string  `json:"name"`
+	Gen    int32   `json:"gen"`
+	Effect *string `json:"effect"`
+}
+
+type Abilitydescription struct {
+	AbilityID int32  `json:"ability_id"`
+	Version   string `json:"version"`
+	Text      string `json:"text"`
 }
 
 type Abilitydetail struct {
@@ -303,12 +429,6 @@ type Abilitydetail struct {
 	AbilityID int32  `json:"ability_id"`
 	Hidden    bool   `json:"hidden"`
 	Gen       *int32 `json:"gen"`
-}
-
-type Dexentry struct {
-	PokemonID int32  `json:"pokemon_id"`
-	Game      string `json:"game"`
-	Entry     string `json:"entry"`
 }
 
 type Dexnumber struct {
@@ -339,16 +459,21 @@ type Evolutionpeek struct {
 }
 
 type Move struct {
-	ID           int32    `json:"id"`
-	Name         string   `json:"name"`
-	Gen          int32    `json:"gen"`
-	Type         string   `json:"type"`
-	Class        string   `json:"class"`
-	Power        *int32   `json:"power"`
-	Accuracy     *int32   `json:"accuracy"`
-	Pp           *int32   `json:"pp"`
-	Descriptions [][]byte `json:"descriptions"`
-	Effect       *string  `json:"effect"`
+	ID       int32   `json:"id"`
+	Name     string  `json:"name"`
+	Gen      int32   `json:"gen"`
+	Type     string  `json:"type"`
+	Class    string  `json:"class"`
+	Power    *int32  `json:"power"`
+	Accuracy *int32  `json:"accuracy"`
+	Pp       *int32  `json:"pp"`
+	Effect   *string `json:"effect"`
+}
+
+type Movedescription struct {
+	MoveID  int32  `json:"move_id"`
+	Version string `json:"version"`
+	Text    string `json:"text"`
 }
 
 type Movedetail struct {
@@ -390,12 +515,22 @@ type Pokemon struct {
 	Spdef      int32    `json:"spdef"`
 	Speed      int32    `json:"speed"`
 	Bst        int32    `json:"bst"`
-	DexEntries [][]byte `json:"dex_entries"`
 	SpeciesID  int32    `json:"species_id"`
 	Forms      []string `json:"forms"`
+}
+
+type Pokemondescription struct {
+	PokemonID int32  `json:"pokemon_id"`
+	Version   string `json:"version"`
+	Text      string `json:"text"`
 }
 
 type Species struct {
 	ID   int32   `json:"id"`
 	Name *string `json:"name"`
+}
+
+type VgGame struct {
+	Vg   string `json:"vg"`
+	Game string `json:"game"`
 }

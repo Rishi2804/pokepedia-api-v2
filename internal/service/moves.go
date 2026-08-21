@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"sort"
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
@@ -61,10 +60,13 @@ func (s *MovesService) buildDetail(ctx context.Context, m store.GetMoveRow) (*dt
 	if err != nil {
 		return nil, err
 	}
-	descriptions, err := parseDescriptions(m.Descriptions)
+	descriptionRows, err := s.q.GetMoveDescriptions(ctx, m.ID)
 	if err != nil {
 		return nil, err
 	}
+	descriptions := toDescriptions(descriptionRows, func(r store.GetMoveDescriptionsRow) ([]string, string) {
+		return r.Games, r.Text
+	})
 	pokemon, err := s.q.GetPokemonLearnableMove(ctx, m.ID)
 	if err != nil {
 		return nil, err
@@ -103,28 +105,6 @@ func (s *MovesService) buildDetail(ctx context.Context, m store.GetMoveRow) (*dt
 	response.Pokemon = groupPokemonLearnable(pokemon)
 
 	return response, nil
-}
-
-func parseDescriptions(raw []string) ([]dto.Description, error) {
-	result := []dto.Description{}
-	for _, entryJSON := range raw {
-		var parsed struct {
-			Entry        string   `json:"entry"`
-			VersionGroup []string `json:"versionGroup"`
-		}
-		if err := json.Unmarshal([]byte(entryJSON), &parsed); err != nil {
-			return nil, err
-		}
-		displayGroups := make([]string, len(parsed.VersionGroup))
-		for i, vg := range parsed.VersionGroup {
-			displayGroups[i] = pokeenum.ToDisplay(vg)
-		}
-		result = append(result, dto.Description{
-			Description:   parsed.Entry,
-			VersionGroups: displayGroups,
-		})
-	}
-	return result, nil
 }
 
 func groupPokemonLearnable(rows []store.GetPokemonLearnableMoveRow) []dto.PokemonLearnable {

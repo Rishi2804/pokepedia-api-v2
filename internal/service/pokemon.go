@@ -32,9 +32,8 @@ func (s *PokemonService) GetPokemonDetail(ctx context.Context, id int32) (*dto.P
 	return &details[0], nil
 }
 
-// GetPokemonDetailByName mirrors getPokemonByName. GetPokemonRow and
-// GetPokemonByNameRow select identical columns in the same order, so
-// they're structurally convertible via a plain type conversion.
+// GetPokemonRow and GetPokemonByNameRow select identical columns in the same
+// order, so the plain type conversion below is safe.
 func (s *PokemonService) GetPokemonDetailByName(ctx context.Context, name string) (*dto.PokemonDetail, error) {
 	p, err := s.q.GetPokemonByName(ctx, name)
 	if err != nil {
@@ -59,7 +58,7 @@ func (s *PokemonService) buildDetails(ctx context.Context, ps []store.GetPokemon
 	if err != nil {
 		return nil, err
 	}
-	dexEntries, err := s.q.GetDexEntriesByIDs(ctx, ids)
+	dexEntries, err := s.q.GetPokemonDescriptionsByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +82,7 @@ func (s *PokemonService) buildDetails(ctx context.Context, ps []store.GetPokemon
 		}
 		dexNumbersByID[*d.PokemonID] = append(dexNumbersByID[*d.PokemonID], d)
 	}
-	dexEntriesByID := map[int32][]store.Dexentry{}
+	dexEntriesByID := map[int32][]store.Pokemondescription{}
 	for _, d := range dexEntries {
 		dexEntriesByID[d.PokemonID] = append(dexEntriesByID[d.PokemonID], d)
 	}
@@ -112,7 +111,7 @@ func (s *PokemonService) buildDetails(ctx context.Context, ps []store.GetPokemon
 
 // assembleDetail is the pure assembly step split out of the old buildDetail:
 // no ctx, no DB, just DTO composition from already-fetched rows.
-func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDsRow, dexEntries []store.Dexentry, evolution []store.GetEvolutionChainByIDsRow, moves []store.GetPokemonMovesByIDsRow, abilities []store.GetPokemonAbilitiesByIDsRow) dto.PokemonDetail {
+func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDsRow, dexEntries []store.Pokemondescription, evolution []store.GetEvolutionChainByIDsRow, moves []store.GetPokemonMovesByIDsRow, abilities []store.GetPokemonAbilitiesByIDsRow) dto.PokemonDetail {
 	result := dto.PokemonDetail{
 		ID:         p.ID,
 		SpeciesID:  p.SpeciesID,
@@ -130,10 +129,10 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 		},
 		// Pre-initialized (not nil) so an empty result serializes as [] to
 		// match legacy behavior, instead of Go's default null for nil slices.
-		Abilities:  []dto.AbilityInfo{},
-		DexEntries: []dto.DexEntry{},
-		DexNumbers: []dto.DexNumberInfo{},
-		Evolution:  []dto.EvolutionLine{},
+		Abilities:    []dto.AbilityInfo{},
+		Descriptions: []dto.PokemonDescription{},
+		DexNumbers:   []dto.DexNumberInfo{},
+		Evolution:    []dto.EvolutionLine{},
 	}
 
 	for _, a := range abilities {
@@ -145,17 +144,11 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 		})
 	}
 
-	// Dex entries: sort by real game release order (Game.ORDER) BEFORE
-	// converting to display form — GameIndex expects the raw lowercase
-	// db value, not the uppercase display form.
-	sortedEntries := append([]store.Dexentry(nil), dexEntries...)
-	sort.SliceStable(sortedEntries, func(i, j int) bool {
-		return pokeenum.GameIndex(sortedEntries[i].Game) < pokeenum.GameIndex(sortedEntries[j].Game)
-	})
-	for _, d := range sortedEntries {
-		result.DexEntries = append(result.DexEntries, dto.DexEntry{
-			Game:  pokeenum.ToDisplay(d.Game),
-			Entry: d.Entry,
+	// Ordered by release date in SQL — public.game is declared in release order
+	for _, d := range dexEntries {
+		result.Descriptions = append(result.Descriptions, dto.PokemonDescription{
+			Game: pokeenum.ToDisplay(d.Version),
+			Text: d.Text,
 		})
 	}
 
@@ -184,7 +177,6 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 	return result
 }
 
-// groupMoveset mirrors mapToMovesetDtoHelper: group by version group
 // (sorted by VersionGroup.ORDER), then by learn method (sorted by
 // LearnMethod.ORDER), then moves sorted by level learned within each group.
 func groupMoveset(moves []store.GetPokemonMovesByIDsRow) []dto.VersionMoveset {

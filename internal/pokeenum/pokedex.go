@@ -2,7 +2,6 @@ package pokeenum
 
 import "fmt"
 
-// PokedexRegionInfo mirrors one PokedexRegion enum constant.
 type PokedexRegionInfo struct {
 	String string // db value, e.g. "kalos-central"
 	Name   string // display name, e.g. "Kalos Central"
@@ -54,7 +53,6 @@ func GetPokedexRegion(dbValue string) (PokedexRegionInfo, error) {
 	return PokedexRegionInfo{}, fmt.Errorf("no PokedexRegion with name %s found", dbValue)
 }
 
-// PokedexVersionInfo mirrors one PokedexVersion enum constant.
 type PokedexVersionInfo struct {
 	String  string
 	Regions []string // PokedexRegion db values
@@ -90,7 +88,6 @@ func GetPokedexVersion(dbValue string) (PokedexVersionInfo, error) {
 	return PokedexVersionInfo{}, fmt.Errorf("no PokedexVersion with name %s found", dbValue)
 }
 
-// VersionGroupInfo mirrors one VersionGroup enum constant.
 type VersionGroupInfo struct {
 	VersionName string
 	Gen         int32

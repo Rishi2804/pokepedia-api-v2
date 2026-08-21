@@ -115,10 +115,8 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 	return response, nil
 }
 
-// GetTeamCandidates mirrors getTeamCandidates/getTeamCandidatesNational:
-// resolve to a VersionGroup, then combine candidates across every region
-// it spans, deduplicated by Pokemon ID (a Pokemon can legitimately appear
-// in more than one sub-region of a multi-region version group).
+// Combines candidates across every region a version group spans, deduplicated
+// by Pokemon ID — one can appear in more than one sub-region.
 func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName string) ([]dto.TeamBuildingGroup, error) {
 	vg, err := pokeenum.GetVersionGroup(versionName)
 	if err != nil {
@@ -202,9 +200,8 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 	return result, nil
 }
 
-// GetTeamCandidate returns the single candidate GetTeamCandidates would have placed
-// in one of its groups. The Pokemon must belong to the version group — enforced in
-// SQL — so an id absent from that game yields pgx.ErrNoRows, same as an unknown id.
+// Membership in the version group is enforced in SQL, so an id absent from
+// that game yields pgx.ErrNoRows, same as an unknown id.
 func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName string, id int32) (dto.TeamCandidate, error) {
 	vg, err := pokeenum.GetVersionGroup(versionName)
 	if err != nil {

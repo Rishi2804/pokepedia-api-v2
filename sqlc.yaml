@@ -55,5 +55,19 @@ sql:
             go_type:
               type: "string"
               pointer: true
+          - db_type: "public.game"
+            go_type: "string"
+          - db_type: "public.game"
+            nullable: true
+            go_type:
+              type: "string"
+              pointer: true
+          - db_type: "public.region"
+            go_type: "string"
+          - db_type: "public.region"
+            nullable: true
+            go_type:
+              type: "string"
+              pointer: true
           - db_type: "pg_catalog.numeric"
             go_type: "float64"

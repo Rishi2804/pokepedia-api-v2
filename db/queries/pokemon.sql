@@ -16,11 +16,13 @@ FROM unnest(sqlc.arg(pokemon_ids)::int[]) AS ids(pokemon_id)
 JOIN dexnumber d ON d.default_variate = ids.pokemon_id OR d.alt_variates @> ARRAY[ids.pokemon_id]
 ORDER BY ids.pokemon_id, d.name;
 
--- name: GetDexEntriesByIDs :many
-SELECT pokemon_id, game, entry
-FROM dexentries
+-- name: GetPokemonDescriptionsByIDs :many
+-- One row per game. `version` is the public.game enum, declared in release
+-- order, so ORDER BY sorts chronologically with no Go-side sort needed.
+SELECT pokemon_id, version, text
+FROM pokemondescriptions
 WHERE pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
-ORDER BY pokemon_id, game;
+ORDER BY pokemon_id, version;
 
 -- name: GetEvolutionChainByIDs :many
 SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_display, e.to_pokemon,

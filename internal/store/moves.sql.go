@@ -10,22 +10,21 @@ import (
 )
 
 const getMove = `-- name: GetMove :one
-SELECT id, name, type, class, power, accuracy, pp, gen, effect, descriptions::text[] AS descriptions
+SELECT id, name, type, class, power, accuracy, pp, gen, effect
 FROM move 
 WHERE id = $1
 `
 
 type GetMoveRow struct {
-	ID           int32    `json:"id"`
-	Name         string   `json:"name"`
-	Type         string   `json:"type"`
-	Class        string   `json:"class"`
-	Power        *int32   `json:"power"`
-	Accuracy     *int32   `json:"accuracy"`
-	Pp           *int32   `json:"pp"`
-	Gen          int32    `json:"gen"`
-	Effect       *string  `json:"effect"`
-	Descriptions []string `json:"descriptions"`
+	ID       int32   `json:"id"`
+	Name     string  `json:"name"`
+	Type     string  `json:"type"`
+	Class    string  `json:"class"`
+	Power    *int32  `json:"power"`
+	Accuracy *int32  `json:"accuracy"`
+	Pp       *int32  `json:"pp"`
+	Gen      int32   `json:"gen"`
+	Effect   *string `json:"effect"`
 }
 
 func (q *Queries) GetMove(ctx context.Context, id int32) (GetMoveRow, error) {
@@ -41,28 +40,26 @@ func (q *Queries) GetMove(ctx context.Context, id int32) (GetMoveRow, error) {
 		&i.Pp,
 		&i.Gen,
 		&i.Effect,
-		&i.Descriptions,
 	)
 	return i, err
 }
 
 const getMoveByName = `-- name: GetMoveByName :one
-SELECT id, name, type, class, power, accuracy, pp, gen, effect, descriptions::text[] AS descriptions
+SELECT id, name, type, class, power, accuracy, pp, gen, effect
 FROM move 
 WHERE name = $1
 `
 
 type GetMoveByNameRow struct {
-	ID           int32    `json:"id"`
-	Name         string   `json:"name"`
-	Type         string   `json:"type"`
-	Class        string   `json:"class"`
-	Power        *int32   `json:"power"`
-	Accuracy     *int32   `json:"accuracy"`
-	Pp           *int32   `json:"pp"`
-	Gen          int32    `json:"gen"`
-	Effect       *string  `json:"effect"`
-	Descriptions []string `json:"descriptions"`
+	ID       int32   `json:"id"`
+	Name     string  `json:"name"`
+	Type     string  `json:"type"`
+	Class    string  `json:"class"`
+	Power    *int32  `json:"power"`
+	Accuracy *int32  `json:"accuracy"`
+	Pp       *int32  `json:"pp"`
+	Gen      int32   `json:"gen"`
+	Effect   *string `json:"effect"`
 }
 
 func (q *Queries) GetMoveByName(ctx context.Context, name string) (GetMoveByNameRow, error) {
@@ -78,9 +75,43 @@ func (q *Queries) GetMoveByName(ctx context.Context, name string) (GetMoveByName
 		&i.Pp,
 		&i.Gen,
 		&i.Effect,
-		&i.Descriptions,
 	)
 	return i, err
+}
+
+const getMoveDescriptions = `-- name: GetMoveDescriptions :many
+SELECT array_agg(version ORDER BY version)::text[] AS games,
+       text
+FROM movedescriptions
+WHERE move_id = $1
+GROUP BY text
+ORDER BY min(version)
+`
+
+type GetMoveDescriptionsRow struct {
+	Games []string `json:"games"`
+	Text  string   `json:"text"`
+}
+
+// Same grouping as GetPokemonDescriptionsByIDs; see the note there.
+func (q *Queries) GetMoveDescriptions(ctx context.Context, moveID int32) ([]GetMoveDescriptionsRow, error) {
+	rows, err := q.db.Query(ctx, getMoveDescriptions, moveID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMoveDescriptionsRow
+	for rows.Next() {
+		var i GetMoveDescriptionsRow
+		if err := rows.Scan(&i.Games, &i.Text); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getMoves = `-- name: GetMoves :many
