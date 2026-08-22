@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+
+	"github.com/Rishi2804/pokepedia-api-v2/internal/breaker"
 )
 
 // KeyVersion is embedded in every cache key. Bump it in the same commit that
@@ -45,7 +47,7 @@ type Cache struct {
 	ttl      time.Duration
 	opTO     time.Duration
 	maxEntry int
-	breaker  *breaker
+	breaker  *breaker.Breaker
 
 	hits, misses, errs atomic.Int64
 
@@ -84,7 +86,7 @@ func New(cfg Config) (*Cache, error) {
 		ttl:      ttl,
 		opTO:     opTO,
 		maxEntry: maxEntry,
-		breaker:  newBreaker(breakerThreshold, breakerCooldown),
+		breaker:  breaker.New(breakerThreshold, breakerCooldown),
 	}, nil
 }
 
@@ -96,7 +98,7 @@ func (c *Cache) Enabled() bool {
 // Get treats every failure mode as a miss — callers cannot distinguish and
 // must not care.
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool) {
-	if !c.Enabled() || !c.breaker.allow() {
+	if !c.Enabled() || !c.breaker.Allow() {
 		return nil, false
 	}
 
@@ -106,11 +108,11 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool) {
 	b, err := c.rdb.Get(ctx, key).Bytes()
 	switch {
 	case err == nil:
-		c.breaker.success()
+		c.breaker.Success()
 		c.hits.Add(1)
 		return b, true
 	case errors.Is(err, redis.Nil):
-		c.breaker.success() // a clean miss proves Redis is alive
+		c.breaker.Success() // a clean miss proves Redis is alive
 		c.misses.Add(1)
 		return nil, false
 	default:
@@ -123,7 +125,7 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool) {
 // request context so a client disconnecting doesn't abort a write that's
 // already worth doing.
 func (c *Cache) Set(ctx context.Context, key string, val []byte) {
-	if !c.Enabled() || !c.breaker.allow() || len(val) > c.maxEntry {
+	if !c.Enabled() || !c.breaker.Allow() || len(val) > c.maxEntry {
 		return
 	}
 
@@ -135,7 +137,7 @@ func (c *Cache) Set(ctx context.Context, key string, val []byte) {
 			c.onErr(err)
 			return
 		}
-		c.breaker.success()
+		c.breaker.Success()
 	}()
 }
 
@@ -153,7 +155,7 @@ func (c *Cache) Stats() Stats {
 	}
 	return Stats{
 		Enabled: true,
-		Healthy: c.breaker.healthy(),
+		Healthy: c.breaker.Healthy(),
 		Hits:    c.hits.Load(),
 		Misses:  c.misses.Load(),
 		Errors:  c.errs.Load(),
@@ -168,7 +170,7 @@ func (c *Cache) Close() error {
 }
 
 func (c *Cache) onErr(err error) {
-	c.breaker.failure()
+	c.breaker.Failure()
 	c.errs.Add(1)
 
 	c.logMu.Lock()
