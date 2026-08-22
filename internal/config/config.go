@@ -11,9 +11,13 @@ type Config struct {
 	DatabaseURL string
 	Env         string
 
-	RedisURL       string        // empty = response cache disabled
+	RedisURL       string // empty = response cache disabled
 	CacheTTL       time.Duration
 	CacheOpTimeout time.Duration
+
+	ElasticURL       string // empty = search disabled -> Postgres fallback only
+	ElasticIndex     string
+	ElasticOpTimeout time.Duration
 }
 
 func Load() (*Config, error) {
@@ -25,6 +29,10 @@ func Load() (*Config, error) {
 		RedisURL:       getEnv("REDIS_URL", ""),
 		CacheTTL:       getEnvDuration("CACHE_TTL", 24*time.Hour),
 		CacheOpTimeout: getEnvDuration("CACHE_OP_TIMEOUT", 150*time.Millisecond),
+
+		ElasticURL:       getEnv("ELASTIC_URL", ""),
+		ElasticIndex:     getEnv("ELASTIC_INDEX", "pokepedia-search"),
+		ElasticOpTimeout: getEnvDuration("ELASTIC_OP_TIMEOUT", 800*time.Millisecond),
 	}
 
 	if cfg.DatabaseURL == "" {
