@@ -11,15 +11,19 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/config"
+	"github.com/Rishi2804/pokepedia-api-v2/internal/search"
 )
 
 func main() {
 	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to build")
 	dryRun := flag.Bool("dry-run", false, "build documents and report counts without writing to Elasticsearch")
+	keep := flag.Int("keep", 2, "number of versioned indices to retain after a successful swap")
+	alias := flag.String("alias", search.DefaultIndex, "alias name; the versioned index is <alias>-<timestamp>")
 	flag.Parse()
 
 	_ = godotenv.Load()
@@ -64,7 +68,20 @@ func main() {
 		return
 	}
 
-	log.Fatal("bulk indexing not implemented yet — run with -dry-run")
+	if cfg.ElasticURL == "" {
+		log.Fatal("ELASTIC_URL is not set — nothing to index into")
+	}
+	es, err := elasticsearch.NewTyped(
+		elasticsearch.WithAddresses(cfg.ElasticURL),
+		elasticsearch.WithRetry(2, 502, 503, 504),
+	)
+	if err != nil {
+		log.Fatalf("failed to create elasticsearch client: %v", err)
+	}
+
+	if err := bulkIndex(ctx, es, *alias, docs, *keep); err != nil {
+		log.Fatalf("bulk index failed: %v", err)
+	}
 }
 
 func buildDocs(ctx context.Context, pool *pgxpool.Pool, types map[string]bool) ([]indexDoc, error) {

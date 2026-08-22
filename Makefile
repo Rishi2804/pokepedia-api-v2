@@ -1,7 +1,7 @@
 include .env
 export
 
-.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force migrate-version docker-up docker-down cache-flush index-dry
+.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force migrate-version docker-up docker-down cache-flush index index-dry es-health es-aliases
 
 run:
 	go run ./cmd/api
@@ -33,5 +33,14 @@ docker-down:
 cache-flush:
 	docker compose exec -T redis redis-cli FLUSHDB
 
+index:
+	go run ./cmd/indexer
+
 index-dry:
 	go run ./cmd/indexer -dry-run
+
+es-health:
+	curl -s http://localhost:9200/_cluster/health?pretty
+
+es-aliases:
+	curl -s 'http://localhost:9200/_cat/aliases?v'
