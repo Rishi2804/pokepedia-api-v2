@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
+	"github.com/Rishi2804/pokepedia-api-v2/internal/search"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
@@ -18,17 +20,63 @@ const (
 	defaultSuggestLimit = 8
 )
 
-// SearchService has no Elasticsearch client yet — that lands in a later
-// commit. Every call goes through the Postgres fallback for now.
+// SearchService prefers Elasticsearch and falls back to a Postgres trigram
+// search when it's disabled, unhealthy, or erroring.
 type SearchService struct {
-	q *store.Queries
+	es *search.Client
+	q  *store.Queries
 }
 
-func NewSearchService(q *store.Queries) *SearchService {
-	return &SearchService{q: q}
+func NewSearchService(es *search.Client, q *store.Queries) *SearchService {
+	return &SearchService{es: es, q: q}
 }
 
 func (s *SearchService) Search(ctx context.Context, query string, size int) (*dto.SearchResponse, error) {
+	if s.es.Enabled() {
+		res, err := s.es.Search(ctx, search.Params{Query: query, Size: size})
+		if err == nil {
+			return toSearchResponse(query, res), nil
+		}
+		if !errors.Is(err, search.ErrUnavailable) {
+			return nil, err
+		}
+	}
+	return s.searchFallback(ctx, query, size)
+}
+
+func (s *SearchService) Suggest(ctx context.Context, query string, limit int) ([]dto.SearchHit, error) {
+	if s.es.Enabled() {
+		hits, err := s.es.Suggest(ctx, query, limit)
+		if err == nil {
+			return toSearchHits(hits), nil
+		}
+		if !errors.Is(err, search.ErrUnavailable) {
+			return nil, err
+		}
+	}
+	return s.suggestFallback(ctx, query, limit)
+}
+
+func toSearchResponse(query string, res *search.Results) *dto.SearchResponse {
+	groups := make([]dto.SearchGroup, len(res.Groups))
+	for i, g := range res.Groups {
+		groups[i] = dto.SearchGroup{Type: g.Type, Total: int(g.Total), Hits: toSearchHits(g.Hits)}
+	}
+	return &dto.SearchResponse{Query: query, Degraded: false, Groups: groups}
+}
+
+func toSearchHits(hits []search.Hit) []dto.SearchHit {
+	out := make([]dto.SearchHit, len(hits))
+	for i, h := range hits {
+		out[i] = dto.SearchHit{Type: h.Type, ID: h.EntityID, Name: h.Name, Gen: h.Gen, Meta: h.Meta}
+	}
+	return out
+}
+
+// searchFallback and suggestFallback are unchanged from the pre-Elasticsearch
+// version: a Postgres trigram search, always Degraded: true.
+
+func (s *SearchService) searchFallback(ctx context.Context, query string, size int) (*dto.SearchResponse, error) {
 	if len(strings.TrimSpace(query)) < 2 {
 		return &dto.SearchResponse{Query: query, Groups: []dto.SearchGroup{}}, nil
 	}
@@ -57,7 +105,7 @@ func (s *SearchService) Search(ctx context.Context, query string, size int) (*dt
 		}
 		g.Total++
 		if len(g.Hits) < size {
-			g.Hits = append(g.Hits, toSearchHit(r))
+			g.Hits = append(g.Hits, toFallbackHit(r))
 		}
 	}
 
@@ -69,7 +117,7 @@ func (s *SearchService) Search(ctx context.Context, query string, size int) (*dt
 	return &dto.SearchResponse{Query: query, Degraded: true, Groups: groups}, nil
 }
 
-func (s *SearchService) Suggest(ctx context.Context, query string, limit int) ([]dto.SearchHit, error) {
+func (s *SearchService) suggestFallback(ctx context.Context, query string, limit int) ([]dto.SearchHit, error) {
 	if len(strings.TrimSpace(query)) < 2 {
 		return []dto.SearchHit{}, nil
 	}
@@ -87,12 +135,12 @@ func (s *SearchService) Suggest(ctx context.Context, query string, limit int) ([
 
 	hits := make([]dto.SearchHit, len(rows))
 	for i, r := range rows {
-		hits[i] = toSearchHit(r)
+		hits[i] = toFallbackHit(r)
 	}
 	return hits, nil
 }
 
-func toSearchHit(r store.SearchNamesFallbackRow) dto.SearchHit {
+func toFallbackHit(r store.SearchNamesFallbackRow) dto.SearchHit {
 	return dto.SearchHit{
 		Type: r.Type,
 		ID:   r.ID,

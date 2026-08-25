@@ -10,15 +10,17 @@ import (
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/cache"
 	appmiddleware "github.com/Rishi2804/pokepedia-api-v2/internal/middleware"
+	"github.com/Rishi2804/pokepedia-api-v2/internal/search"
 )
 
 type Server struct {
 	pool  *pgxpool.Pool
 	cache *cache.Cache
+	es    *search.Client
 }
 
-func New(pool *pgxpool.Pool, c *cache.Cache) *Server {
-	return &Server{pool: pool, cache: c}
+func New(pool *pgxpool.Pool, c *cache.Cache, es *search.Client) *Server {
+	return &Server{pool: pool, cache: c, es: es}
 }
 
 func (s *Server) Router() http.Handler {

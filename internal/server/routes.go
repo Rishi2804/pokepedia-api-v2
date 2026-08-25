@@ -16,9 +16,9 @@ func (s *Server) registerRoutes(r chi.Router) {
 	pokedexService := service.NewPokedexService(queries)
 	movesService := service.NewMovesService(queries)
 	abilitiesService := service.NewAbilitiesService(queries)
-	searchService := service.NewSearchService(queries)
+	searchService := service.NewSearchService(s.es, queries)
 
-	healthHandler := handlers.NewHealthHandler(s.pool, s.cache)
+	healthHandler := handlers.NewHealthHandler(s.pool, s.cache, s.es)
 	pokemonHandler := handlers.NewPokemonHandler(pokemonService)
 	speciesHandler := handlers.NewSpeciesHandler(speciesService)
 	pokedexHandler := handlers.NewPokedexHandler(pokedexService)

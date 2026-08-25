@@ -1,10 +1,13 @@
 package dto
 
+import "encoding/json"
+
 type SearchHit struct {
-	Type string `json:"type"`
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
-	Gen  int32  `json:"gen"`
+	Type string          `json:"type"`
+	ID   int32           `json:"id"`
+	Name string          `json:"name"`
+	Gen  int32           `json:"gen"`
+	Meta json.RawMessage `json:"meta,omitempty"`
 }
 
 type SearchGroup struct {
