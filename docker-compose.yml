@@ -26,6 +26,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "5050:80"
+    profiles: ["tools"]
   go-api:
     container_name: "pokepedia-api"
     build:
@@ -107,6 +108,7 @@ services:
       redis:
         condition: service_healthy
     restart: always
+    profiles: ["tools"]
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
     container_name: "pokepedia-search"
@@ -149,6 +151,7 @@ services:
       timeout: 5s
       retries: 18
       start_period: 60s
+    profiles: ["tools"]
 volumes:
   minio_data:
   postgres_data:
