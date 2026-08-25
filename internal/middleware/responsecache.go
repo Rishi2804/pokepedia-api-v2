@@ -58,12 +58,18 @@ func (b *bufferedWriter) flushTo(w http.ResponseWriter, cacheStatus string) {
 }
 
 func cacheKey(r *http.Request) string {
-	return "pp:" + cache.KeyVersion + ":resp:" + r.URL.EscapedPath()
+	key := "pp:" + cache.KeyVersion + ":resp:" + r.URL.EscapedPath()
+	if r.URL.RawQuery != "" {
+		key += "?" + r.URL.RawQuery
+	}
+	return key
 }
 
-// ResponseCache caches 200 JSON responses keyed by request path. Safe only
-// for routes that are a pure function of their path — every route this is
-// applied to is a path-only GET with no query params.
+// ResponseCache caches 200 JSON responses keyed by request path plus query
+// string. Safe only for routes that are a pure function of their full URL —
+// every route this is applied to today is a path-only GET with no query
+// params, so the query string is normally empty and folded into the key as a
+// no-op.
 func ResponseCache(c *cache.Cache) func(http.Handler) http.Handler {
 	if !c.Enabled() {
 		return func(next http.Handler) http.Handler { return next }

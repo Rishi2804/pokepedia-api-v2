@@ -16,15 +16,21 @@ func (s *Server) registerRoutes(r chi.Router) {
 	pokedexService := service.NewPokedexService(queries)
 	movesService := service.NewMovesService(queries)
 	abilitiesService := service.NewAbilitiesService(queries)
+	searchService := service.NewSearchService(s.es, queries)
 
-	healthHandler := handlers.NewHealthHandler(s.pool, s.cache)
+	healthHandler := handlers.NewHealthHandler(s.pool, s.cache, s.es)
 	pokemonHandler := handlers.NewPokemonHandler(pokemonService)
 	speciesHandler := handlers.NewSpeciesHandler(speciesService)
 	pokedexHandler := handlers.NewPokedexHandler(pokedexService)
 	movesHandler := handlers.NewMovesHandler(movesService)
 	abilitiesHandler := handlers.NewAbilitiesHandler(abilitiesService)
+	searchHandler := handlers.NewSearchHandler(searchService)
 
 	r.Get("/healthz", healthHandler.Check)
+
+	// Query-bearing, so kept outside the ResponseCache group below.
+	r.Get("/api/v1/search", searchHandler.Search)
+	r.Get("/api/v1/search/suggest", searchHandler.Suggest)
 
 	// Every route below is a path-only GET over static reference data, so a
 	// response cache keyed on the URL path is correct for all of them.

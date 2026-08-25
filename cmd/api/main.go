@@ -11,6 +11,7 @@ import (
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/cache"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/config"
+	"github.com/Rishi2804/pokepedia-api-v2/internal/search"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/server"
 )
 
@@ -61,7 +62,32 @@ func main() {
 		cancel()
 	}
 
-	srv := server.New(pool, c)
+	sc, err := search.New(search.Config{
+		URL:       cfg.ElasticURL,
+		Index:     cfg.ElasticIndex,
+		OpTimeout: cfg.ElasticOpTimeout,
+	})
+	if err != nil {
+		// Only a malformed ELASTIC_URL reaches here; an unreachable cluster does not.
+		log.Fatalf("invalid ELASTIC_URL: %v", err)
+	}
+
+	switch {
+	case !sc.Enabled():
+		log.Println("search disabled (ELASTIC_URL not set); falling back to postgres")
+	default:
+		pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		if err := sc.Ping(pingCtx); err != nil {
+			// Non-fatal by design: Elasticsearch may come up after us, and
+			// search degrades to the Postgres fallback in the meantime.
+			log.Printf("warning: elasticsearch unreachable at boot, falling back to postgres: %v", err)
+		} else {
+			log.Println("connected to elasticsearch successfully")
+		}
+		cancel()
+	}
+
+	srv := server.New(pool, c, sc)
 
 	log.Printf("starting server on :%s (env=%s)", cfg.Port, cfg.Env)
 	if err := http.ListenAndServe(":"+cfg.Port, srv.Router()); err != nil {

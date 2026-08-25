@@ -26,6 +26,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "5050:80"
+    profiles: ["tools"]
   go-api:
     container_name: "pokepedia-api"
     build:
@@ -45,6 +46,7 @@ services:
       APP_ENV: docker
       DATABASE_URL: ${DOCKER_DATABASE_URL}
       REDIS_URL: ${DOCKER_REDIS_URL}
+      ELASTIC_URL: ${DOCKER_ELASTIC_URL}
     restart: always
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://localhost:8080/healthz"]
@@ -106,7 +108,52 @@ services:
       redis:
         condition: service_healthy
     restart: always
+    profiles: ["tools"]
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
+    container_name: "pokepedia-search"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.ml.enabled=false
+      - ingest.geoip.downloader.enabled=false
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    mem_limit: 1500m
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.5.2
+    container_name: "pokepedia-search-insight"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED=false
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=pokepedia_local_dev_kibana_key_32ch
+    ports:
+      - "5601:5601"
+    mem_limit: 1g
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:5601/api/status | grep -q '\"level\":\"available\"'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
+    profiles: ["tools"]
 volumes:
   minio_data:
   postgres_data:
   redisinsight_data:
+  elasticsearch_data:
