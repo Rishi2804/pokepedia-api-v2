@@ -12,15 +12,6 @@ type pokemonRow struct {
 	Gen        int32
 	Type1      string
 	Type2      *string
-	Weight     float64
-	Height     float64
-	HP         int32
-	Atk        int32
-	Def        int32
-	SpAtk      int32
-	SpDef      int32
-	Speed      int32
-	BST        int32
 	SpeciesID  int32
 	Popularity int32
 }
@@ -59,8 +50,7 @@ func fetchPokemon(ctx context.Context, pool *pgxpool.Pool) ([]pokemonRow, error)
 	var out []pokemonRow
 	for rows.Next() {
 		var r pokemonRow
-		if err := rows.Scan(&r.ID, &r.Slug, &r.Gen, &r.Type1, &r.Type2, &r.Weight, &r.Height,
-			&r.HP, &r.Atk, &r.Def, &r.SpAtk, &r.SpDef, &r.Speed, &r.BST, &r.SpeciesID, &r.Popularity); err != nil {
+		if err := rows.Scan(&r.ID, &r.Slug, &r.Gen, &r.Type1, &r.Type2, &r.SpeciesID, &r.Popularity); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

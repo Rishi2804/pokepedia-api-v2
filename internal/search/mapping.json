@@ -108,11 +108,6 @@
         "type": "object", "dynamic": "strict",
         "properties": {
           "type1": { "type": "keyword" }, "type2": { "type": "keyword" },
-          "bst": { "type": "short" }, "hp": { "type": "short" },
-          "atk": { "type": "short" }, "def": { "type": "short" },
-          "spatk": { "type": "short" }, "spdef": { "type": "short" },
-          "speed": { "type": "short" },
-          "height": { "type": "half_float" }, "weight": { "type": "half_float" },
           "species_id": { "type": "integer" }, "dex_number": { "type": "integer" },
           "move_type": { "type": "keyword" }, "move_class": { "type": "keyword" },
           "power": { "type": "short" }, "accuracy": { "type": "short" },

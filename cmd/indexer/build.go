@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 
+	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
@@ -51,18 +52,12 @@ func buildAliases(slug, speciesName string) []string {
 	return append(aliases, aliasOverrides[slug]...)
 }
 
+// PokemonCard (pokepedia-ui) only ever reads type1/type2/speciesId/dexNumber
+// from a Pokemon search hit — hp/atk/def/spatk/spdef/speed/height/weight
+// have no reader anywhere and are deliberately left out.
 func buildPokemonDoc(r pokemonRow, speciesName string, descriptions map[int32][]string) indexDoc {
 	meta := map[string]any{
-		"type1":      r.Type1,
-		"bst":        r.BST,
-		"hp":         r.HP,
-		"atk":        r.Atk,
-		"def":        r.Def,
-		"spatk":      r.SpAtk,
-		"spdef":      r.SpDef,
-		"speed":      r.Speed,
-		"height":     r.Height,
-		"weight":     r.Weight,
+		"type1":      pokeenum.ToDisplay(r.Type1),
 		"species_id": r.SpeciesID,
 		// species.id doubles as the national dex number in this schema —
 		// see GetDexNational in db/queries/pokedex.sql, which returns
@@ -70,7 +65,7 @@ func buildPokemonDoc(r pokemonRow, speciesName string, descriptions map[int32][]
 		"dex_number": r.SpeciesID,
 	}
 	if r.Type2 != nil {
-		meta["type2"] = *r.Type2
+		meta["type2"] = pokeenum.ToDisplay(*r.Type2)
 	}
 
 	return indexDoc{
@@ -88,8 +83,8 @@ func buildPokemonDoc(r pokemonRow, speciesName string, descriptions map[int32][]
 
 func buildMoveDoc(r moveRow, descriptions map[int32][]string) indexDoc {
 	meta := map[string]any{
-		"move_type":  r.Type,
-		"move_class": r.Class,
+		"move_type":  pokeenum.ToDisplay(r.Type),
+		"move_class": pokeenum.ToDisplay(r.Class),
 	}
 	if r.Power != nil {
 		meta["power"] = *r.Power
