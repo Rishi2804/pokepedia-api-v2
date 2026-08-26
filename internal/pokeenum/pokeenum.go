@@ -22,7 +22,7 @@ var VersionGroupOrder = []string{
 	"heartgold-soulsilver", "black-white", "black-2-white-2", "x-y",
 	"omega-ruby-alpha-sapphire", "sun-moon", "ultra-sun-ultra-moon",
 	"lets-go-pikachu-lets-go-eevee", "sword-shield",
-	"brilliant-diamond-and-shining-pearl", "legends-arceus", "scarlet-violet",
+	"brilliant-diamond-and-shining-pearl", "legends-arceus", "scarlet-violet", "legends-za",
 }
 
 func indexOf(list []string, value string) int {

@@ -40,6 +40,8 @@ var pokedexRegions = []PokedexRegionInfo{
 	{"paldea", "Paldea", int32Ptr(9)},
 	{"kitakami", "Kitakami", int32Ptr(9)},
 	{"blueberry", "Blueberry", int32Ptr(9)},
+	{"lumiose", "Lumiose", int32Ptr(9)},
+	{"hyperspace", "Hyperspace", int32Ptr(9)},
 }
 
 func int32Ptr(v int32) *int32 { return &v }
@@ -77,6 +79,7 @@ var pokedexVersions = []PokedexVersionInfo{
 	{"brilliant-diamond-shining-pearl", []string{"original-sinnoh"}},
 	{"legends-arceus", []string{"hisui"}},
 	{"scarlet-violet", []string{"paldea", "kitakami", "blueberry"}},
+	{"legends-za", []string{"lumiose", "hyperspace"}},
 }
 
 func GetPokedexVersion(dbValue string) (PokedexVersionInfo, error) {

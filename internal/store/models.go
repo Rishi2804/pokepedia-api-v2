@@ -43,6 +43,8 @@ const (
 	DexPaldea           Dex = "paldea"
 	DexKitakami         Dex = "kitakami"
 	DexBlueberry        Dex = "blueberry"
+	DexLumiose          Dex = "lumiose"
+	DexHyperspace       Dex = "hyperspace"
 )
 
 func (e *Dex) Scan(src interface{}) error {
@@ -120,6 +122,7 @@ const (
 	GameLegendsArceus    Game = "legends-arceus"
 	GameScarlet          Game = "scarlet"
 	GameViolet           Game = "violet"
+	GameLegendsZa        Game = "legends-za"
 )
 
 func (e *Game) Scan(src interface{}) error {
@@ -181,6 +184,7 @@ const (
 	GroupBrilliantDiamondAndShiningPearl Group = "brilliant-diamond-and-shining-pearl"
 	GroupLegendsArceus                   Group = "legends-arceus"
 	GroupScarletViolet                   Group = "scarlet-violet"
+	GroupLegendsZa                       Group = "legends-za"
 )
 
 func (e *Group) Scan(src interface{}) error {
