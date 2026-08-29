@@ -51,6 +51,22 @@ func report(rows []descriptionRow, unresolved []unresolvedItem) {
 		fmt.Printf("  %-8s %-16s %6d  (%s)\n", k.entity, k.version, counts[k], strings.Join(srcs, ","))
 	}
 
+	printUnresolved(unresolved)
+}
+
+// reportVerbose is report plus the full detail line for every known gap too
+// -- for when you want to double check the suppressed list still matches
+// what's actually in the database, e.g. after adding rows for a variant
+// that used to be a known gap.
+func reportVerbose(rows []descriptionRow, unresolved []unresolvedItem) {
+	report(rows, unresolved)
+	printKnownDetail(unresolved)
+}
+
+// printUnresolved is the split-and-summarize logic report() and
+// reportEggMoves() share: known gaps (see knowngaps.go) collapse to a
+// one-line count, everything else prints in full.
+func printUnresolved(unresolved []unresolvedItem) {
 	var known, unknown []unresolvedItem
 	for _, u := range unresolved {
 		if u.Known {
@@ -69,15 +85,46 @@ func report(rows []descriptionRow, unresolved []unresolvedItem) {
 	}
 }
 
-// reportVerbose is report plus the full detail line for every known gap too
-// -- for when you want to double check the suppressed list still matches
-// what's actually in the database, e.g. after adding rows for a variant
-// that used to be a known gap.
-func reportVerbose(rows []descriptionRow, unresolved []unresolvedItem) {
-	report(rows, unresolved)
+func printKnownDetail(unresolved []unresolvedItem) {
 	for _, u := range unresolved {
 		if u.Known {
 			fmt.Printf("  = %s -- %s\n", u.Message, u.Reason)
 		}
 	}
+}
+
+// reportEggMoves prints one line per version group -- the movedetails
+// analogue of report() above. Pokemon count (not just row count) is worth
+// showing separately since the headline finding motivating this pass was
+// entirely about evolved forms sitting at zero, not about row volume.
+func reportEggMoves(rows []moveDetailRow, unresolved []unresolvedItem) {
+	type key struct{ version string }
+	counts := map[key]int{}
+	pokemon := map[key]map[int32]bool{}
+	for _, r := range rows {
+		k := key{r.Version}
+		counts[k]++
+		if pokemon[k] == nil {
+			pokemon[k] = map[int32]bool{}
+		}
+		pokemon[k][r.PokemonID] = true
+	}
+
+	var keys []key
+	for k := range counts {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i].version < keys[j].version })
+
+	fmt.Printf("built %d egg-move rows:\n", len(rows))
+	for _, k := range keys {
+		fmt.Printf("  %-38s %6d rows  %5d pokemon\n", k.version, counts[k], len(pokemon[k]))
+	}
+
+	printUnresolved(unresolved)
+}
+
+func reportEggMovesVerbose(rows []moveDetailRow, unresolved []unresolvedItem) {
+	reportEggMoves(rows, unresolved)
+	printKnownDetail(unresolved)
 }

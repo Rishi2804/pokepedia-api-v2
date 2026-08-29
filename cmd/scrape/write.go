@@ -47,3 +47,31 @@ func writeRows(ctx context.Context, pool *pgxpool.Pool, rows []descriptionRow, o
 	}
 	return nil
 }
+
+// writeEggMoveRows inserts egg-move facts using insertEggMove's
+// WHERE NOT EXISTS guard (see queries.go for why this can't be an
+// ON CONFLICT upsert like writeRows above). There is no -overwrite
+// equivalent here: gap-fill-only is the only mode, since deleting or
+// replacing an existing movedetails row risks the reverse-mismatch cases
+// (Politoed has 15 egg moves in this DB vs 5 on Bulbapedia) the plan
+// explicitly chose never to touch.
+func writeEggMoveRows(ctx context.Context, pool *pgxpool.Pool, rows []moveDetailRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	batch := &pgx.Batch{}
+	for _, r := range rows {
+		batch.Queue(insertEggMove, r.PokemonID, r.MoveID, r.Version)
+	}
+
+	br := pool.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for range rows {
+		if _, err := br.Exec(); err != nil {
+			return fmt.Errorf("batch exec: %w", err)
+		}
+	}
+	return nil
+}

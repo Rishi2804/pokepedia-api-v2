@@ -13,6 +13,22 @@ func buildIndex(species pokemonRow, forms ...pokemonRow) speciesIndex {
 	return buildSpeciesIndex(all)
 }
 
+// resolveOneFormMarker wraps resolveFormMarker for the (overwhelmingly
+// common) tests that expect exactly one resolved id -- resolveFormMarker
+// itself returns []int32 because a marker can legitimately name more than
+// one pokemon at once (see TestResolveFormMarker_MultiTarget_BasculinStripedForms).
+func resolveOneFormMarker(t *testing.T, marker string, speciesID int32, idx speciesIndex) (int32, bool) {
+	t.Helper()
+	ids, ok := resolveFormMarker(marker, speciesID, idx)
+	if !ok {
+		return 0, false
+	}
+	if len(ids) != 1 {
+		t.Fatalf("resolveFormMarker(%q) returned %d ids %v, want exactly 1", marker, len(ids), ids)
+	}
+	return ids[0], true
+}
+
 func TestResolveFormMarker_MegaXYDisambiguation(t *testing.T) {
 	// Real Bulbapedia markers from Charizard (Pokémon), fetched 2026-08-25:
 	// {{Dex/Form|Mega Charizard X}}, {{Dex/Form|Mega Charizard Y}}. Both
@@ -32,7 +48,7 @@ func TestResolveFormMarker_MegaXYDisambiguation(t *testing.T) {
 		{"Mega Charizard Y", 10035},
 	}
 	for _, c := range cases {
-		id, ok := resolveFormMarker(c.marker, 6, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, 6, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", c.marker)
 		}
@@ -62,7 +78,7 @@ func TestResolveFormMarker_RegionalFormGenericMarker(t *testing.T) {
 		{"Gigantamax", 10197},
 	}
 	for _, c := range cases {
-		id, ok := resolveFormMarker(c.marker, 52, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, 52, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", c.marker)
 		}
@@ -94,7 +110,7 @@ func TestResolveFormMarker_ZygardePercentForms(t *testing.T) {
 		{"Mega Zygarde", 10301},
 	}
 	for _, c := range cases {
-		id, ok := resolveFormMarker(c.marker, 718, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, 718, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", c.marker)
 		}
@@ -130,7 +146,7 @@ func TestResolveFormMarker_RotomAppliances_ReversedWordOrder(t *testing.T) {
 		{"Rotom", 479}, // resets to base, as seen between generation blocks
 	}
 	for _, c := range cases {
-		id, ok := resolveFormMarker(c.marker, 479, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, 479, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", c.marker)
 		}
@@ -161,7 +177,7 @@ func TestResolveFormMarker_NecrozmaFusions_SpeciesNameOmitted(t *testing.T) {
 		{"Ultra Necrozma", 10157},
 	}
 	for _, c := range cases {
-		id, ok := resolveFormMarker(c.marker, 800, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, 800, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", c.marker)
 		}
@@ -209,7 +225,7 @@ func TestResolveFormMarker_NoLiteralBaseRow(t *testing.T) {
 		{"Hangry Mode", 10231},
 	}
 	for _, c := range cases {
-		id, ok := resolveFormMarker(c.marker, 877, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, 877, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", c.marker)
 		}
@@ -231,7 +247,7 @@ func TestResolveFormMarker_SingleRowSpecies_AnyMarkerResolves(t *testing.T) {
 	})
 
 	for _, marker := range []string{"Type: Normal", "''All other forms''"} {
-		id, ok := resolveFormMarker(marker, 773, idx)
+		id, ok := resolveOneFormMarker(t, marker, 773, idx)
 		if !ok {
 			t.Fatalf("resolveFormMarker(%q): no match", marker)
 		}
@@ -266,11 +282,11 @@ func TestResolveFormMarker_KnownBaseLabel(t *testing.T) {
 		pokemonRow{ID: 10250, Name: "zacian-crowned", SpeciesID: 888},
 	)
 
-	id, ok := resolveFormMarker("Hero of Many Battles", 888, idx)
+	id, ok := resolveOneFormMarker(t, "Hero of Many Battles", 888, idx)
 	if !ok || id != 888 {
 		t.Fatalf("resolveFormMarker(Hero of Many Battles) = (%d, %v), want (888, true)", id, ok)
 	}
-	id, ok = resolveFormMarker("Crowned Sword", 888, idx)
+	id, ok = resolveOneFormMarker(t, "Crowned Sword", 888, idx)
 	if !ok || id != 10250 {
 		t.Fatalf("resolveFormMarker(Crowned Sword) = (%d, %v), want (10250, true)", id, ok)
 	}
@@ -300,7 +316,7 @@ func TestResolveFormMarker_ExtraTokenTiebreak(t *testing.T) {
 		pokemonRow{ID: 10058, Name: "garchomp-mega", SpeciesID: 445},
 		pokemonRow{ID: 10309, Name: "garchomp-mega-z", SpeciesID: 445},
 	)
-	id, ok := resolveFormMarker("Mega Garchomp", 445, idx)
+	id, ok := resolveOneFormMarker(t, "Mega Garchomp", 445, idx)
 	if !ok || id != 10058 {
 		t.Fatalf("resolveFormMarker(Mega Garchomp) = (%d, %v), want (10058, true)", id, ok)
 	}
@@ -312,7 +328,7 @@ func TestResolveFormMarker_ExtraTokenTiebreak(t *testing.T) {
 		pokemonRow{ID: 10259, Name: "tatsugiri-droopy", SpeciesID: 978},
 		pokemonRow{ID: 10323, Name: "tatsugiri-droopy-mega", SpeciesID: 978},
 	)
-	id, ok = resolveFormMarker("Droopy Form", 978, tIdx)
+	id, ok = resolveOneFormMarker(t, "Droopy Form", 978, tIdx)
 	if !ok || id != 10259 {
 		t.Fatalf("resolveFormMarker(Droopy Form) = (%d, %v), want (10259, true)", id, ok)
 	}
@@ -347,7 +363,7 @@ func TestResolveFormMarker_ApostropheStripped(t *testing.T) {
 		pokemonRow{ID: 10173, Name: "oricorio-pau", SpeciesID: 741},
 		pokemonRow{ID: 10174, Name: "oricorio-sensu", SpeciesID: 741},
 	)
-	id, ok := resolveFormMarker("Pa'u Style", 741, idx)
+	id, ok := resolveOneFormMarker(t, "Pa'u Style", 741, idx)
 	if !ok {
 		t.Fatal("resolveFormMarker(Pa'u Style): no match")
 	}
@@ -374,9 +390,80 @@ func TestResolveFormMarker_KnownBaseLabels_NewEntries(t *testing.T) {
 	}
 	for _, c := range cases {
 		idx := buildIndex(c.base, c.alt)
-		id, ok := resolveFormMarker(c.marker, c.base.SpeciesID, idx)
+		id, ok := resolveOneFormMarker(t, c.marker, c.base.SpeciesID, idx)
 		if !ok || id != c.base.ID {
 			t.Fatalf("%s: resolveFormMarker(%q) = (%d, %v), want (%d, true)", c.name, c.marker, id, ok, c.base.ID)
 		}
+	}
+}
+
+func TestResolveFormMarker_MultiTarget_BasculinStripedForms(t *testing.T) {
+	// Real marker from Basculin (Pokémon)'s breeding section:
+	// {{{{...}}}} heading "=====Red-Striped/Blue-Striped Basculin=====" (a
+	// SEPARATE heading, "=====White-Striped Basculin=====", covers the
+	// third form). This is the genuine multi-target case: both
+	// basculin-red-striped and basculin-blue-striped achieve FULL suffix
+	// coverage (their entire suffix -- {red,striped} and {blue,striped} --
+	// is explained by marker tokens), unlike Ogerpon's ambiguous "Mask"
+	// alone where no candidate achieves full coverage. Basculin's marker
+	// explicitly names both forms; Ogerpon's does not.
+	idx := buildIndex(
+		pokemonRow{ID: 550, Name: "basculin-red-striped", SpeciesID: 550},
+		pokemonRow{ID: 10016, Name: "basculin-blue-striped", SpeciesID: 550},
+		pokemonRow{ID: 10247, Name: "basculin-white-striped", SpeciesID: 550},
+	)
+
+	ids, ok := resolveFormMarker("Red-Striped/Blue-Striped Basculin", 550, idx)
+	if !ok {
+		t.Fatal("expected a multi-target match")
+	}
+	got := map[int32]bool{}
+	for _, id := range ids {
+		got[id] = true
+	}
+	if len(got) != 2 || !got[550] || !got[10016] {
+		t.Fatalf("ids = %v, want exactly {550, 10016}", ids)
+	}
+	if got[10247] {
+		t.Fatal("white-striped incorrectly included -- it has its own separate heading")
+	}
+
+	// And the OTHER heading on the same page resolves to the third form alone.
+	id, ok := resolveOneFormMarker(t, "White-Striped Basculin", 550, idx)
+	if !ok || id != 10247 {
+		t.Fatalf("resolveFormMarker(White-Striped Basculin) = (%d, %v), want (10247, true)", id, ok)
+	}
+}
+
+func TestResolveFormMarker_BreedingFormOverrides(t *testing.T) {
+	// Darmanitan's breeding page groups by region only, never distinguishing
+	// Standard from Zen Mode (Zen Mode never hatches from an egg), and
+	// Greninja's "Battle Bond Greninja" heading turns out (verified: its
+	// five entries are identical to plain "Greninja"'s, just each requiring
+	// a held Mirror Herb instead of direct breeding compatibility) to be the
+	// same "greninja" row again, not greninja-ash. Neither is expressible
+	// via token overlap -- both need the explicit breedingFormOverrides table.
+	darm := buildIndex(
+		pokemonRow{ID: 10184, Name: "darmanitan-standard", SpeciesID: 555},
+		pokemonRow{ID: 10185, Name: "darmanitan-zen", SpeciesID: 555},
+		pokemonRow{ID: 10165, Name: "darmanitan-galar-standard", SpeciesID: 555},
+		pokemonRow{ID: 10166, Name: "darmanitan-galar-zen", SpeciesID: 555},
+	)
+	id, ok := resolveOneFormMarker(t, "Darmanitan", 555, darm)
+	if !ok || id != 10184 {
+		t.Fatalf(`resolveFormMarker("Darmanitan") = (%d, %v), want (10184 [darmanitan-standard], true)`, id, ok)
+	}
+	id, ok = resolveOneFormMarker(t, "Galarian Darmanitan", 555, darm)
+	if !ok || id != 10165 {
+		t.Fatalf(`resolveFormMarker("Galarian Darmanitan") = (%d, %v), want (10165 [darmanitan-galar-standard], true)`, id, ok)
+	}
+
+	gren := buildIndex(
+		pokemonRow{ID: 658, Name: "greninja", SpeciesID: 658},
+		pokemonRow{ID: 10117, Name: "greninja-ash", SpeciesID: 658},
+	)
+	id, ok = resolveOneFormMarker(t, "Battle Bond Greninja", 658, gren)
+	if !ok || id != 658 {
+		t.Fatalf(`resolveFormMarker("Battle Bond Greninja") = (%d, %v), want (658 [greninja, NOT greninja-ash], true)`, id, ok)
 	}
 }

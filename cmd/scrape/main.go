@@ -40,6 +40,7 @@ func main() {
 	limit := flag.Int("limit", 0, "cap the number of entities processed per type (0 = no cap)")
 	overwrite := flag.Bool("overwrite", false, "DO UPDATE instead of DO NOTHING on existing (id, version) rows")
 	verboseKnown := flag.Bool("verbose-known", false, "also print the full detail line for every known/diagnosed gap (see cmd/scrape/knowngaps.go)")
+	oldGens := flag.Bool("old-gens", false, "with -only=eggmoves, also fetch older-generation breeding subpages (Generation II-VIII learnset); off by default so a first run only touches gen 9, which is already cached")
 	flag.Parse()
 
 	_ = godotenv.Load()
@@ -66,6 +67,42 @@ func main() {
 		sources["bulbapedia"] = true
 	} else {
 		sources[*source] = true
+	}
+
+	// eggmoves is a separate pipeline (movedetails, not *descriptions -- see
+	// moveDetailRow in types.go) run instead of, not alongside, the
+	// description passes: -only=eggmoves is meant to be used on its own.
+	if types["eggmoves"] {
+		if !sources["bulbapedia"] {
+			log.Fatal("eggmoves requires -source=bulbapedia (or the default \"both\"); PokeAPI has no egg-move breeding data")
+		}
+		eggRows, unresolved, err := scrapeEggMoves(ctx, pool, *limit, *batch, *cacheDir, *oldGens)
+		if err != nil {
+			log.Fatalf("eggmoves pass failed: %v", err)
+		}
+
+		if *verboseKnown {
+			reportEggMovesVerbose(eggRows, unresolved)
+		} else {
+			reportEggMoves(eggRows, unresolved)
+		}
+
+		if *dryRun {
+			return
+		}
+
+		if err := writeEggMoveRows(ctx, pool, eggRows); err != nil {
+			log.Fatalf("write failed: %v", err)
+		}
+		fmt.Printf("wrote %d egg-move rows to Postgres\n", len(eggRows))
+
+		if *emit != "" {
+			if err := emitEggMoveMigration(*emit, eggRows); err != nil {
+				log.Fatalf("emit failed: %v", err)
+			}
+			fmt.Printf("wrote migration: %s\n", *emit)
+		}
+		return
 	}
 
 	var rows []descriptionRow

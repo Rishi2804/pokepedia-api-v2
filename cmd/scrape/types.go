@@ -37,3 +37,17 @@ type unresolvedItem struct {
 func unresolvedf(format string, a ...any) unresolvedItem {
 	return unresolvedItem{Message: fmt.Sprintf(format, a...)}
 }
+
+// moveDetailRow is one (pokemon_id, move_id, method, version) egg-move fact
+// destined for movedetails. It is a separate type from descriptionRow --
+// not shoehorned into it -- because movedetails has a genuinely different
+// shape (no text column, an extra method/level_learned pair) and a
+// different write policy (see insertEggMove in queries.go: movedetails has
+// no unique constraint, so it can't reuse ON CONFLICT).
+type moveDetailRow struct {
+	PokemonID   int32
+	MoveID      int32
+	Version     string // public.group enum value
+	Source      string
+	SourceTitle string
+}

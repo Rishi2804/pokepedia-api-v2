@@ -31,3 +31,20 @@ INSERT INTO public.abilitydescriptions (ability_id, version, text)
 VALUES ($1, $2, $3)
 ON CONFLICT (ability_id, version) DO %s
 `
+
+// movedetails has no primary key or unique constraint -- 8,575
+// (pokemon_id, move_id, method, version) groups already have duplicates,
+// all of them method='level-up' and all legitimate (the same move learned
+// at two different levels across sub-versions, e.g. Bulbasaur's Vine Whip
+// at both level 7 and 9 in Sun/Moon). Egg moves have zero such duplicates
+// today, so a WHERE NOT EXISTS guard gives the same gap-fill-only
+// idempotency the ON CONFLICT upserts above give the *descriptions tables,
+// without a schema change.
+const insertEggMove = `
+INSERT INTO public.movedetails (pokemon_id, move_id, method, level_learned, version)
+SELECT $1, $2, 'egg', 0, $3
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.movedetails
+  WHERE pokemon_id = $1 AND move_id = $2 AND method = 'egg' AND version = $3
+)
+`

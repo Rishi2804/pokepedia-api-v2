@@ -416,11 +416,17 @@ func parsePokemonDexEntries(section string, speciesID int32, idx speciesIndex, p
 	// Species with no literal base row (Deoxys, Giratina, Morpeko, Darmanitan,
 	// ...) always carry an explicit {{Dex/Form|...}} marker before their
 	// very first dex entry -- verified live on Zacian and Morpeko -- so
-	// starting unresolved (-1, "skip until a marker resolves") rather than
+	// starting unresolved (nil, "skip until a marker resolves") rather than
 	// guessing an id is safe, not lossy.
-	currentID := int32(-1)
+	//
+	// currentIDs is a slice, not a single id, because resolveFormMarker can
+	// legitimately resolve one marker to more than one pokemon (Basculin's
+	// "Red-Striped/Blue-Striped Basculin" names two forms in one heading) --
+	// see resolveFormMarker's tied-full-coverage branch. Every id in the
+	// slice gets every subsequent entry until the next marker changes it.
+	var currentIDs []int32
 	if base, ok := idx.literalBase[speciesID]; ok {
-		currentID = base.ID
+		currentIDs = []int32{base.ID}
 	}
 	var rows []descriptionRow
 	var unresolved []unresolvedItem
@@ -428,23 +434,23 @@ func parsePokemonDexEntries(section string, speciesID int32, idx speciesIndex, p
 	for _, occ := range findTemplates(section, dexEntryTemplateNames()...) {
 		if occ.Name == "Dex/Form" {
 			marker := strings.TrimSpace(occ.Body)
-			if id, ok := resolveFormMarker(marker, speciesID, idx); ok {
-				currentID = id
+			if ids, ok := resolveFormMarker(marker, speciesID, idx); ok {
+				currentIDs = ids
 			} else if reason, known := knownGaps[knownGapKey{speciesID, marker}]; known {
 				unresolved = append(unresolved, unresolvedItem{
 					Message: fmt.Sprintf("form marker %q on %s (species %d)", marker, pageTitle, speciesID),
 					Known:   true, Reason: reason,
 				})
-				currentID = -1
+				currentIDs = nil
 			} else {
 				unresolved = append(unresolved, unresolvedf(
 					"form marker %q on %s (species %d): no unambiguous match", marker, pageTitle, speciesID))
-				currentID = -1 // skip entries until the next marker resolves
+				currentIDs = nil // skip entries until the next marker resolves
 			}
 			continue
 		}
 
-		if currentID < 0 {
+		if len(currentIDs) == 0 {
 			continue
 		}
 		args := namedArgs(splitTopLevel(occ.Body))
@@ -463,10 +469,12 @@ func parsePokemonDexEntries(section string, speciesID int32, idx speciesIndex, p
 			if !ok {
 				continue // known non-core-series value (Stadium, Colosseum, Champions, ...) -- not an error
 			}
-			rows = append(rows, descriptionRow{
-				Entity: entityPokemon, ID: currentID, Version: game, Text: cleaned,
-				Source: "bulbapedia", SourceTitle: pageTitle,
-			})
+			for _, id := range currentIDs {
+				rows = append(rows, descriptionRow{
+					Entity: entityPokemon, ID: id, Version: game, Text: cleaned,
+					Source: "bulbapedia", SourceTitle: pageTitle,
+				})
+			}
 		}
 	}
 	return rows, unresolved

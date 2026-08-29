@@ -202,10 +202,13 @@ var knownBaseLabels = map[string]bool{
 // An empty marker token set (after removing the species' root and filler
 // words like "Form") means the marker names the base species itself, as
 // Bulbapedia does when a later dex generation's form list starts over.
-func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int32, ok bool) {
+// resolveFormMarker returns every pokemon id a marker resolves to -- almost
+// always exactly one, but see the tied-full-coverage branch below for the
+// genuine exception.
+func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (ids []int32, ok bool) {
 	root, hasRoot := idx.root[speciesID]
 	if !hasRoot {
-		return 0, false
+		return nil, false
 	}
 	rootWords := tokenSet(strings.Split(root, "-"))
 	forms := idx.forms[speciesID]
@@ -213,7 +216,14 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 	trimmed := strings.ToLower(strings.TrimSpace(marker))
 	if knownBaseLabels[trimmed] {
 		if base, ok := idx.literalBase[speciesID]; ok {
-			return base.ID, true
+			return []int32{base.ID}, true
+		}
+	}
+	if target, ok := breedingFormOverrides[knownGapKey{speciesID, marker}]; ok {
+		for _, form := range forms {
+			if form.Name == target {
+				return []int32{form.ID}, true
+			}
 		}
 	}
 
@@ -228,9 +238,9 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 
 	if len(markerTokens) == 0 {
 		if base, ok := idx.literalBase[speciesID]; ok {
-			return base.ID, true
+			return []int32{base.ID}, true
 		}
-		return 0, false
+		return nil, false
 	}
 
 	// matched is how many marker tokens the candidate's suffix accounts for;
@@ -240,10 +250,7 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 	// against both garchomp-mega ({mega}, extra 0) and garchomp-mega-z
 	// ({mega, z}, extra 1) since neither "z" nor its absence is otherwise
 	// weighed. Preferring lower extra as the tiebreak picks the candidate
-	// the marker didn't leave anything unexplained about; a genuine tie
-	// (equal matched AND equal extra, as with Ogerpon's three "...Mask"
-	// forms all scoring 1 against "Teal Mask") still correctly falls
-	// through as unresolved rather than being force-fit.
+	// the marker didn't leave anything unexplained about.
 	type scored struct {
 		id             int32
 		matched, extra int
@@ -255,6 +262,7 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 		return a.extra < b.extra
 	}
 
+	var all []scored
 	var best, second scored
 	for _, form := range forms {
 		sfx := suffixTokens(form, rootWords)
@@ -274,6 +282,7 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 			}
 		}
 		cand := scored{form.ID, matched, extra}
+		all = append(all, cand)
 		if better(cand, best) {
 			second = best
 			best = cand
@@ -283,7 +292,29 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 	}
 
 	if best.matched > 0 && better(best, second) {
-		return best.id, true
+		return []int32{best.id}, true
+	}
+
+	// A genuine tie (equal matched AND equal extra), as with Ogerpon's three
+	// "...Mask" forms all scoring 1 against "Teal Mask" alone, is usually
+	// unresolved rather than force-fit -- UNLESS every tied candidate fully
+	// explains its own suffix using only marker tokens (extra == 0), which
+	// only happens when the marker explicitly names each of them. Verified
+	// live: Basculin's breeding header "Red-Striped/Blue-Striped Basculin"
+	// scores {red,striped} and {blue,striped} both at matched=2/extra=0 --
+	// it names both forms outright, unlike Ogerpon's "Mask" naming neither
+	// in full (each mask form has extra=1: its own color word is never
+	// mentioned), so that case still correctly falls through below.
+	if best.matched > 0 && best.extra == 0 {
+		var tied []int32
+		for _, c := range all {
+			if c.matched == best.matched && c.extra == 0 {
+				tied = append(tied, c.id)
+			}
+		}
+		if len(tied) >= 2 {
+			return tied, true
+		}
 	}
 
 	// Nothing scored. If the species has exactly one pokemon row at all,
@@ -292,10 +323,10 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (id int
 	// Sinistea/Polteageist's Phony/Antique) that this database does not
 	// model as separate rows, so there is nothing else it could resolve to.
 	if len(forms) == 1 {
-		return forms[0].ID, true
+		return []int32{forms[0].ID}, true
 	}
 
-	return 0, false
+	return nil, false
 }
 
 // versionNameToGame maps a Dex/Entry "v=" value to the public.game enum. All
