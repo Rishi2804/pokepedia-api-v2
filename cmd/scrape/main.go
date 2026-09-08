@@ -69,6 +69,42 @@ func main() {
 		sources[*source] = true
 	}
 
+	// legends is a separate pipeline (movedetails + legendsmovevalues, not
+	// *descriptions) run instead of, not alongside, the description passes:
+	// -only=legends is meant to be used on its own, same as eggmoves below.
+	if types["legends"] {
+		if !sources["bulbapedia"] {
+			log.Fatal("legends requires -source=bulbapedia (or the default \"both\"); PokeAPI cannot serve Legends: Arceus tutor moves or any Legends: Z-A data")
+		}
+		legendsRows, unresolved, err := scrapeLegends(ctx, pool, *limit, *batch, *cacheDir)
+		if err != nil {
+			log.Fatalf("legends pass failed: %v", err)
+		}
+
+		if *verboseKnown {
+			reportLegendsVerbose(legendsRows, unresolved)
+		} else {
+			reportLegends(legendsRows, unresolved)
+		}
+
+		if *dryRun {
+			return
+		}
+
+		if err := writeLegendsMoveRows(ctx, pool, legendsRows); err != nil {
+			log.Fatalf("write failed: %v", err)
+		}
+		fmt.Printf("wrote %d legends learnset rows to Postgres\n", len(legendsRows))
+
+		if *emit != "" {
+			if err := emitLegendsMigration(*emit, legendsRows); err != nil {
+				log.Fatalf("emit failed: %v", err)
+			}
+			fmt.Printf("wrote migration: %s\n", *emit)
+		}
+		return
+	}
+
 	// eggmoves is a separate pipeline (movedetails, not *descriptions -- see
 	// moveDetailRow in types.go) run instead of, not alongside, the
 	// description passes: -only=eggmoves is meant to be used on its own.
