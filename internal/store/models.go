@@ -462,6 +462,20 @@ type Evolutionpeek struct {
 	PokemonID int32 `json:"pokemon_id"`
 }
 
+type Legendsmovevalue struct {
+	PokemonID   int32  `json:"pokemon_id"`
+	MoveID      int32  `json:"move_id"`
+	Version     string `json:"version"`
+	SecondLevel *int32 `json:"second_level"`
+	PowerBase   *int32 `json:"power_base"`
+	PowerStrong *int32 `json:"power_strong"`
+	PowerAgile  *int32 `json:"power_agile"`
+	Accuracy1   *int32 `json:"accuracy_1"`
+	Accuracy2   *int32 `json:"accuracy_2"`
+	Pp          *int32 `json:"pp"`
+	Cooldown    *int32 `json:"cooldown"`
+}
+
 type Move struct {
 	ID       int32   `json:"id"`
 	Name     string  `json:"name"`
