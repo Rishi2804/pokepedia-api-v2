@@ -48,3 +48,31 @@ WHERE NOT EXISTS (
   WHERE pokemon_id = $1 AND move_id = $2 AND method = 'egg' AND version = $3
 )
 `
+
+// insertLegendsMove is insertEggMove's Legends: Arceus/Z-A counterpart:
+// movedetails still has no unique constraint, so this stays a
+// WHERE NOT EXISTS guard rather than ON CONFLICT. level_learned is part of
+// the guard (unlike insertEggMove, where it's always 0) so a genuine
+// two-different-levels case, if one ever exists, isn't blocked by an
+// unrelated row at a different level for the same move.
+const insertLegendsMove = `
+INSERT INTO public.movedetails (pokemon_id, move_id, method, level_learned, version)
+SELECT $1, $2, $3, $4, $5
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.movedetails
+  WHERE pokemon_id = $1 AND move_id = $2 AND method = $3 AND level_learned = $4 AND version = $5
+)
+`
+
+// upsertLegendsMoveValues writes the per-(pokemon, move, game) stat extras.
+// legendsmovevalues has a real primary key (unlike movedetails), so this is
+// a plain ON CONFLICT DO NOTHING: gap-fill only, matching every other write
+// path in this tool. A move learnable two ways in one game (Legends:
+// Arceus's Iron Tail is both tutor and level 37 for Pikachu) writes this
+// same row twice with identical values; the second write is a no-op.
+const upsertLegendsMoveValues = `
+INSERT INTO public.legendsmovevalues
+  (pokemon_id, move_id, version, second_level, power_base, power_strong, power_agile, accuracy_1, accuracy_2, pp, cooldown)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+ON CONFLICT (pokemon_id, move_id, version) DO NOTHING
+`

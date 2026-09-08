@@ -51,3 +51,31 @@ type moveDetailRow struct {
 	Source      string
 	SourceTitle string
 }
+
+// legendsMoveRow is one (pokemon_id, move_id, method, version) learnset
+// fact for Legends: Arceus or Legends: Z-A, plus the per-row stat extras
+// public.legendsmovevalues carries (see 000010_legends_move_values.up.sql
+// for why these can't live on movedetails itself or be flattened to
+// pastmovevalues's per-move-only shape -- Dialga/Palkia/Giratina's Origin
+// Formes have genuinely different power for their own signature moves).
+// Fields the specific game doesn't use are left nil (Legends: Z-A has no
+// mastery/style/second-accuracy/PP; Legends: Arceus has no cooldown).
+type legendsMoveRow struct {
+	PokemonID int32
+	MoveID    int32
+	Version   string // "legends-arceus" or "legends-za"
+	Method    string // public.learnmethod: "level-up", "tutor", "machine"
+	Level     int32  // level_learned; 0 for tutor/machine
+
+	SecondLevel *int32 // LA mastery level / ZA "plus" level
+	PowerBase   *int32
+	PowerStrong *int32 // LA only
+	PowerAgile  *int32 // LA only
+	Accuracy1   *int32
+	Accuracy2   *int32 // LA only
+	PP          *int32 // LA only
+	Cooldown    *int32 // ZA only
+
+	Source      string
+	SourceTitle string
+}

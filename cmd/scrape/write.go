@@ -75,3 +75,36 @@ func writeEggMoveRows(ctx context.Context, pool *pgxpool.Pool, rows []moveDetail
 	}
 	return nil
 }
+
+// writeLegendsMoveRows writes both movedetails and legendsmovevalues for
+// each row, using insertLegendsMove's WHERE NOT EXISTS guard and
+// upsertLegendsMoveValues's ON CONFLICT DO NOTHING (see queries.go). There
+// is no -overwrite equivalent, matching writeEggMoveRows above: both tables
+// start at zero rows for these two games, so gap-fill-only is a no-op
+// distinction on a first run and the safe default on any later one.
+func writeLegendsMoveRows(ctx context.Context, pool *pgxpool.Pool, rows []legendsMoveRow) error {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	batch := &pgx.Batch{}
+	for _, r := range rows {
+		batch.Queue(insertLegendsMove, r.PokemonID, r.MoveID, r.Method, r.Level, r.Version)
+		batch.Queue(upsertLegendsMoveValues, r.PokemonID, r.MoveID, r.Version,
+			r.SecondLevel, r.PowerBase, r.PowerStrong, r.PowerAgile,
+			r.Accuracy1, r.Accuracy2, r.PP, r.Cooldown)
+	}
+
+	br := pool.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for range rows {
+		if _, err := br.Exec(); err != nil { // insertLegendsMove
+			return fmt.Errorf("batch exec: %w", err)
+		}
+		if _, err := br.Exec(); err != nil { // upsertLegendsMoveValues
+			return fmt.Errorf("batch exec: %w", err)
+		}
+	}
+	return nil
+}

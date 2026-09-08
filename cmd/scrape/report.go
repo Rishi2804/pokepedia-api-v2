@@ -128,3 +128,42 @@ func reportEggMovesVerbose(rows []moveDetailRow, unresolved []unresolvedItem) {
 	reportEggMoves(rows, unresolved)
 	printKnownDetail(unresolved)
 }
+
+// reportLegends prints one line per (version, method) pair -- the
+// movedetails+legendsmovevalues analogue of reportEggMoves above.
+func reportLegends(rows []legendsMoveRow, unresolved []unresolvedItem) {
+	type key struct{ version, method string }
+	counts := map[key]int{}
+	pokemon := map[key]map[int32]bool{}
+	for _, r := range rows {
+		k := key{r.Version, r.Method}
+		counts[k]++
+		if pokemon[k] == nil {
+			pokemon[k] = map[int32]bool{}
+		}
+		pokemon[k][r.PokemonID] = true
+	}
+
+	var keys []key
+	for k := range counts {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].version != keys[j].version {
+			return keys[i].version < keys[j].version
+		}
+		return keys[i].method < keys[j].method
+	})
+
+	fmt.Printf("built %d legends learnset rows:\n", len(rows))
+	for _, k := range keys {
+		fmt.Printf("  %-16s %-10s %6d rows  %5d pokemon\n", k.version, k.method, counts[k], len(pokemon[k]))
+	}
+
+	printUnresolved(unresolved)
+}
+
+func reportLegendsVerbose(rows []legendsMoveRow, unresolved []unresolvedItem) {
+	reportLegends(rows, unresolved)
+	printKnownDetail(unresolved)
+}
