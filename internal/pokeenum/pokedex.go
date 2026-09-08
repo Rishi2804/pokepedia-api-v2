@@ -120,6 +120,12 @@ var versionGroups = []VersionGroupInfo{
 	{"brilliant-diamond-and-shining-pearl", 8, []string{"original-sinnoh"}},
 	{"legends-arceus", 8, []string{"hisui"}},
 	{"scarlet-violet", 9, []string{"paldea", "kitakami", "blueberry"}},
+	// Added once cmd/scrape's -only=legends pass gave Legends: Z-A real
+	// movedetails rows (see 000010_legends_move_values.up.sql) -- before
+	// that, this entry was deliberately left out so /team-building/legends-za
+	// returned a clean 400 instead of an empty builder for a game with no
+	// learnset data at all.
+	{"legends-za", 9, []string{"lumiose", "hyperspace"}},
 }
 
 func GetVersionGroup(dbValue string) (VersionGroupInfo, error) {
