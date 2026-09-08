@@ -221,14 +221,19 @@ func groupMoveset(moves []store.GetPokemonMovesByIDsRow) []dto.VersionMoveset {
 			moveInfos := []dto.MoveInfo{}
 			for _, m := range moveList {
 				moveInfos = append(moveInfos, dto.MoveInfo{
-					ID:           m.MoveID,
-					Name:         util.FormatName(m.Name, false),
-					Type:         pokeenum.ToDisplay(m.Type),
-					MoveClass:    pokeenum.ToDisplay(m.Class),
-					Power:        m.Power,
-					Accuracy:     m.Accuracy,
-					PP:           m.Pp,
-					LevelLearned: m.LevelLearned,
+					ID:             m.MoveID,
+					Name:           util.FormatName(m.Name, false),
+					Type:           pokeenum.ToDisplay(m.Type),
+					MoveClass:      pokeenum.ToDisplay(m.Class),
+					Power:          m.Power,
+					Accuracy:       m.Accuracy,
+					PP:             m.Pp,
+					LevelLearned:   m.LevelLearned,
+					SecondLevel:    m.SecondLevel,
+					PowerStrong:    m.PowerStrong,
+					PowerAgile:     m.PowerAgile,
+					AccuracyStrong: m.Accuracy2,
+					Cooldown:       m.Cooldown,
 				})
 			}
 			methodSets = append(methodSets, dto.LearnMethodSet{
