@@ -54,10 +54,12 @@ var genConfigs = map[string]genBreedingConfig{
 	"IX":   {TemplateSuffix: "9", DefaultGroups: []string{"scarlet-violet"}},
 }
 
-// breedingFormOverrides maps a breeding-section form heading straight to
-// the pokemon slug it resolves to, for headings describing a game-mechanics
-// distinction resolveFormMarker's token-overlap heuristic has no way to
-// reason about:
+// breedingFormOverrides maps a form heading straight to the pokemon slug(s)
+// it resolves to, for headings describing a distinction resolveFormMarker's
+// token-overlap heuristic has no way to reason about. Originally built for
+// breeding-section headings (hence the name); cmd/scrape/legends.go's
+// learnset parser consults the same table for the same reason -- see the
+// entries below it.
 //
 //   - Darmanitan's breeding page groups by REGION only ("Darmanitan",
 //     "Galarian Darmanitan"), never distinguishing Standard from Zen Mode --
@@ -70,10 +72,45 @@ var genConfigs = map[string]genBreedingConfig{
 //     are identical to plain "Greninja"'s, just each requiring a held Mirror
 //     Herb to copy instead of direct compatibility. It's the same
 //     "greninja" row described a second time, not a different one.
-var breedingFormOverrides = map[knownGapKey]string{
-	{555, "Darmanitan"}:           "darmanitan-standard",
-	{555, "Galarian Darmanitan"}:  "darmanitan-galar-standard",
-	{658, "Battle Bond Greninja"}: "greninja",
+var breedingFormOverrides = map[knownGapKey][]string{
+	{555, "Darmanitan"}:           {"darmanitan-standard"},
+	{555, "Galarian Darmanitan"}:  {"darmanitan-galar-standard"},
+	{658, "Battle Bond Greninja"}: {"greninja"},
+
+	// Legends: Z-A learnset headings (see cmd/scrape/legends.go), found the
+	// same way as the breeding overrides above -- neither is expressible by
+	// token overlap against a species' own suffix vocabulary.
+	//
+	// Deoxys's "All forms" (its By TM section groups TMs common to every
+	// forme under one heading, then lists per-forme exceptions afterward)
+	// is the one marker in this table naming more than one target. Verified
+	// live: Deoxys carries no {{learnlist/tmZA|...}} entries at all today,
+	// so this fixes report noise rather than lost rows -- the walker still
+	// visits and tries to resolve every form heading it finds, whether or
+	// not any entries of the template being parsed happen to follow it
+	// before the next one. Mapping it to every Deoxys forme (rather than
+	// just the literal base) is what the heading's own text means, and
+	// costs nothing if a future Bulbapedia edit ever adds ZA entries here.
+	{386, "All forms"}: {"deoxys-normal", "deoxys-attack", "deoxys-defense", "deoxys-speed"},
+
+	// Floette's five flower colors have no separate pokemon row at all (see
+	// knowngaps.go's {670, "<Color> Flower"} entries) -- only the Eternal
+	// Flower forme and this project's own Z-A Mega do. "All regular forms"
+	// means every color BUT Eternal Flower, which already has its own
+	// separate heading with its own entries right after this one -- so the
+	// single "floette" row (which already stands in for all five colors
+	// collectively) is the correct and complete target, not floette-eternal
+	// or floette-mega.
+	{670, "All regular forms"}: {"floette"},
+
+	// Steelix's Generation VIII learnset subpage divides its "By leveling
+	// up" section by GAME rather than by form -- one heading listing every
+	// mainline game's shared level-up list, a second for Legends: Arceus's
+	// own -- even though Steelix has no alternate form relevant to either
+	// (steelix-mega is a Mega Evolution, absent from both games). Both
+	// headings mean the single base "steelix" row.
+	{208, "Pokémon Sword, Shield, Brilliant Diamond, and Shining Pearl"}: {"steelix"},
+	{208, "Pokémon Legends: Arceus"}:                                     {"steelix"},
 }
 
 // gameAbbrevCodeToGroup maps a standalone {{gameabbrevN|CODE}} block marker

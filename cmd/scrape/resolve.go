@@ -182,6 +182,10 @@ var knownBaseLabels = map[string]bool{
 	// Meowstic -- have no literal base row either, so they resolve their own
 	// "Male"/"Female" markers by ordinary token overlap instead, unaffected
 	// by this entry.
+	"male oinkologne": true, // Oinkologne's own Legends: Z-A learnset headings
+	// spell this one out with the species name attached ("Male Oinkologne")
+	// rather than bare "Male" -- same species, same meaning, different marker
+	// text, so it needs its own entry alongside "male" above.
 }
 
 // resolveFormMarker matches a {{Dex/Form|<marker>}} label against the
@@ -219,11 +223,19 @@ func resolveFormMarker(marker string, speciesID int32, idx speciesIndex) (ids []
 			return []int32{base.ID}, true
 		}
 	}
-	if target, ok := breedingFormOverrides[knownGapKey{speciesID, marker}]; ok {
+	if targets, ok := breedingFormOverrides[knownGapKey{speciesID, marker}]; ok {
+		want := make(map[string]bool, len(targets))
+		for _, t := range targets {
+			want[t] = true
+		}
+		var ids []int32
 		for _, form := range forms {
-			if form.Name == target {
-				return []int32{form.ID}, true
+			if want[form.Name] {
+				ids = append(ids, form.ID)
 			}
+		}
+		if len(ids) > 0 {
+			return ids, true
 		}
 	}
 
