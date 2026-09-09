@@ -197,6 +197,64 @@ const phantumpZATMFixture = `====By [[TM]]====
 ====By {{pkmn|breeding}}====
 `
 
+// shayminLALevelFixture is Shaymin (Pokemon)/Generation VIII learnset's
+// full "By leveling up" section: a mainline BDSP block with its own
+// "Land Forme"/"Sky Forme" headings and footers, followed immediately by
+// an LA block with NO heading of its own at all. This is the exact shape
+// that exposed a real bug: without tracking {{gameabbrev8|...}} markers
+// and the footers that close each heading's block, the LA entries here
+// silently inherited "Sky Forme" -- the last heading seen, but for an
+// entirely different, already-closed mainline block -- attributing every
+// LA move to shaymin-sky alone. PokeAPI confirms both formes have real,
+// different Legends: Arceus movesets (22 vs 14 moves), so that's not
+// incomplete, it's wrong.
+const shayminLALevelFixture = `====By [[Level|leveling up]]====
+{{gameabbrev8|BDSP}}
+=====Land Forme=====
+{{learnlist/levelh/8|Shaymin|Grass|Grass|4}}
+{{learnlist/level8|1|Growth|Normal|Status|—|—|20||}}
+{{learnlist/levelf/8|Shaymin|Grass|Grass|4}}
+
+=====Sky Forme=====
+{{learnlist/levelh/8|Shaymin|Grass|Flying|4}}
+{{learnlist/level8|1|Growth|Normal|Status|—|—|20||}}
+{{learnlist/levelf/8|Shaymin|Grass|Flying|4}}
+
+{{gameabbrev8|LA}}
+{{learnlist/levelh/LA|Shaymin|Grass|Grass|4}}
+{{learnlist/levelLA|1|12|Leafage|Grass|Physical|40|50|30|100|100|25||}}
+{{learnlist/levelLA|6|17|Quick Attack|Normal|Physical|40|50|30|100|100|20||}}
+{{learnlist/levelf/8|Shaymin|Grass|Grass|4|form=yes}}
+`
+
+func TestParseLegendsSection_Shaymin_MarkerResetsStaleHeading(t *testing.T) {
+	const shayminID = 492
+	// No literal base and no legendsSpeciesDefaults entry for Shaymin --
+	// its LA tutor section genuinely can't be attributed (see
+	// knowngaps.go), and its level-up section relies entirely on the
+	// "Land Forme"/"Sky Forme" headings, never on a species-wide default.
+	idx := buildSpeciesIndex([]pokemonRow{
+		{ID: shayminID, Name: "shaymin-land", SpeciesID: shayminID},
+		{ID: 10006, Name: "shaymin-sky", SpeciesID: shayminID},
+	})
+	moveIndex := map[string]int32{normalizeMoveKey("Leafage"): 1, normalizeMoveKey("Quick Attack"): 2}
+
+	sec, ok := methodSection(shayminLALevelFixture, levelUpHeadingRe)
+	if !ok {
+		t.Fatal("level section not found")
+	}
+	rows, unresolved := parseLegendsSection(sec, shayminID, idx, "Shaymin (Pokémon)/Generation VIII learnset", moveIndex, "learnlist/levelLA", "legends-arceus", parseLevelLAFields)
+	// Neither Land nor Sky Forme is a resolvable target for these untagged
+	// LA entries (no heading applies -- "Sky Forme" already closed), so
+	// this must report unresolved, not silently attribute to shaymin-sky.
+	if len(rows) != 0 {
+		t.Fatalf(`got %d rows, want 0 -- LA entries must not silently inherit the stale "Sky Forme" heading from the closed mainline BDSP block: %+v`, len(rows), rows)
+	}
+	if len(unresolved) != 1 {
+		t.Fatalf("unresolved = %v, want exactly 1 (the unattributable LA block)", unresolved)
+	}
+}
+
 func TestParseLevelLAFields(t *testing.T) {
 	entries := findTemplates(cyndaquilLALevelFixture, "learnlist/levelLA")
 	if len(entries) != 7 {
@@ -524,12 +582,15 @@ func TestParseLegendsSection_Floette_AllRegularFormsOverride(t *testing.T) {
 	if len(unresolved) != 0 {
 		t.Fatalf("unresolved = %v, want none", unresolved)
 	}
-	if len(rows) != 3 {
-		t.Fatalf("got %d rows, want 3 (Moonblast, Vine Whip, Tackle)", len(rows))
+	// 3 moves x 2 targets each (floette itself, plus floette-mega via
+	// zaMegaByBase[670] -- floettite is a real Legends: Z-A Mega Stone, see
+	// that map's comment) = 6 rows, none for floette-eternal.
+	if len(rows) != 6 {
+		t.Fatalf("got %d rows, want 6 (3 moves x floette + floette-mega)", len(rows))
 	}
 	for _, r := range rows {
-		if r.PokemonID != floetteID {
-			t.Fatalf("row %+v: pokemon_id = %d, want %d (floette) -- must not leak onto floette-eternal (its own separate heading/entries follow) or floette-mega", r, r.PokemonID, floetteID)
+		if r.PokemonID != floetteID && r.PokemonID != 10296 {
+			t.Fatalf("row %+v: pokemon_id = %d, want %d (floette) or 10296 (floette-mega) -- must not leak onto floette-eternal (its own separate heading/entries follow)", r, r.PokemonID, floetteID)
 		}
 	}
 }

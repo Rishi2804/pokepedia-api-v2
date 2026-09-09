@@ -55,4 +55,25 @@ var knownGaps = map[knownGapKey]string{
 	// against the live wikitext, not a resolver shortcoming:
 	{678, "Mega Meowstic"}: "Meowstic: one shared Legends: Z-A text applies to both meowstic-male-mega and meowstic-female-mega; not a single-id fit",
 	{555, "Galarian Form"}: "Darmanitan: ties between darmanitan-galar-standard and darmanitan-galar-zen; Bulbapedia only disambiguates Zen via a separate \"Galarian Form/Zen Mode\" marker",
+
+	// Category 3 -- cmd/scrape/legends.go's own "(no form heading, tag, or
+	// default)" sentinel (see parseLegendsSection): Keldeo's Legends: Z-A
+	// page provides no heading and no per-entry {{tt|*|...}} tag at all, so
+	// its untagged entries have no way to attribute to keldeo-ordinary vs
+	// keldeo-resolute specifically. Unlike every other no-heading species
+	// legends.go's own legendsSpeciesDefaults table resolves, Keldeo can't
+	// safely default to "both": this database's existing mainline data
+	// shows keldeo-ordinary (459 rows) and keldeo-resolute (409 rows) have
+	// different-sized movesets, so assuming parity risks writing wrong
+	// data, and PokeAPI has zero Legends: Z-A coverage to check against
+	// independently. Left unresolved rather than guessed.
+	{647, "(no form heading, tag, or default)"}: "Keldeo: Legends Z-A page doesn't disambiguate Ordinary vs Resolute Forme, and existing mainline data shows they have different-sized movesets so applying to both would risk wrong data",
+
+	// Shaymin's Legends: Arceus level-up section DOES disambiguate ("Land
+	// Forme"/"Sky Forme" headings), but its tutor section has no heading at
+	// all -- same underlying reasoning as Keldeo above: existing mainline
+	// data shows shaymin-land (438 rows) and shaymin-sky (397 rows) have
+	// different-sized movesets, so applying the tutor list to both would
+	// risk wrong data.
+	{492, "(no form heading, tag, or default)"}: "Shaymin: Legends Arceus tutor section doesn't disambiguate Land vs Sky Forme (its level-up section does), and existing mainline data shows they have different-sized movesets so applying to both would risk wrong data",
 }
