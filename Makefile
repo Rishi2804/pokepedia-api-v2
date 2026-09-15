@@ -1,7 +1,7 @@
 include .env
 export
 
-.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force migrate-version docker-up docker-down cache-flush index index-dry es-health es-aliases
+.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force migrate-version docker-up docker-down cache-flush index index-dry es-health es-aliases scrape scrape-dry scrape-emit
 
 run:
 	go run ./cmd/api
@@ -38,6 +38,15 @@ index:
 
 index-dry:
 	go run ./cmd/indexer -dry-run
+
+scrape:
+	go run ./cmd/scrape
+
+scrape-dry:
+	go run ./cmd/scrape -dry-run
+
+scrape-emit:
+	go run ./cmd/scrape -emit db/migrations/000008_descriptions.up.sql
 
 es-health:
 	curl -s http://localhost:9200/_cluster/health?pretty

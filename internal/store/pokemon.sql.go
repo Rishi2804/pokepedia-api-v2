@@ -290,12 +290,17 @@ const getPokemonMovesByIDs = `-- name: GetPokemonMovesByIDs :many
 SELECT
     d.pokemon_id, d.move_id, m.name, m.type, d.level_learned, d.method,
     d.version, m.class,
-    COALESCE(pmv.power, m.power) AS power,
-    COALESCE(pmv.accuracy, m.accuracy) AS accuracy,
-    COALESCE(pmv.pp, m.pp) AS pp
+    CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
+         ELSE COALESCE(pmv.power, m.power) END AS power,
+    CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.accuracy_1
+         ELSE COALESCE(pmv.accuracy, m.accuracy) END AS accuracy,
+    CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.pp
+         ELSE COALESCE(pmv.pp, m.pp) END AS pp,
+    lmv.second_level, lmv.power_strong, lmv.power_agile, lmv.accuracy_2, lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
 LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY($1::int[])
 ORDER BY d.pokemon_id, d.version, d.method, d.level_learned, d.move_id
 `
@@ -312,8 +317,21 @@ type GetPokemonMovesByIDsRow struct {
 	Power        *int32  `json:"power"`
 	Accuracy     *int32  `json:"accuracy"`
 	Pp           *int32  `json:"pp"`
+	SecondLevel  *int32  `json:"second_level"`
+	PowerStrong  *int32  `json:"power_strong"`
+	PowerAgile   *int32  `json:"power_agile"`
+	Accuracy2    *int32  `json:"accuracy_2"`
+	Cooldown     *int32  `json:"cooldown"`
 }
 
+// legendsmovevalues holds Legends: Arceus/Z-A's per-(pokemon, move, game)
+// stats -- pastmovevalues can't: it's keyed by move only, and Dialga/Palkia/
+// Giratina's Origin Formes have genuinely different power for their own
+// signature moves in Legends: Arceus (see 000010's migration comment).
+// When a legendsmovevalues row exists it is authoritative for power/
+// accuracy/pp -- never silently patched from pastmovevalues/move, since a
+// Legends: Z-A row's NULL pp (that game has no PP stat; it has cooldown
+// instead) must stay NULL, not fall back to an unrelated mainline value.
 func (q *Queries) GetPokemonMovesByIDs(ctx context.Context, pokemonIds []int32) ([]GetPokemonMovesByIDsRow, error) {
 	rows, err := q.db.Query(ctx, getPokemonMovesByIDs, pokemonIds)
 	if err != nil {
@@ -335,6 +353,11 @@ func (q *Queries) GetPokemonMovesByIDs(ctx context.Context, pokemonIds []int32) 
 			&i.Power,
 			&i.Accuracy,
 			&i.Pp,
+			&i.SecondLevel,
+			&i.PowerStrong,
+			&i.PowerAgile,
+			&i.Accuracy2,
+			&i.Cooldown,
 		); err != nil {
 			return nil, err
 		}

@@ -43,6 +43,8 @@ const (
 	DexPaldea           Dex = "paldea"
 	DexKitakami         Dex = "kitakami"
 	DexBlueberry        Dex = "blueberry"
+	DexLumiose          Dex = "lumiose"
+	DexHyperspace       Dex = "hyperspace"
 )
 
 func (e *Dex) Scan(src interface{}) error {
@@ -120,6 +122,7 @@ const (
 	GameLegendsArceus    Game = "legends-arceus"
 	GameScarlet          Game = "scarlet"
 	GameViolet           Game = "violet"
+	GameLegendsZa        Game = "legends-za"
 )
 
 func (e *Game) Scan(src interface{}) error {
@@ -181,6 +184,7 @@ const (
 	GroupBrilliantDiamondAndShiningPearl Group = "brilliant-diamond-and-shining-pearl"
 	GroupLegendsArceus                   Group = "legends-arceus"
 	GroupScarletViolet                   Group = "scarlet-violet"
+	GroupLegendsZa                       Group = "legends-za"
 )
 
 func (e *Group) Scan(src interface{}) error {
@@ -456,6 +460,20 @@ type Evolution struct {
 type Evolutionpeek struct {
 	ChainID   int32 `json:"chain_id"`
 	PokemonID int32 `json:"pokemon_id"`
+}
+
+type Legendsmovevalue struct {
+	PokemonID   int32  `json:"pokemon_id"`
+	MoveID      int32  `json:"move_id"`
+	Version     string `json:"version"`
+	SecondLevel *int32 `json:"second_level"`
+	PowerBase   *int32 `json:"power_base"`
+	PowerStrong *int32 `json:"power_strong"`
+	PowerAgile  *int32 `json:"power_agile"`
+	Accuracy1   *int32 `json:"accuracy_1"`
+	Accuracy2   *int32 `json:"accuracy_2"`
+	Pp          *int32 `json:"pp"`
+	Cooldown    *int32 `json:"cooldown"`
 }
 
 type Move struct {
