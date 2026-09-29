@@ -95,37 +95,38 @@ type VersionGroupInfo struct {
 	VersionName string
 	Gen         int32
 	Regions     []string // PokedexRegion db values
+	Games       []string // game enum db values sold under this version group; empty for national
 }
 
 var versionGroups = []VersionGroupInfo{
-	{"national", 10, []string{"national"}},
-	{"red-blue", 1, []string{"kanto"}},
-	{"yellow", 1, []string{"kanto"}},
-	{"gold-silver", 2, []string{"original-johto"}},
-	{"crystal", 2, []string{"original-johto"}},
-	{"ruby-sapphire", 3, []string{"hoenn"}},
-	{"emerald", 3, []string{"hoenn"}},
-	{"firered-leafgreen", 3, []string{"kanto"}},
-	{"diamond-pearl", 4, []string{"original-sinnoh"}},
-	{"platinum", 4, []string{"extended-sinnoh"}},
-	{"heartgold-soulsilver", 4, []string{"updated-johto"}},
-	{"black-white", 5, []string{"original-unova"}},
-	{"black-2-white-2", 5, []string{"updated-unova"}},
-	{"x-y", 6, []string{"kalos-central", "kalos-coastal", "kalos-mountain"}},
-	{"omega-ruby-alpha-sapphire", 6, []string{"updated-hoenn"}},
-	{"sun-moon", 7, []string{"original-alola", "original-melemele", "original-akala", "original-ulaula", "original-poni"}},
-	{"ultra-sun-ultra-moon", 7, []string{"updated-alola", "updated-melemele", "updated-akala", "updated-ulaula", "updated-poni"}},
-	{"lets-go-pikachu-lets-go-eevee", 7, []string{"letsgo-kanto"}},
-	{"sword-shield", 8, []string{"galar", "isle-of-armor", "crown-tundra"}},
-	{"brilliant-diamond-and-shining-pearl", 8, []string{"original-sinnoh"}},
-	{"legends-arceus", 8, []string{"hisui"}},
-	{"scarlet-violet", 9, []string{"paldea", "kitakami", "blueberry"}},
+	{"national", 10, []string{"national"}, nil},
+	{"red-blue", 1, []string{"kanto"}, []string{"red", "blue"}},
+	{"yellow", 1, []string{"kanto"}, []string{"yellow"}},
+	{"gold-silver", 2, []string{"original-johto"}, []string{"gold", "silver"}},
+	{"crystal", 2, []string{"original-johto"}, []string{"crystal"}},
+	{"ruby-sapphire", 3, []string{"hoenn"}, []string{"ruby", "sapphire"}},
+	{"emerald", 3, []string{"hoenn"}, []string{"emerald"}},
+	{"firered-leafgreen", 3, []string{"kanto"}, []string{"firered", "leafgreen"}},
+	{"diamond-pearl", 4, []string{"original-sinnoh"}, []string{"diamond", "pearl"}},
+	{"platinum", 4, []string{"extended-sinnoh"}, []string{"platinum"}},
+	{"heartgold-soulsilver", 4, []string{"updated-johto"}, []string{"heartgold", "soulsilver"}},
+	{"black-white", 5, []string{"original-unova"}, []string{"black", "white"}},
+	{"black-2-white-2", 5, []string{"updated-unova"}, []string{"black-2", "white-2"}},
+	{"x-y", 6, []string{"kalos-central", "kalos-coastal", "kalos-mountain"}, []string{"x", "y"}},
+	{"omega-ruby-alpha-sapphire", 6, []string{"updated-hoenn"}, []string{"omega-ruby", "alpha-sapphire"}},
+	{"sun-moon", 7, []string{"original-alola", "original-melemele", "original-akala", "original-ulaula", "original-poni"}, []string{"sun", "moon"}},
+	{"ultra-sun-ultra-moon", 7, []string{"updated-alola", "updated-melemele", "updated-akala", "updated-ulaula", "updated-poni"}, []string{"ultra-sun", "ultra-moon"}},
+	{"lets-go-pikachu-lets-go-eevee", 7, []string{"letsgo-kanto"}, []string{"lets-go-pikachu", "lets-go-eevee"}},
+	{"sword-shield", 8, []string{"galar", "isle-of-armor", "crown-tundra"}, []string{"sword", "shield"}},
+	{"brilliant-diamond-and-shining-pearl", 8, []string{"original-sinnoh"}, []string{"brilliant-diamond", "shining-pearl"}},
+	{"legends-arceus", 8, []string{"hisui"}, []string{"legends-arceus"}},
+	{"scarlet-violet", 9, []string{"paldea", "kitakami", "blueberry"}, []string{"scarlet", "violet"}},
 	// Added once cmd/scrape's -only=legends pass gave Legends: Z-A real
 	// movedetails rows (see 000010_legends_move_values.up.sql) -- before
 	// that, this entry was deliberately left out so /team-building/legends-za
 	// returned a clean 400 instead of an empty builder for a game with no
 	// learnset data at all.
-	{"legends-za", 9, []string{"lumiose", "hyperspace"}},
+	{"legends-za", 9, []string{"lumiose", "hyperspace"}, []string{"legends-za"}},
 }
 
 func GetVersionGroup(dbValue string) (VersionGroupInfo, error) {
