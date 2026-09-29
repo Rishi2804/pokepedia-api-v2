@@ -94,14 +94,30 @@ WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
 ORDER BY d.pokemon_id, d.hidden, a.id;
 
 -- name: GetCandidateMovesByIDsAndVersion :many
-SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+-- Power/accuracy/pp resolve the same way as GetPokemonMovesByIDs (see the note
+-- there): a legendsmovevalues row is authoritative, else the game's
+-- pastmovevalues, else the move's current values. cooldown is Legends: Z-A only.
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
+       CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
+            ELSE COALESCE(pmv.power, m.power) END AS power,
+       CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.accuracy_1
+            ELSE COALESCE(pmv.accuracy, m.accuracy) END AS accuracy,
+       CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.pp
+            ELSE COALESCE(pmv.pp, m.pp) END AS pp,
+       lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[]) AND d.version = sqlc.arg(version)
 ORDER BY d.pokemon_id, d.move_id;
 
 -- name: GetCandidateMovesByIDs :many
-SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+-- National has no game to resolve against, so it reports the move's current
+-- values. cooldown is selected only to keep the row shape identical to
+-- GetCandidateMovesByIDsAndVersion (batchCandidateDetails converts between them).
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
+       m.power, m.accuracy, m.pp, NULL::int AS cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
 WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])

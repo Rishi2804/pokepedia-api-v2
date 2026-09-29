@@ -55,7 +55,8 @@ func (q *Queries) GetCandidateAbilitiesByIDs(ctx context.Context, pokemonIds []i
 }
 
 const getCandidateMovesByIDs = `-- name: GetCandidateMovesByIDs :many
-SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
+       m.power, m.accuracy, m.pp, NULL::int AS cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
 WHERE d.pokemon_id = ANY($1::int[])
@@ -68,8 +69,15 @@ type GetCandidateMovesByIDsRow struct {
 	Name      string `json:"name"`
 	Type      string `json:"type"`
 	Class     string `json:"class"`
+	Power     *int32 `json:"power"`
+	Accuracy  *int32 `json:"accuracy"`
+	Pp        *int32 `json:"pp"`
+	Cooldown  *int32 `json:"cooldown"`
 }
 
+// National has no game to resolve against, so it reports the move's current
+// values. cooldown is selected only to keep the row shape identical to
+// GetCandidateMovesByIDsAndVersion (batchCandidateDetails converts between them).
 func (q *Queries) GetCandidateMovesByIDs(ctx context.Context, pokemonIds []int32) ([]GetCandidateMovesByIDsRow, error) {
 	rows, err := q.db.Query(ctx, getCandidateMovesByIDs, pokemonIds)
 	if err != nil {
@@ -85,6 +93,10 @@ func (q *Queries) GetCandidateMovesByIDs(ctx context.Context, pokemonIds []int32
 			&i.Name,
 			&i.Type,
 			&i.Class,
+			&i.Power,
+			&i.Accuracy,
+			&i.Pp,
+			&i.Cooldown,
 		); err != nil {
 			return nil, err
 		}
@@ -97,9 +109,18 @@ func (q *Queries) GetCandidateMovesByIDs(ctx context.Context, pokemonIds []int32
 }
 
 const getCandidateMovesByIDsAndVersion = `-- name: GetCandidateMovesByIDsAndVersion :many
-SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
+       CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
+            ELSE COALESCE(pmv.power, m.power) END AS power,
+       CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.accuracy_1
+            ELSE COALESCE(pmv.accuracy, m.accuracy) END AS accuracy,
+       CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.pp
+            ELSE COALESCE(pmv.pp, m.pp) END AS pp,
+       lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY($1::int[]) AND d.version = $2
 ORDER BY d.pokemon_id, d.move_id
 `
@@ -115,8 +136,15 @@ type GetCandidateMovesByIDsAndVersionRow struct {
 	Name      string `json:"name"`
 	Type      string `json:"type"`
 	Class     string `json:"class"`
+	Power     *int32 `json:"power"`
+	Accuracy  *int32 `json:"accuracy"`
+	Pp        *int32 `json:"pp"`
+	Cooldown  *int32 `json:"cooldown"`
 }
 
+// Power/accuracy/pp resolve the same way as GetPokemonMovesByIDs (see the note
+// there): a legendsmovevalues row is authoritative, else the game's
+// pastmovevalues, else the move's current values. cooldown is Legends: Z-A only.
 func (q *Queries) GetCandidateMovesByIDsAndVersion(ctx context.Context, arg GetCandidateMovesByIDsAndVersionParams) ([]GetCandidateMovesByIDsAndVersionRow, error) {
 	rows, err := q.db.Query(ctx, getCandidateMovesByIDsAndVersion, arg.PokemonIds, arg.Version)
 	if err != nil {
@@ -132,6 +160,10 @@ func (q *Queries) GetCandidateMovesByIDsAndVersion(ctx context.Context, arg GetC
 			&i.Name,
 			&i.Type,
 			&i.Class,
+			&i.Power,
+			&i.Accuracy,
+			&i.Pp,
+			&i.Cooldown,
 		); err != nil {
 			return nil, err
 		}

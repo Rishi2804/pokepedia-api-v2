@@ -364,6 +364,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 		movesDto = append(movesDto, dto.CandidateMove{
 			ID: m.MoveID, Name: util.FormatName(m.Name, false),
 			Type: pokeenum.ToDisplay(m.Type), MoveClass: pokeenum.ToDisplay(m.Class),
+			Power: m.Power, Accuracy: m.Accuracy, PP: m.Pp, Cooldown: m.Cooldown,
 		})
 	}
 

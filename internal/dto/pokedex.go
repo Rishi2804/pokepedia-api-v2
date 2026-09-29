@@ -44,11 +44,17 @@ type TeamCandidate struct {
 	Moves     []CandidateMove    `json:"moves"`
 }
 
+// Power, Accuracy, PP and Cooldown are the values for the requested game (null
+// when the move has none, e.g. status moves or Z-A's cooldown-instead-of-PP).
 type CandidateMove struct {
 	ID        int32  `json:"id"`
 	Name      string `json:"name"`
 	Type      string `json:"type"`
 	MoveClass string `json:"moveClass"`
+	Power     *int32 `json:"power"`
+	Accuracy  *int32 `json:"accuracy"`
+	PP        *int32 `json:"pp"`
+	Cooldown  *int32 `json:"cooldown"`
 }
 
 type CandidateAbility struct {
