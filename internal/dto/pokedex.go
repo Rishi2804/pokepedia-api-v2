@@ -55,6 +55,8 @@ type CandidateMove struct {
 	Accuracy  *int32 `json:"accuracy"`
 	PP        *int32 `json:"pp"`
 	Cooldown  *int32 `json:"cooldown"`
+	// Newest description within the requested game(s); empty when none exists.
+	Description string `json:"description,omitempty"`
 }
 
 type CandidateAbility struct {

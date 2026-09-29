@@ -122,3 +122,12 @@ FROM movedetails d
 JOIN move m ON d.move_id = m.id
 WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
 ORDER BY d.pokemon_id, d.move_id;
+-- name: GetCandidateMoveDescriptions :many
+-- One description per move: the latest wording within the requested games
+-- (enum order is release order, so version DESC picks the newest). An empty
+-- or NULL games list (national) considers every game.
+SELECT DISTINCT ON (move_id) move_id, text
+FROM movedescriptions
+WHERE move_id = ANY(sqlc.arg(move_ids)::int[])
+  AND (COALESCE(cardinality(sqlc.arg(games)::public.game[]), 0) = 0 OR version = ANY(sqlc.arg(games)::public.game[]))
+ORDER BY move_id, version DESC;

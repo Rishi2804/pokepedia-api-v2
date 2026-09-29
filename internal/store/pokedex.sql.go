@@ -54,6 +54,47 @@ func (q *Queries) GetCandidateAbilitiesByIDs(ctx context.Context, pokemonIds []i
 	return items, nil
 }
 
+const getCandidateMoveDescriptions = `-- name: GetCandidateMoveDescriptions :many
+SELECT DISTINCT ON (move_id) move_id, text
+FROM movedescriptions
+WHERE move_id = ANY($1::int[])
+  AND (COALESCE(cardinality($2::public.game[]), 0) = 0 OR version = ANY($2::public.game[]))
+ORDER BY move_id, version DESC
+`
+
+type GetCandidateMoveDescriptionsParams struct {
+	MoveIds []int32  `json:"move_ids"`
+	Games   []string `json:"games"`
+}
+
+type GetCandidateMoveDescriptionsRow struct {
+	MoveID int32  `json:"move_id"`
+	Text   string `json:"text"`
+}
+
+// One description per move: the latest wording within the requested games
+// (enum order is release order, so version DESC picks the newest). An empty
+// or NULL games list (national) considers every game.
+func (q *Queries) GetCandidateMoveDescriptions(ctx context.Context, arg GetCandidateMoveDescriptionsParams) ([]GetCandidateMoveDescriptionsRow, error) {
+	rows, err := q.db.Query(ctx, getCandidateMoveDescriptions, arg.MoveIds, arg.Games)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCandidateMoveDescriptionsRow
+	for rows.Next() {
+		var i GetCandidateMoveDescriptionsRow
+		if err := rows.Scan(&i.MoveID, &i.Text); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCandidateMovesByIDs = `-- name: GetCandidateMovesByIDs :many
 SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
        m.power, m.accuracy, m.pp, NULL::int AS cooldown
