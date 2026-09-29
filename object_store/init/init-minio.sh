@@ -13,19 +13,26 @@ echo "MinIO is ready"
 
 BUCKET_NAME="pokemon-images"
 
-# If bucket already exists → assume everything is initialized
-if mc ls local/$BUCKET_NAME >/dev/null 2>&1; then
-  echo "Bucket already exists. Skipping initialization."
-  exit 0
+if mc ls "local/$BUCKET_NAME" >/dev/null 2>&1; then
+  echo "Bucket $BUCKET_NAME already exists."
+else
+  echo "Creating bucket: $BUCKET_NAME"
+  mc mb "local/$BUCKET_NAME"
 fi
 
-echo "Creating bucket: $BUCKET_NAME"
-mc mb local/$BUCKET_NAME
+echo "Ensuring public read access..."
+mc anonymous set download "local/$BUCKET_NAME"
 
-echo "Uploading seed images..."
-mc cp --recursive --quiet /seed/* local/$BUCKET_NAME
-
-echo "Setting public read access..."
-mc anonymous set download local/$BUCKET_NAME
+# mc ls on a missing prefix exits 0 with empty output (unlike a missing
+# bucket, which errors), so presence has to be checked by output, not exit code.
+for dir in /seed/*/; do
+  name=$(basename "$dir")
+  if [ -n "$(mc ls "local/$BUCKET_NAME/$name/" 2>/dev/null)" ]; then
+    echo "Prefix '$name/' already present. Skipping."
+  else
+    echo "Uploading seed prefix: $name"
+    mc cp --recursive --quiet "${dir%/}" "local/$BUCKET_NAME/"
+  fi
+done
 
 echo "MinIO initialization complete"
