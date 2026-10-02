@@ -248,7 +248,23 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 		return dto.TeamCandidate{}, err
 	}
 
-	return buildCandidateDetail(plain, stats, abilitiesByID[id], movesByID[id], vg.Gen), nil
+	moveIDs := make([]int32, 0, len(movesByID[id]))
+	for _, m := range movesByID[id] {
+		moveIDs = append(moveIDs, m.MoveID)
+	}
+	descRows, err := s.q.GetCandidateMoveDescriptions(ctx, store.GetCandidateMoveDescriptionsParams{
+		MoveIds: moveIDs,
+		Games:   vg.Games,
+	})
+	if err != nil {
+		return dto.TeamCandidate{}, err
+	}
+	descriptions := make(map[int32]string, len(descRows))
+	for _, d := range descRows {
+		descriptions[d.MoveID] = d.Text
+	}
+
+	return buildCandidateDetail(plain, stats, abilitiesByID[id], movesByID[id], descriptions, vg.Gen), nil
 }
 
 // batchCandidateDetails fetches abilities and moves for every id in one round
@@ -300,7 +316,7 @@ func (s *PokedexService) batchCandidateDetails(ctx context.Context, ids []int32,
 // record. It is pure: abilities/moves are pre-fetched by batchCandidateDetails. Only
 // the single-candidate endpoint reaches here now — the list endpoint returns
 // summaries and never pays for the ability/move lookups.
-func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilities []store.GetCandidateAbilitiesByIDsRow, moveRows []store.GetCandidateMovesByIDsRow, gen int32) dto.TeamCandidate {
+func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilities []store.GetCandidateAbilitiesByIDsRow, moveRows []store.GetCandidateMovesByIDsRow, descriptions map[int32]string, gen int32) dto.TeamCandidate {
 	abilitiesDto := []dto.CandidateAbility{}
 
 	var matched *store.GetCandidateAbilitiesByIDsRow
@@ -364,6 +380,8 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 		movesDto = append(movesDto, dto.CandidateMove{
 			ID: m.MoveID, Name: util.FormatName(m.Name, false),
 			Type: pokeenum.ToDisplay(m.Type), MoveClass: pokeenum.ToDisplay(m.Class),
+			Power: m.Power, Accuracy: m.Accuracy, PP: m.Pp, Cooldown: m.Cooldown,
+			Description: descriptions[m.MoveID],
 		})
 	}
 
