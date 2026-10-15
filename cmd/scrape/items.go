@@ -446,7 +446,7 @@ func buildItemRow(resp pokeAPIItemResp, pocket string, knownPokemon map[int32]bo
 		break
 	}
 	// The key is a naming convention, set for every item: PokeAPI ships a
-	// sprite for only about half of them and fetch-item-sprites.sh fills more
+	// sprite for only about half of them and fetch-item-images.sh fills more
 	// from Bulbapedia, so the image may not exist. See 000015.
 	key := "items/" + resp.Name + ".png"
 	row.Sprite = &key
