@@ -31,6 +31,14 @@ var bulbapediaOnlyItemIDs = map[string]int32{
 	"stick":        20015,
 }
 
+// bulbapediaOnlyItemSlugs overrides the slug derived from the Showdown name
+// where it would collide with a PokeAPI item. Showdown calls the gen 2-7 item
+// "Stick" and the gen 8+ one "Leek"; PokeAPI has one item, slug "stick", that
+// matches the latter, so the older id gets its own slug.
+var bulbapediaOnlyItemSlugs = map[string]string{
+	"stick": "stick-legacy",
+}
+
 // bulbapediaGameCodes maps a {{gameabbrevN|CODE}} token to the public.game
 // values it covers. Bulbapedia groups games that share text, so one code can
 // cover several (GSC, SMUSUMPE, SVZA, ...).
@@ -144,6 +152,9 @@ func parseBulbapediaItem(wikitext string) bulbapediaItemInfo {
 func newBulbapediaOnlyRow(id int32, sd showdownItem) itemRow {
 	slug := strings.NewReplacer("'", "", ".", "").Replace(strings.ToLower(sd.Name))
 	slug = strings.Join(strings.Fields(slug), "-")
+	if override, ok := bulbapediaOnlyItemSlugs[sd.ID]; ok {
+		slug = override
+	}
 	gen := int32(sd.Gen)
 	sdID := sd.ID
 

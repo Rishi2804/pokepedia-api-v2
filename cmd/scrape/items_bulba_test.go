@@ -81,6 +81,13 @@ func TestNewBulbapediaOnlyRow(t *testing.T) {
 	}
 }
 
+func TestNewBulbapediaOnlyRowSlugOverride(t *testing.T) {
+	row := newBulbapediaOnlyRow(20015, showdownItem{ID: "stick", Name: "Stick", Gen: 2})
+	if row.Name != "stick-legacy" || row.DisplayName != "Stick" {
+		t.Errorf("row = %+v, want slug stick-legacy so it can't collide with PokeAPI's stick (Leek)", row)
+	}
+}
+
 func TestBulbapediaOnlyIDsAreUniqueAndHigh(t *testing.T) {
 	seen := map[int32]string{}
 	for sd, id := range bulbapediaOnlyItemIDs {

@@ -248,6 +248,7 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 	var rows []itemRow
 	var unresolved []unresolvedItem
 	usedShowdown := map[string]bool{}
+	slugOwner := map[string]int32{}
 	matchedShowdown := map[string]bool{}
 
 	for _, id := range ids {
@@ -276,6 +277,19 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 		}
 
 		row := buildItemRow(resp, pocket, knownPokemon)
+
+		// PokeAPI occasionally carries two items under one slug (the Legends
+		// Z-A re-add of Roseli Berry). /item/{name} must resolve to exactly one
+		// row, and the lower id is the established one, so keep that.
+		if first, dup := slugOwner[row.Name]; dup {
+			unresolved = append(unresolved, unresolvedItem{
+				Message: fmt.Sprintf("item %d (%s): slug already used by item %d; skipped", id, row.Name, first),
+				Known:   true,
+				Reason:  "PokeAPI duplicate slug; the lower id is kept",
+			})
+			continue
+		}
+		slugOwner[row.Name] = id
 
 		sd, ok := matchShowdownItem(resp, showdown)
 		if ok && usedShowdown[sd.ID] {
@@ -307,6 +321,10 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 	// Showdown items with no PokeAPI row at all. With Bulbapedia enabled they
 	// become rows with ids from bulbapediaOnlyItemIDs; a Showdown item missing
 	// from that table is reported so the table gets extended deliberately.
+	namesTaken := make(map[string]int32, len(rows))
+	for _, r := range rows {
+		namesTaken[r.Name] = r.ID
+	}
 	var missing []string
 	for id := range showdown {
 		// TM/TR items are machines, which this pass skips on purpose.
@@ -318,7 +336,12 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 	for _, id := range missing {
 		itemID, assigned := bulbapediaOnlyItemIDs[id]
 		if bulbapedia && assigned && limit == 0 {
-			rows = append(rows, newBulbapediaOnlyRow(itemID, showdown[id]))
+			row := newBulbapediaOnlyRow(itemID, showdown[id])
+			if clash, taken := namesTaken[row.Name]; taken {
+				unresolved = append(unresolved, unresolvedf("showdown item %q: slug %q already used by PokeAPI item %d; add it to bulbapediaOnlyItemSlugs", id, row.Name, clash))
+				continue
+			}
+			rows = append(rows, row)
 			continue
 		}
 		unresolved = append(unresolved, unresolvedf("showdown item %q (%s) has no PokeAPI item", id, showdown[id].Name))
