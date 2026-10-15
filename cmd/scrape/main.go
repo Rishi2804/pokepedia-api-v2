@@ -32,7 +32,7 @@ import (
 
 func main() {
 	source := flag.String("source", "both", "pokeapi | bulbapedia | both")
-	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to scrape")
+	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to scrape (also: item, eggmoves, legends -- each runs on its own)")
 	dryRun := flag.Bool("dry-run", false, "fetch and parse without writing to Postgres")
 	emit := flag.String("emit", "", "also write a golang-migrate .up.sql file with the same rows")
 	cacheDir := flag.String("cache", "cmd/scrape/.cache", "on-disk cache directory for scraped responses")
@@ -102,6 +102,40 @@ func main() {
 			}
 			fmt.Printf("wrote migration: %s\n", *emit)
 		}
+		return
+	}
+
+	// item is a separate pipeline (item + itemdescriptions + itemheldby, not
+	// *descriptions): it creates the parent rows as well as the text, so it
+	// runs on its own like legends and eggmoves.
+	if types["item"] {
+		if !sources["pokeapi"] {
+			log.Fatal("item requires -source=pokeapi (or the default \"both\"); PokeAPI is the base for item data")
+		}
+		itemRows, unresolved, err := scrapeItems(ctx, pool, *limit, *cacheDir)
+		if err != nil {
+			log.Fatalf("item pass failed: %v", err)
+		}
+
+		reportItems(itemRows, unresolved)
+
+		// -emit works under -dry-run for items, so the built rows can be read
+		// as SQL without touching Postgres.
+		if *emit != "" {
+			if err := emitItemMigration(*emit, itemRows); err != nil {
+				log.Fatalf("emit failed: %v", err)
+			}
+			fmt.Printf("wrote migration: %s\n", *emit)
+		}
+
+		if *dryRun {
+			return
+		}
+
+		if err := writeItemRows(ctx, pool, itemRows, *overwrite); err != nil {
+			log.Fatalf("write failed: %v", err)
+		}
+		fmt.Printf("wrote %d items to Postgres\n", len(itemRows))
 		return
 	}
 

@@ -167,3 +167,36 @@ func reportLegendsVerbose(rows []legendsMoveRow, unresolved []unresolvedItem) {
 	reportLegends(rows, unresolved)
 	printKnownDetail(unresolved)
 }
+
+// reportItems prints the item pass summary. Items that need a human look
+// (Showdown items with no PokeAPI row, non-holdable Showdown matches, missing
+// generations) come through unresolved.
+func reportItems(rows []itemRow, unresolved []unresolvedItem) {
+	var holdable, withShowdown, descs, heldBy int
+	pockets := map[string]int{}
+	for _, r := range rows {
+		if r.Holdable {
+			holdable++
+		}
+		if r.ShowdownID != nil {
+			withShowdown++
+		}
+		descs += len(r.Descriptions)
+		heldBy += len(r.HeldBy)
+		pockets[r.Pocket]++
+	}
+
+	fmt.Printf("items: %d (holdable+battle-legal: %d, matched to Showdown: %d)\n", len(rows), holdable, withShowdown)
+	fmt.Printf("item descriptions: %d, wild held-by rows: %d\n", descs, heldBy)
+
+	names := make([]string, 0, len(pockets))
+	for p := range pockets {
+		names = append(names, p)
+	}
+	sort.Strings(names)
+	for _, p := range names {
+		fmt.Printf("  pocket %-10s %d\n", p, pockets[p])
+	}
+
+	printUnresolved(unresolved)
+}
