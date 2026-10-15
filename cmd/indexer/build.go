@@ -11,14 +11,6 @@ import (
 // see mapping.json's popularity field.
 const nonPokemonPopularity = 8
 
-// Items are far more numerous than moves or abilities and mostly not what
-// someone searching is after, so they rank below them; items that can be
-// held in a team (the ones the team builder offers) rank above the rest.
-const (
-	holdableItemPopularity = 6
-	otherItemPopularity    = 3
-)
-
 // indexDoc is the full document written to Elasticsearch (mapping.json).
 // It's a superset of search.Doc: aliases/description/effect/popularity feed
 // scoring but are excluded from _source.includes on read, so the read-side
@@ -137,34 +129,5 @@ func buildAbilityDoc(r abilityRow, descriptions map[int32][]string) indexDoc {
 		Effect:      effect,
 		Gen:         r.Gen,
 		Popularity:  nonPokemonPopularity,
-	}
-}
-
-func buildItemDoc(r itemRow, descriptions map[int32][]string) indexDoc {
-	var effect string
-	if r.Effect != nil {
-		effect = *r.Effect
-	}
-
-	popularity := int32(otherItemPopularity)
-	if r.Holdable {
-		popularity = holdableItemPopularity
-	}
-
-	meta := map[string]any{"pocket": r.Pocket}
-	if r.Sprite != nil {
-		meta["sprite"] = *r.Sprite
-	}
-
-	return indexDoc{
-		Type:        "item",
-		EntityID:    r.ID,
-		Slug:        r.Slug,
-		Name:        r.DisplayName,
-		Description: descriptions[r.ID],
-		Effect:      effect,
-		Gen:         r.Gen,
-		Popularity:  popularity,
-		Meta:        meta,
 	}
 }
