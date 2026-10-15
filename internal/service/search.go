@@ -12,7 +12,7 @@ import (
 )
 
 // fallbackScanLimit is well above any realistic match count (the corpus is
-// 2,383 rows), so grouped Total stays an exact count, not a truncated one.
+// ~4,200 rows), so grouped Total stays an exact count, not a truncated one.
 const fallbackScanLimit = 500
 
 const (
@@ -141,10 +141,9 @@ func (s *SearchService) suggestFallback(ctx context.Context, query string, limit
 }
 
 func toFallbackHit(r store.SearchNamesFallbackRow) dto.SearchHit {
-	return dto.SearchHit{
-		Type: r.Type,
-		ID:   r.ID,
-		Name: util.FormatName(r.Name, r.Type == "pokemon"),
-		Gen:  r.Gen,
+	name := r.Name
+	if r.Type != "item" { // items already come back as their display name
+		name = util.FormatName(r.Name, r.Type == "pokemon")
 	}
+	return dto.SearchHit{Type: r.Type, ID: r.ID, Name: name, Gen: r.Gen}
 }
