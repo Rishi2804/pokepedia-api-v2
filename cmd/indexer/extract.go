@@ -35,6 +35,17 @@ type abilityRow struct {
 	Effect *string
 }
 
+type itemRow struct {
+	ID          int32
+	Slug        string
+	DisplayName string
+	Gen         int32
+	Pocket      string
+	Image       *string
+	Holdable    bool
+	Effect      *string
+}
+
 type speciesRow struct {
 	ID   int32
 	Name *string
@@ -87,6 +98,24 @@ func fetchAbilities(ctx context.Context, pool *pgxpool.Pool) ([]abilityRow, erro
 	for rows.Next() {
 		var r abilityRow
 		if err := rows.Scan(&r.ID, &r.Slug, &r.Gen, &r.Effect); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+func fetchItems(ctx context.Context, pool *pgxpool.Pool) ([]itemRow, error) {
+	rows, err := pool.Query(ctx, itemQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []itemRow
+	for rows.Next() {
+		var r itemRow
+		if err := rows.Scan(&r.ID, &r.Slug, &r.DisplayName, &r.Gen, &r.Pocket, &r.Image, &r.Holdable, &r.Effect); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

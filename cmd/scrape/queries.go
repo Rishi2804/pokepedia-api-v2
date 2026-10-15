@@ -76,3 +76,32 @@ INSERT INTO public.legendsmovevalues
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 ON CONFLICT (pokemon_id, move_id, version) DO NOTHING
 `
+
+// Item writes. item and itemdescriptions have real primary keys, so these are
+// the same ON CONFLICT upserts the *descriptions tables use: DO NOTHING by
+// default (a re-run is a no-op), DO UPDATE under -overwrite.
+const upsertItem = `
+INSERT INTO public.item
+  (id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect,
+   image, showdown_id, holdable, legal_formats, display_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+ON CONFLICT (id) DO %s
+`
+
+const itemOverwriteSet = `UPDATE SET name = EXCLUDED.name, category = EXCLUDED.category, pocket = EXCLUDED.pocket,
+  gen = EXCLUDED.gen, cost = EXCLUDED.cost, fling_power = EXCLUDED.fling_power,
+  fling_effect = EXCLUDED.fling_effect, effect = EXCLUDED.effect, short_effect = EXCLUDED.short_effect,
+  image = EXCLUDED.image, showdown_id = EXCLUDED.showdown_id, holdable = EXCLUDED.holdable,
+  legal_formats = EXCLUDED.legal_formats, display_name = EXCLUDED.display_name`
+
+const upsertItemDescription = `
+INSERT INTO public.itemdescriptions (item_id, version, text)
+VALUES ($1, $2, $3)
+ON CONFLICT (item_id, version) DO %s
+`
+
+const insertItemHeldBy = `
+INSERT INTO public.itemheldby (item_id, pokemon_id, version, rarity)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (item_id, pokemon_id, version) DO NOTHING
+`

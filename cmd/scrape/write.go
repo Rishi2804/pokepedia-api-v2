@@ -108,3 +108,43 @@ func writeLegendsMoveRows(ctx context.Context, pool *pgxpool.Pool, rows []legend
 	}
 	return nil
 }
+
+// writeItemRows writes each item followed by its descriptions and held-by
+// rows, in that order so the foreign keys are satisfied within the batch.
+// overwrite switches the item and description upserts from DO NOTHING to DO
+// UPDATE; the held-by rows are always gap-fill.
+func writeItemRows(ctx context.Context, pool *pgxpool.Pool, rows []itemRow, overwrite bool) error {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	itemConflict, descConflict := "NOTHING", "NOTHING"
+	if overwrite {
+		itemConflict, descConflict = itemOverwriteSet, "UPDATE SET text = EXCLUDED.text"
+	}
+	itemQ := fmt.Sprintf(upsertItem, itemConflict)
+	descQ := fmt.Sprintf(upsertItemDescription, descConflict)
+
+	batch := &pgx.Batch{}
+	for _, r := range rows {
+		batch.Queue(itemQ, r.ID, r.Name, r.Category, r.Pocket, r.Gen, r.Cost,
+			r.FlingPower, r.FlingEffect, r.Effect, r.ShortEffect, r.Image,
+			r.ShowdownID, r.Holdable, r.LegalFormats, r.DisplayName)
+		for _, d := range r.Descriptions {
+			batch.Queue(descQ, d.ID, d.Version, d.Text)
+		}
+		for _, h := range r.HeldBy {
+			batch.Queue(insertItemHeldBy, h.ItemID, h.PokemonID, h.Version, h.Rarity)
+		}
+	}
+
+	br := pool.SendBatch(ctx, batch)
+	defer br.Close()
+
+	for i := 0; i < batch.Len(); i++ {
+		if _, err := br.Exec(); err != nil {
+			return fmt.Errorf("batch exec: %w", err)
+		}
+	}
+	return nil
+}

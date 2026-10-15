@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to build")
+	only := flag.String("only", "pokemon,move,ability,item", "comma-separated entity types to build")
 	dryRun := flag.Bool("dry-run", false, "build documents and report counts without writing to Elasticsearch")
 	keep := flag.Int("keep", 2, "number of versioned indices to retain after a successful swap")
 	alias := flag.String("alias", search.DefaultIndex, "alias name; the versioned index is <alias>-<timestamp>")
@@ -137,6 +137,20 @@ func buildDocs(ctx context.Context, pool *pgxpool.Pool, types map[string]bool) (
 		}
 		for _, r := range rows {
 			docs = append(docs, buildAbilityDoc(r, descriptions))
+		}
+	}
+
+	if types["item"] {
+		rows, err := fetchItems(ctx, pool)
+		if err != nil {
+			return nil, err
+		}
+		descriptions, err := fetchDescriptions(ctx, pool, itemDescriptionsQuery)
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range rows {
+			docs = append(docs, buildItemDoc(r, descriptions))
 		}
 	}
 
