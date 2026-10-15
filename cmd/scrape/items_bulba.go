@@ -43,8 +43,12 @@ var bulbapediaOnlyItemSlugs = map[string]string{
 // values it covers. Bulbapedia groups games that share text, so one code can
 // cover several (GSC, SMUSUMPE, SVZA, ...).
 var bulbapediaGameCodes = map[string][]string{
-	"RB": {"red", "blue"}, "Y": {"yellow"}, "RBY": {"red", "blue", "yellow"},
-	"GS": {"gold", "silver"}, "C": {"crystal"}, "GSC": {"gold", "silver", "crystal"},
+	// "RB" is deliberately absent: on item pages it is Mystery Dungeon's
+	// Red/Blue Rescue Team, not Red/Blue (its Belly, Reviver Seed, ... text).
+	// Core Gen 1 is RGB / RBY / RGBY.
+	"RGB": {"red", "blue"}, "Y": {"yellow"}, "RBY": {"red", "blue", "yellow"},
+	"RGBY": {"red", "blue", "yellow"},
+	"GS":   {"gold", "silver"}, "C": {"crystal"}, "GSC": {"gold", "silver", "crystal"},
 	"RS": {"ruby", "sapphire"}, "E": {"emerald"}, "RSE": {"ruby", "sapphire", "emerald"},
 	"FRLG": {"firered", "leafgreen"},
 	"DP":   {"diamond", "pearl"}, "Pt": {"platinum"}, "DPPt": {"diamond", "pearl", "platinum"},
@@ -77,7 +81,7 @@ var bulbapediaIgnoredCodes = map[string]bool{
 	"CHP": true, "Champ": true, "Champs": true, "Conq": true, "GO": true,
 	"GTI": true, "Masters": true, "Pokopia": true, "RTDX": true, "SMD": true,
 	"Sleep": true, "Stad": true, "Stad2": true, "TDS": true, "Colo": true,
-	"XD": true, "ColoXD": true, "Quest": true, "S": true, "PBR": true, "Rumble": true, "Ranger": true, "Snap": true,
+	"XD": true, "ColoXD": true, "RB": true, "Quest": true, "S": true, "PBR": true, "Rumble": true, "Ranger": true, "Snap": true,
 }
 
 // bulbapediaItemTitles are display names whose Bulbapedia page title is not
@@ -93,11 +97,58 @@ var bulbapediaRomanGen = map[string]int32{
 
 var infoboxGenRe = regexp.MustCompile(`(?m)^\|\s*gen\s*=\s*([IVX]+)\s*$`)
 
+var (
+	wikiLinkRe = regexp.MustCompile(`\[\[(?:[^\[\]|]*\|)?([^\[\]]*)\]\]`)
+	// Template names with a fixed plain-text meaning in flavor text.
+	itemTemplateReplacer = strings.NewReplacer(
+		"{{ScPkmn}}", "Pok\u00e9mon",
+		"{{ScBall}}", "Pok\u00e9 Ball",
+	)
+	// {{b|Oran}} (a Berry link) and {{OBP|Copycat|character}} (a link with a
+	// type tag) both read as their first argument.
+	firstArgTemplateRe = regexp.MustCompile(`\{\{(?:b|OBP|prof)\|([^|{}]*)(?:\|[^{}]*)?\}\}`)
+	// {{DL|Page|Section}} links to a section; {{rt|13|Kalos}} is "Route 13".
+	sectionLinkTemplateRe = regexp.MustCompile(`\{\{DL\|[^|{}]*\|([^|{}]*)\}\}`)
+	routeTemplateRe       = regexp.MustCompile(`\{\{rt\|(\d+)\|[^{}]*\}\}`)
+	// {{pkmn|Trainer}} is the "Pok\u00e9mon" prefix plus its argument.
+	pkmnPrefixTemplateRe = regexp.MustCompile(`\{\{pkmn\|([^|{}]*)\}\}`)
+	// {{sup/7|P}} is the superscript game marker in "Pikachu^P/Eevee^E"; the
+	// version-specific wording it distinguishes isn't kept.
+	supTemplateRe = regexp.MustCompile(`\{\{sup/\d+\|[^{}]*\}\}`)
+)
+
+// cleanItemWikitext turns an item description into plain text: cleanWikitext's
+// inline markup, then [[Link]] / [[Page|label]] reduced to their visible text
+// and the few small-caps templates item text uses. ok is false when markup
+// remains ({{stat|Belly}}, {{prof|Sada}}, ...), which means the entry is
+// something this parser does not understand and must not be stored half-clean.
+func cleanItemWikitext(s string) (text string, ok bool) {
+	s = itemTemplateReplacer.Replace(s)
+	s = firstArgTemplateRe.ReplaceAllString(s, "$1")
+	s = sectionLinkTemplateRe.ReplaceAllString(s, "$1")
+	s = routeTemplateRe.ReplaceAllString(s, "Route $1")
+	s = pkmnPrefixTemplateRe.ReplaceAllString(s, "Pok\u00e9mon $1")
+	s = supTemplateRe.ReplaceAllString(s, "")
+	s = cleanWikitext(s)
+	s = wikiLinkRe.ReplaceAllString(s, "$1")
+	s = strings.TrimSpace(s)
+	// Single brackets are legitimate in flavor text ("[Data Card 01]"); only
+	// template and link delimiters mean something went unparsed.
+	for _, leftover := range []string{"{{", "}}", "[[", "]]"} {
+		if strings.Contains(s, leftover) {
+			return s, false
+		}
+	}
+	return s, true
+}
+
 // bulbapediaItemInfo is what the supplement reads off one item page.
 type bulbapediaItemInfo struct {
 	Gen          *int32
 	Descriptions map[string]string // public.game -> cleaned text
 	UnknownCodes []string
+	// Entries skipped because markup survived cleaning, as "CODE: snippet".
+	Unclean []string
 }
 
 // parseBulbapediaItem pulls the introduction generation (ItemInfobox's
@@ -120,22 +171,38 @@ func parseBulbapediaItem(wikitext string) bulbapediaItemInfo {
 		if len(parts) < 2 {
 			continue
 		}
-		text := cleanWikitext(strings.Join(parts[1:], "|"))
-		if text == "" {
-			continue
-		}
+		var games []string
 		for _, code := range gameAbbrevCodes(parts[0]) {
-			games, ok := bulbapediaGameCodes[code]
+			mapped, ok := bulbapediaGameCodes[code]
 			if !ok {
 				if !bulbapediaIgnoredCodes[code] {
 					unknown[code] = true
 				}
 				continue
 			}
-			for _, g := range games {
-				if _, dup := info.Descriptions[g]; !dup {
-					info.Descriptions[g] = text
-				}
+			games = append(games, mapped...)
+		}
+		if len(games) == 0 {
+			continue // spin-off only: nothing to store, and nothing to clean
+		}
+
+		body := strings.Join(parts[1:], "|")
+		// Some pages forget the closing braces of an entry, so the next entry
+		// nests inside it; its text is whatever comes before that.
+		if nested := strings.Index(body, "{{movedescentry"); nested >= 0 {
+			body = body[:nested]
+		}
+		text, clean := cleanItemWikitext(body)
+		if text == "" {
+			continue
+		}
+		if !clean {
+			info.Unclean = append(info.Unclean, strings.Join(gameAbbrevCodes(parts[0]), "+")+": "+truncate(text, 80))
+			continue
+		}
+		for _, g := range games {
+			if _, dup := info.Descriptions[g]; !dup {
+				info.Descriptions[g] = text
 			}
 		}
 	}
@@ -257,6 +324,9 @@ func supplementItemsFromBulbapedia(rows []itemRow, cacheDir string, batchSize in
 		}
 		for _, c := range info.UnknownCodes {
 			unknownCodes[c] = true
+		}
+		for _, u := range info.Unclean {
+			unresolved = append(unresolved, unresolvedf("item %d (%s): description skipped, markup left after cleaning: %s", r.ID, r.Name, u))
 		}
 
 		if r.Gen == nil && info.Gen != nil {

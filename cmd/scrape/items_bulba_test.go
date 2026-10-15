@@ -59,6 +59,19 @@ func TestParseBulbapediaItemGroupedCodes(t *testing.T) {
 	}
 }
 
+func TestParseBulbapediaItemNestedEntry(t *testing.T) {
+	info := parseBulbapediaItem(`{{ItemInfobox/head
+|gen=IX
+}}
+{{movedescentry|{{gameabbrev9|ZA}}|A Mega Stone.
+{{movedescentry|{{gameabbrevss|CHP}}|Champions text.}}
+}}
+`)
+	if info.Descriptions["legends-za"] != "A Mega Stone." || len(info.Unclean) != 0 {
+		t.Errorf("descriptions = %v, unclean = %v", info.Descriptions, info.Unclean)
+	}
+}
+
 func TestParseBulbapediaItemEmpty(t *testing.T) {
 	if !parseBulbapediaItem("A disambiguation page with {{no|templates}} we read.").isEmpty() {
 		t.Error("page with no infobox gen or descriptions should be empty")
@@ -101,5 +114,52 @@ func TestBulbapediaOnlyIDsAreUniqueAndHigh(t *testing.T) {
 			t.Errorf("id %d assigned to both %s and %s", id, prev, sd)
 		}
 		seen[id] = sd
+	}
+}
+
+func TestCleanItemWikitext(t *testing.T) {
+	cases := []struct {
+		in   string
+		want string
+		ok   bool
+	}{
+		{"Turns {{ScPkmn}} into [[Z-Power]] crystals.", "Turns Pok\u00e9mon into Z-Power crystals.", true},
+		{"[[Darkest Day|terrible disaster]] struck [[Lumiose City]].", "terrible disaster struck Lumiose City.", true},
+		{"A {{ScBall}} for {{p|Pikachu}}.", "A Pok\u00e9 Ball for Pikachu.", true},
+		{"It fills the {{stat|Belly}}.", "It fills the {{stat|Belly}}.", false},
+		{"Plain text.", "Plain text.", true},
+		{"Written by {{prof|Sada}}.", "Written by Sada.", true},
+		{"Along {{rt|13|Kalos}}.", "Along Route 13.", true},
+		{"Try {{DL|Pokéathlon|Hurdle Dash}}.", "Try Hurdle Dash.", true},
+		{"Sitrus is kin to {{b|Oran}}.", "Sitrus is kin to Oran.", true},
+		{"Lost by the {{OBP|Copycat|character}}.", "Lost by the Copycat.", true},
+		{"For novice {{pkmn|Trainer}}s.", "For novice Pokémon Trainers.", true},
+		{"Written with Pikachu{{sup/7|P}}/Eevee{{sup/7|E}}.", "Written with Pikachu/Eevee.", true},
+		{"Card shows [Data Card 01] records.", "Card shows [Data Card 01] records.", true},
+	}
+	for _, c := range cases {
+		got, ok := cleanItemWikitext(c.in)
+		if got != c.want || ok != c.ok {
+			t.Errorf("cleanItemWikitext(%q) = %q, %v; want %q, %v", c.in, got, ok, c.want, c.ok)
+		}
+	}
+}
+
+func TestParseBulbapediaItemSkipsMysteryDungeonAndUncleanEntries(t *testing.T) {
+	info := parseBulbapediaItem(`{{ItemInfobox/head
+|gen=I
+}}
+{{movedescentry|{{gameabbrev3|RB}}|It slightly fills the Pokémon's {{stat|Belly}}.}}
+{{movedescentry|{{gameabbrev1|RGB}}|Heals [[HP]] by 20.}}
+{{movedescentry|{{gameabbrev2|GSC}}|Needs {{stat|Belly}} to work.}}
+`)
+	if info.Descriptions["red"] != "Heals HP by 20." || info.Descriptions["blue"] != "Heals HP by 20." {
+		t.Errorf("descriptions = %v, want core Red/Blue text only", info.Descriptions)
+	}
+	if len(info.Descriptions) != 2 {
+		t.Errorf("descriptions = %v: RB (Mystery Dungeon) must not map to a core game", info.Descriptions)
+	}
+	if len(info.Unclean) != 1 || len(info.UnknownCodes) != 0 {
+		t.Errorf("unclean = %v, unknown codes = %v", info.Unclean, info.UnknownCodes)
 	}
 }
