@@ -219,7 +219,7 @@ type pokeAPIItemCategoryResp struct {
 // from a cached listing (ids are not contiguous). The only database read is
 // the pokemon id set, used to drop held-by rows for pokemon this database
 // does not have, since itemheldby has a foreign key to pokemon.
-func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir string) ([]itemRow, []unresolvedItem, error) {
+func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir string, bulbapedia bool, batchSize int) ([]itemRow, []unresolvedItem, error) {
 	cache, err := newDiskCache(cacheDir + "/pokeapi")
 	if err != nil {
 		return nil, nil, err
@@ -301,14 +301,12 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 				})
 			}
 		}
-		if row.Gen == nil {
-			unresolved = append(unresolved, unresolvedf("item %d (%s): no generation in PokeAPI game_indices or flavor text", id, resp.Name))
-		}
 		rows = append(rows, row)
 	}
 
-	// Showdown items with no PokeAPI row at all (Legends: Z-A Mega Stones
-	// and the like) can't be built from PokeAPI; the Bulbapedia pass adds them.
+	// Showdown items with no PokeAPI row at all. With Bulbapedia enabled they
+	// become rows with ids from bulbapediaOnlyItemIDs; a Showdown item missing
+	// from that table is reported so the table gets extended deliberately.
 	var missing []string
 	for id := range showdown {
 		// TM/TR items are machines, which this pass skips on purpose.
@@ -318,10 +316,50 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 	}
 	sort.Strings(missing)
 	for _, id := range missing {
+		itemID, assigned := bulbapediaOnlyItemIDs[id]
+		if bulbapedia && assigned && limit == 0 {
+			rows = append(rows, newBulbapediaOnlyRow(itemID, showdown[id]))
+			continue
+		}
 		unresolved = append(unresolved, unresolvedf("showdown item %q (%s) has no PokeAPI item", id, showdown[id].Name))
 	}
 
+	if bulbapedia {
+		u, err := supplementItemsFromBulbapedia(rows, cacheDir, batchSize)
+		if err != nil {
+			return nil, nil, fmt.Errorf("bulbapedia item supplement: %w", err)
+		}
+		unresolved = append(unresolved, u...)
+	}
+
+	// Reported after the Bulbapedia pass so only items still undated count.
+	for _, r := range rows {
+		if r.Gen == nil {
+			unresolved = append(unresolved, unresolvedf("item %d (%s): no generation from PokeAPI or Bulbapedia", r.ID, r.Name))
+		}
+	}
+
 	return rows, unresolved, nil
+}
+
+// englishItemName is PokeAPI's English display name, the string a Bulbapedia
+// title is built from (slugs don't title-case cleanly: "king-s-rock").
+func englishItemName(resp pokeAPIItemResp) string {
+	for _, n := range resp.Names {
+		if n.Language.Name == "en" {
+			return n.Name
+		}
+	}
+	// Items PokeAPI added without any names yet (Hopo Berry, Legends: Z-A
+	// stones) fall back to a title-cased slug, which matches Bulbapedia's
+	// title for plain names.
+	words := strings.Split(resp.Name, "-")
+	for i, w := range words {
+		if w != "" {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+	}
+	return strings.Join(words, " ")
 }
 
 func buildItemRow(resp pokeAPIItemResp, pocket string, knownPokemon map[int32]bool) itemRow {
@@ -331,6 +369,7 @@ func buildItemRow(resp pokeAPIItemResp, pocket string, knownPokemon map[int32]bo
 		Category:     resp.Category.Name,
 		Pocket:       pocket,
 		Cost:         resp.Cost,
+		DisplayName:  englishItemName(resp),
 		FlingPower:   resp.FlingPower,
 		LegalFormats: []string{},
 		Source:       "pokeapi",

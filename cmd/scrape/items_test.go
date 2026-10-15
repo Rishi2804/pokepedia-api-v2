@@ -234,3 +234,12 @@ func TestEmitItemMigration(t *testing.T) {
 		t.Errorf("down = %s", down)
 	}
 }
+
+func TestEnglishItemNameFallsBackToSlug(t *testing.T) {
+	if got := englishItemName(decodeItem(t, choiceScarfJSON)); got != "Choice Scarf" {
+		t.Errorf("got %q", got)
+	}
+	if got := englishItemName(pokeAPIItemResp{Name: "hopo-berry"}); got != "Hopo Berry" {
+		t.Errorf("got %q, want title-cased slug", got)
+	}
+}

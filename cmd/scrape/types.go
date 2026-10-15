@@ -89,6 +89,7 @@ type legendsMoveRow struct {
 type itemRow struct {
 	ID           int32
 	Name         string // PokeAPI slug
+	DisplayName  string // English display name; builds the Bulbapedia page title
 	Category     string
 	Pocket       string
 	Gen          *int32

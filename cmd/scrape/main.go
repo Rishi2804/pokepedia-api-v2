@@ -110,9 +110,9 @@ func main() {
 	// runs on its own like legends and eggmoves.
 	if types["item"] {
 		if !sources["pokeapi"] {
-			log.Fatal("item requires -source=pokeapi (or the default \"both\"); PokeAPI is the base for item data")
+			log.Fatal("item requires -source=pokeapi or the default \"both\"; PokeAPI is the base for item data and Bulbapedia only fills its gaps")
 		}
-		itemRows, unresolved, err := scrapeItems(ctx, pool, *limit, *cacheDir)
+		itemRows, unresolved, err := scrapeItems(ctx, pool, *limit, *cacheDir, sources["bulbapedia"], *batch)
 		if err != nil {
 			log.Fatalf("item pass failed: %v", err)
 		}
