@@ -370,7 +370,9 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 func englishItemName(resp pokeAPIItemResp) string {
 	for _, n := range resp.Names {
 		if n.Language.Name == "en" {
-			return n.Name
+			// PokeAPI writes King’s Rock with a curly apostrophe; Showdown
+			// and Bulbapedia use a straight one.
+			return titleCharReplacements.Replace(n.Name)
 		}
 	}
 	// Items PokeAPI added without any names yet (Hopo Berry, Legends: Z-A

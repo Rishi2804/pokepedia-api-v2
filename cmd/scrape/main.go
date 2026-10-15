@@ -35,6 +35,7 @@ func main() {
 	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to scrape (also: item, eggmoves, legends -- each runs on its own)")
 	dryRun := flag.Bool("dry-run", false, "fetch and parse without writing to Postgres")
 	emit := flag.String("emit", "", "also write a golang-migrate .up.sql file with the same rows")
+	emitNames := flag.String("emit-names", "", "with -only item, write a migration that adds and backfills item.display_name")
 	cacheDir := flag.String("cache", "cmd/scrape/.cache", "on-disk cache directory for scraped responses")
 	batch := flag.Int("batch", 20, "Bulbapedia titles per MediaWiki request")
 	limit := flag.Int("limit", 0, "cap the number of entities processed per type (0 = no cap)")
@@ -126,6 +127,13 @@ func main() {
 				log.Fatalf("emit failed: %v", err)
 			}
 			fmt.Printf("wrote migration: %s\n", *emit)
+		}
+
+		if *emitNames != "" {
+			if err := emitItemDisplayNameMigration(*emitNames, itemRows); err != nil {
+				log.Fatalf("emit-names failed: %v", err)
+			}
+			fmt.Printf("wrote migration: %s\n", *emitNames)
 		}
 
 		if *dryRun {

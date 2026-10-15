@@ -209,7 +209,7 @@ func TestEmitItemMigration(t *testing.T) {
 	scarf := "choicescarf"
 	gen := int32(4)
 	rows := []itemRow{{
-		ID: 287, Name: "choice-scarf", Category: "choice", Pocket: "battle", Gen: &gen,
+		ID: 287, Name: "choice-scarf", DisplayName: "Choice Scarf", Category: "choice", Pocket: "battle", Gen: &gen,
 		Cost: 200, ShowdownID: &scarf, Holdable: true, LegalFormats: []string{"4", "nationaldex"},
 		Descriptions: []descriptionRow{{Entity: entityItem, ID: 287, Version: "diamond", Text: "It's held."}},
 		HeldBy:       []itemHeldByRow{{ItemID: 287, PokemonID: 10, Version: "diamond", Rarity: 5}},
@@ -220,7 +220,7 @@ func TestEmitItemMigration(t *testing.T) {
 	}
 	up, _ := os.ReadFile(path)
 	for _, want := range []string{
-		"(287, 'choice-scarf', 'choice', 'battle', 4, 200, NULL, NULL, NULL, NULL, NULL, 'choicescarf', true, ARRAY['4','nationaldex']::text[])",
+		"(287, 'choice-scarf', 'choice', 'battle', 4, 200, NULL, NULL, NULL, NULL, NULL, 'choicescarf', true, ARRAY['4','nationaldex']::text[], 'Choice Scarf')",
 		"(287, 'diamond', 'It''s held.')",
 		"(287, 10, 'diamond', 5)",
 		"ON CONFLICT (id) DO NOTHING",
@@ -239,7 +239,35 @@ func TestEnglishItemNameFallsBackToSlug(t *testing.T) {
 	if got := englishItemName(decodeItem(t, choiceScarfJSON)); got != "Choice Scarf" {
 		t.Errorf("got %q", got)
 	}
+	if got := englishItemName(decodeItem(t, `{"names": [{"name": "King\u2019s Rock", "language": {"name": "en"}}]}`)); got != "King's Rock" {
+		t.Errorf("got %q, want a straight apostrophe", got)
+	}
 	if got := englishItemName(pokeAPIItemResp{Name: "hopo-berry"}); got != "Hopo Berry" {
 		t.Errorf("got %q, want title-cased slug", got)
+	}
+}
+
+func TestEmitItemDisplayNameMigration(t *testing.T) {
+	rows := []itemRow{
+		{ID: 2, Name: "kings-rock", DisplayName: "King's Rock"},
+		{ID: 1, Name: "firium-z--held", DisplayName: "Firium Z"},
+	}
+	path := filepath.Join(t.TempDir(), "000016_item_display_names.up.sql")
+	if err := emitItemDisplayNameMigration(path, rows); err != nil {
+		t.Fatal(err)
+	}
+	up, _ := os.ReadFile(path)
+	for _, want := range []string{
+		"ALTER TABLE public.item ADD COLUMN display_name text;",
+		"  (1, 'Firium Z'),\n  (2, 'King''s Rock')\n",
+		"ALTER COLUMN display_name SET NOT NULL;",
+	} {
+		if !strings.Contains(string(up), want) {
+			t.Errorf("up missing %q\n%s", want, up)
+		}
+	}
+	down, _ := os.ReadFile(strings.TrimSuffix(path, ".up.sql") + ".down.sql")
+	if !strings.Contains(string(down), "DROP COLUMN display_name") {
+		t.Errorf("down = %s", down)
 	}
 }

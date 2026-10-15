@@ -83,8 +83,8 @@ ON CONFLICT (pokemon_id, move_id, version) DO NOTHING
 const upsertItem = `
 INSERT INTO public.item
   (id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect,
-   sprite, showdown_id, holdable, legal_formats)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+   sprite, showdown_id, holdable, legal_formats, display_name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 ON CONFLICT (id) DO %s
 `
 
@@ -92,7 +92,7 @@ const itemOverwriteSet = `UPDATE SET name = EXCLUDED.name, category = EXCLUDED.c
   gen = EXCLUDED.gen, cost = EXCLUDED.cost, fling_power = EXCLUDED.fling_power,
   fling_effect = EXCLUDED.fling_effect, effect = EXCLUDED.effect, short_effect = EXCLUDED.short_effect,
   sprite = EXCLUDED.sprite, showdown_id = EXCLUDED.showdown_id, holdable = EXCLUDED.holdable,
-  legal_formats = EXCLUDED.legal_formats`
+  legal_formats = EXCLUDED.legal_formats, display_name = EXCLUDED.display_name`
 
 const upsertItemDescription = `
 INSERT INTO public.itemdescriptions (item_id, version, text)
