@@ -253,7 +253,8 @@ func supplementItemsFromBulbapedia(rows []itemRow, cacheDir string, batchSize in
 	}
 
 	titleFor := func(r itemRow) string {
-		title := titleCharReplacements.Replace(r.DisplayName)
+		// Bulbapedia has no "LA Poke Ball"; its text lives on the plain page.
+		title := titleCharReplacements.Replace(strings.TrimPrefix(r.DisplayName, legendsArceusPrefix))
 		if override, ok := bulbapediaItemTitles[title]; ok {
 			return override
 		}

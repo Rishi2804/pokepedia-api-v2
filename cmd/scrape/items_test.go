@@ -271,3 +271,19 @@ func TestEmitItemDisplayNameMigration(t *testing.T) {
 		t.Errorf("down = %s", down)
 	}
 }
+
+func TestLegendsArceusBallsAreRenamed(t *testing.T) {
+	resp := decodeItem(t, `{"id": 2220, "name": "lapoke-ball", "names": [{"name": "Poké Ball", "language": {"name": "en"}}]}`)
+	if got := itemDisplayName(resp); got != "LA Poké Ball" {
+		t.Errorf("got %q, want the LA-prefixed name", got)
+	}
+	mainline := decodeItem(t, `{"id": 4, "name": "poke-ball", "names": [{"name": "Poké Ball", "language": {"name": "en"}}]}`)
+	if got := itemDisplayName(mainline); got != "Poké Ball" {
+		t.Errorf("mainline ball = %q, want it unchanged", got)
+	}
+	for slug, name := range legendsArceusBallNames {
+		if !strings.HasPrefix(name, legendsArceusPrefix) {
+			t.Errorf("%s: %q lacks the %q prefix", slug, name, legendsArceusPrefix)
+		}
+	}
+}

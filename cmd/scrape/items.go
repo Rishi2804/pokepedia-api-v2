@@ -365,6 +365,15 @@ func scrapeItems(ctx context.Context, pool *pgxpool.Pool, limit int, cacheDir st
 	return rows, unresolved, nil
 }
 
+// itemDisplayName is the name shown to users: englishItemName, except for
+// the renamed Legends: Arceus balls.
+func itemDisplayName(resp pokeAPIItemResp) string {
+	if name, ok := legendsArceusBallNames[resp.Name]; ok {
+		return name
+	}
+	return englishItemName(resp)
+}
+
 // englishItemName is PokeAPI's English display name, the string a Bulbapedia
 // title is built from (slugs don't title-case cleanly: "king-s-rock").
 func englishItemName(resp pokeAPIItemResp) string {
@@ -387,6 +396,27 @@ func englishItemName(resp pokeAPIItemResp) string {
 	return strings.Join(words, " ")
 }
 
+// legendsArceusBallNames renames PokeAPI's Legends: Arceus balls. Five of them
+// share display names with the mainline balls ("Poke Ball" twice in the list,
+// "Great Ball" twice, ...), so all eleven carry an "LA " prefix, the ones with
+// unique names too, so the whole family reads and sorts together. The mainline
+// versions keep the plain names.
+var legendsArceusBallNames = map[string]string{
+	"lapoke-ball":    "LA Pok\u00e9 Ball",
+	"lagreat-ball":   "LA Great Ball",
+	"laultra-ball":   "LA Ultra Ball",
+	"laheavy-ball":   "LA Heavy Ball",
+	"lastrange-ball": "LA Strange Ball",
+	"lafeather-ball": "LA Feather Ball",
+	"lawing-ball":    "LA Wing Ball",
+	"lajet-ball":     "LA Jet Ball",
+	"laleaden-ball":  "LA Leaden Ball",
+	"lagigaton-ball": "LA Gigaton Ball",
+	"laorigin-ball":  "LA Origin Ball",
+}
+
+const legendsArceusPrefix = "LA "
+
 func buildItemRow(resp pokeAPIItemResp, pocket string, knownPokemon map[int32]bool) itemRow {
 	row := itemRow{
 		ID:           resp.ID,
@@ -394,7 +424,7 @@ func buildItemRow(resp pokeAPIItemResp, pocket string, knownPokemon map[int32]bo
 		Category:     resp.Category.Name,
 		Pocket:       pocket,
 		Cost:         resp.Cost,
-		DisplayName:  englishItemName(resp),
+		DisplayName:  itemDisplayName(resp),
 		FlingPower:   resp.FlingPower,
 		LegalFormats: []string{},
 		Source:       "pokeapi",
