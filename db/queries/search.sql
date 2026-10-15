@@ -30,17 +30,6 @@ FROM (
     WHERE similarity(a.name, q.term) > 0.2
        OR a.name LIKE q.term || '%'
        OR a.name LIKE '%' || q.term || '%'
-    UNION ALL
-    -- Matches on the slug (what util.Slugify produces) but returns the display
-    -- name: "kings-rock" must come back as "King's Rock", which no formatter
-    -- can rebuild from the slug.
-    SELECT 'item', i.id, i.display_name, i.gen::int,
-           GREATEST(similarity(i.name, q.term),
-                    CASE WHEN i.name LIKE q.term || '%' THEN 1.0 ELSE 0 END)
-    FROM public.item i, q
-    WHERE similarity(i.name, q.term) > 0.2
-       OR i.name LIKE q.term || '%'
-       OR i.name LIKE '%' || q.term || '%'
 ) s
 ORDER BY s.score DESC, s.type, s.id
 LIMIT sqlc.arg(lim)::int;

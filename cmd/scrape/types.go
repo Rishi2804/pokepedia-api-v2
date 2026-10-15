@@ -3,14 +3,13 @@ package main
 import "fmt"
 
 // entity names the table a descriptionRow belongs to: pokemondescriptions,
-// movedescriptions, abilitydescriptions, or itemdescriptions.
+// movedescriptions, or abilitydescriptions.
 type entity string
 
 const (
 	entityPokemon entity = "pokemon"
 	entityMove    entity = "move"
 	entityAbility entity = "ability"
-	entityItem    entity = "item"
 )
 
 // descriptionRow is one (entity_id, version, text) triple destined for
@@ -79,41 +78,4 @@ type legendsMoveRow struct {
 
 	Source      string
 	SourceTitle string
-}
-
-// itemRow is one public.item row plus the child rows that hang off it
-// (itemdescriptions, itemheldby). Unlike the *descriptions passes, which only
-// backfill text for ids this database already has, the item pass creates the
-// parent rows too -- there is no pre-existing item table to gap-fill. See
-// 000013_items.up.sql for what each column means.
-type itemRow struct {
-	ID           int32
-	Name         string // PokeAPI slug
-	DisplayName  string // English display name; builds the Bulbapedia page title
-	Category     string
-	Pocket       string
-	Gen          *int32
-	Cost         int32
-	FlingPower   *int32
-	FlingEffect  *string
-	Effect       *string
-	ShortEffect  *string
-	Sprite       *string // conventional object-store key, e.g. "items/choice-scarf.png"; the image may not exist
-	ShowdownID   *string
-	Holdable     bool
-	LegalFormats []string
-
-	Descriptions []descriptionRow // Entity == entityItem
-	HeldBy       []itemHeldByRow
-
-	Source string // "pokeapi" or "bulbapedia"
-}
-
-// itemHeldByRow is one wild held-item fact: item_id is held by pokemon_id in
-// version with rarity percent.
-type itemHeldByRow struct {
-	ItemID    int32
-	PokemonID int32
-	Version   string // public.game enum value
-	Rarity    int32
 }

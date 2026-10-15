@@ -63,18 +63,3 @@ SELECT ability_id, array_agg(DISTINCT text) AS texts
 FROM abilitydescriptions
 GROUP BY ability_id
 `
-
-// display_name, not the slug, is what a user sees and types ("King's Rock").
-// Holdable items rank above the other ~1,500 (balls, key items, berries
-// nobody holds), so a search for "orb" lands on Life Orb before Dusk Ball.
-const itemQuery = `
-SELECT id, name, display_name, COALESCE(gen, 0)::int, pocket, sprite, holdable, effect
-FROM item
-ORDER BY id
-`
-
-const itemDescriptionsQuery = `
-SELECT item_id, array_agg(DISTINCT text) AS texts
-FROM itemdescriptions
-GROUP BY item_id
-`

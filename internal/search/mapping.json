@@ -111,9 +111,7 @@
           "species_id": { "type": "integer" }, "dex_number": { "type": "integer" },
           "move_type": { "type": "keyword" }, "move_class": { "type": "keyword" },
           "power": { "type": "short" }, "accuracy": { "type": "short" },
-          "pp": { "type": "short" },
-          "pocket": { "type": "keyword" },
-          "sprite": { "type": "keyword", "index": false, "doc_values": false }
+          "pp": { "type": "short" }
         }
       }
     }
