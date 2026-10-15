@@ -1,7 +1,7 @@
 include .env
 export
 
-.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force migrate-version docker-up docker-down cache-flush index index-dry es-health es-aliases scrape scrape-dry scrape-emit sprites
+.PHONY: run build sqlc-generate migrate-up migrate-down migrate-force migrate-version docker-up docker-down cache-flush index index-dry es-health es-aliases scrape scrape-dry scrape-emit sprites item-sprites
 
 run:
 	go run ./cmd/api
@@ -56,3 +56,6 @@ es-aliases:
 
 sprites:
 	./object_store/fetch-showdown-sprites.sh
+
+item-sprites:
+	./object_store/fetch-item-sprites.sh
