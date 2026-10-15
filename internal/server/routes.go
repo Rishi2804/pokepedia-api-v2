@@ -16,6 +16,7 @@ func (s *Server) registerRoutes(r chi.Router) {
 	pokedexService := service.NewPokedexService(queries)
 	movesService := service.NewMovesService(queries)
 	abilitiesService := service.NewAbilitiesService(queries)
+	itemsService := service.NewItemsService(queries)
 	searchService := service.NewSearchService(s.es, queries)
 
 	healthHandler := handlers.NewHealthHandler(s.pool, s.cache, s.es)
@@ -24,6 +25,7 @@ func (s *Server) registerRoutes(r chi.Router) {
 	pokedexHandler := handlers.NewPokedexHandler(pokedexService)
 	movesHandler := handlers.NewMovesHandler(movesService)
 	abilitiesHandler := handlers.NewAbilitiesHandler(abilitiesService)
+	itemsHandler := handlers.NewItemsHandler(itemsService)
 	searchHandler := handlers.NewSearchHandler(searchService)
 
 	r.Get("/healthz", healthHandler.Check)
@@ -50,6 +52,8 @@ func (s *Server) registerRoutes(r chi.Router) {
 
 		r.Get("/api/v1/pokedex/{name}", pokedexHandler.GetDex)
 		r.Route("/api/v1/team-building", func(r chi.Router) {
+			// Static segment: wins over the {version} param below.
+			r.Get("/items/{format}", itemsHandler.GetHoldable)
 			r.Get("/{version}", pokedexHandler.GetTeamCandidates)
 			r.Get("/{version}/{id:[0-9]+}", pokedexHandler.GetTeamCandidate)
 		})
@@ -64,6 +68,12 @@ func (s *Server) registerRoutes(r chi.Router) {
 			r.Get("/", abilitiesHandler.Get)
 			r.Get("/{id:[0-9]+}", abilitiesHandler.GetDetail)
 			r.Get("/{name}", abilitiesHandler.GetByName)
+		})
+
+		r.Route("/api/v1/item", func(r chi.Router) {
+			r.Get("/", itemsHandler.Get)
+			r.Get("/{id:[0-9]+}", itemsHandler.GetDetail)
+			r.Get("/{name}", itemsHandler.GetByName)
 		})
 	})
 }

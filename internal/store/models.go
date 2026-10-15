@@ -462,6 +462,37 @@ type Evolutionpeek struct {
 	PokemonID int32 `json:"pokemon_id"`
 }
 
+type Item struct {
+	ID           int32    `json:"id"`
+	Name         string   `json:"name"`
+	Category     string   `json:"category"`
+	Pocket       string   `json:"pocket"`
+	Gen          *int32   `json:"gen"`
+	Cost         int32    `json:"cost"`
+	FlingPower   *int32   `json:"fling_power"`
+	FlingEffect  *string  `json:"fling_effect"`
+	Effect       *string  `json:"effect"`
+	ShortEffect  *string  `json:"short_effect"`
+	Sprite       *string  `json:"sprite"`
+	ShowdownID   *string  `json:"showdown_id"`
+	Holdable     bool     `json:"holdable"`
+	LegalFormats []string `json:"legal_formats"`
+	DisplayName  string   `json:"display_name"`
+}
+
+type Itemdescription struct {
+	ItemID  int32  `json:"item_id"`
+	Version string `json:"version"`
+	Text    string `json:"text"`
+}
+
+type Itemheldby struct {
+	ItemID    int32  `json:"item_id"`
+	PokemonID int32  `json:"pokemon_id"`
+	Version   string `json:"version"`
+	Rarity    int32  `json:"rarity"`
+}
+
 type Legendsmovevalue struct {
 	PokemonID   int32  `json:"pokemon_id"`
 	MoveID      int32  `json:"move_id"`
