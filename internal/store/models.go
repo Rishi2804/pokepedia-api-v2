@@ -473,7 +473,7 @@ type Item struct {
 	FlingEffect  *string  `json:"fling_effect"`
 	Effect       *string  `json:"effect"`
 	ShortEffect  *string  `json:"short_effect"`
-	Sprite       *string  `json:"sprite"`
+	Image        *string  `json:"image"`
 	ShowdownID   *string  `json:"showdown_id"`
 	Holdable     bool     `json:"holdable"`
 	LegalFormats []string `json:"legal_formats"`

@@ -128,7 +128,7 @@ func writeItemRows(ctx context.Context, pool *pgxpool.Pool, rows []itemRow, over
 	batch := &pgx.Batch{}
 	for _, r := range rows {
 		batch.Queue(itemQ, r.ID, r.Name, r.Category, r.Pocket, r.Gen, r.Cost,
-			r.FlingPower, r.FlingEffect, r.Effect, r.ShortEffect, r.Sprite,
+			r.FlingPower, r.FlingEffect, r.Effect, r.ShortEffect, r.Image,
 			r.ShowdownID, r.Holdable, r.LegalFormats, r.DisplayName)
 		for _, d := range r.Descriptions {
 			batch.Queue(descQ, d.ID, d.Version, d.Text)

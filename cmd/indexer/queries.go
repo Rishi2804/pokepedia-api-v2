@@ -68,7 +68,7 @@ GROUP BY ability_id
 // Holdable items rank above the other ~1,500 (balls, key items, berries
 // nobody holds), so a search for "orb" lands on Life Orb before Dusk Ball.
 const itemQuery = `
-SELECT id, name, display_name, COALESCE(gen, 0)::int, pocket, sprite, holdable, effect
+SELECT id, name, display_name, COALESCE(gen, 0)::int, pocket, image, holdable, effect
 FROM item
 ORDER BY id
 `

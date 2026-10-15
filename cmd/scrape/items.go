@@ -447,9 +447,9 @@ func buildItemRow(resp pokeAPIItemResp, pocket string, knownPokemon map[int32]bo
 	}
 	// The key is a naming convention, set for every item: PokeAPI ships a
 	// sprite for only about half of them and fetch-item-images.sh fills more
-	// from Bulbapedia, so the image may not exist. See 000015.
+	// from Bulbapedia, so the file may not exist. See 000015 and 000019.
 	key := "items/" + resp.Name + ".png"
-	row.Sprite = &key
+	row.Image = &key
 	for _, gi := range resp.GameIndices {
 		if g, ok := romanGenerations[gi.Generation.Name]; ok && (row.Gen == nil || g < *row.Gen) {
 			g := g

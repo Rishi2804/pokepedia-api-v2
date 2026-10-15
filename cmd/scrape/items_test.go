@@ -75,8 +75,8 @@ func TestBuildItemRow(t *testing.T) {
 	if row.ShortEffect == nil || *row.ShortEffect != "Boosts Speed by 50%." {
 		t.Errorf("short effect = %v", row.ShortEffect)
 	}
-	if row.Sprite == nil || *row.Sprite != "items/choice-scarf.png" {
-		t.Errorf("sprite = %v", row.Sprite)
+	if row.Image == nil || *row.Image != "items/choice-scarf.png" {
+		t.Errorf("image = %v", row.Image)
 	}
 	if row.Pocket != "battle" || row.Category != "choice" || row.Cost != 200 {
 		t.Errorf("row = %+v", row)

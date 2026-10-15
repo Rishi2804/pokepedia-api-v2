@@ -10,7 +10,7 @@ import (
 )
 
 const getHoldableItems = `-- name: GetHoldableItems :many
-SELECT showdown_id, display_name, sprite, short_effect
+SELECT showdown_id, display_name, image, short_effect
 FROM item
 WHERE holdable
   AND showdown_id IS NOT NULL
@@ -21,7 +21,7 @@ ORDER BY display_name
 type GetHoldableItemsRow struct {
 	ShowdownID  *string `json:"showdown_id"`
 	DisplayName string  `json:"display_name"`
-	Sprite      *string `json:"sprite"`
+	Image       *string `json:"image"`
 	ShortEffect *string `json:"short_effect"`
 }
 
@@ -41,7 +41,7 @@ func (q *Queries) GetHoldableItems(ctx context.Context, dollar_1 string) ([]GetH
 		if err := rows.Scan(
 			&i.ShowdownID,
 			&i.DisplayName,
-			&i.Sprite,
+			&i.Image,
 			&i.ShortEffect,
 		); err != nil {
 			return nil, err
@@ -55,7 +55,7 @@ func (q *Queries) GetHoldableItems(ctx context.Context, dollar_1 string) ([]GetH
 }
 
 const getItem = `-- name: GetItem :one
-SELECT id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect, sprite, showdown_id, holdable, legal_formats, display_name FROM item WHERE id = $1
+SELECT id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect, image, showdown_id, holdable, legal_formats, display_name FROM item WHERE id = $1
 `
 
 func (q *Queries) GetItem(ctx context.Context, id int32) (Item, error) {
@@ -72,7 +72,7 @@ func (q *Queries) GetItem(ctx context.Context, id int32) (Item, error) {
 		&i.FlingEffect,
 		&i.Effect,
 		&i.ShortEffect,
-		&i.Sprite,
+		&i.Image,
 		&i.ShowdownID,
 		&i.Holdable,
 		&i.LegalFormats,
@@ -82,7 +82,7 @@ func (q *Queries) GetItem(ctx context.Context, id int32) (Item, error) {
 }
 
 const getItemByName = `-- name: GetItemByName :one
-SELECT id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect, sprite, showdown_id, holdable, legal_formats, display_name FROM item WHERE name = $1
+SELECT id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect, image, showdown_id, holdable, legal_formats, display_name FROM item WHERE name = $1
 `
 
 func (q *Queries) GetItemByName(ctx context.Context, name string) (Item, error) {
@@ -99,7 +99,7 @@ func (q *Queries) GetItemByName(ctx context.Context, name string) (Item, error) 
 		&i.FlingEffect,
 		&i.Effect,
 		&i.ShortEffect,
-		&i.Sprite,
+		&i.Image,
 		&i.ShowdownID,
 		&i.Holdable,
 		&i.LegalFormats,
@@ -145,7 +145,7 @@ func (q *Queries) GetItemDescriptions(ctx context.Context, itemID int32) ([]GetI
 }
 
 const getItemsList = `-- name: GetItemsList :many
-SELECT id, name, display_name, gen, category, pocket, sprite
+SELECT id, name, display_name, gen, category, pocket, image
 FROM item
 ORDER BY id
 `
@@ -157,7 +157,7 @@ type GetItemsListRow struct {
 	Gen         *int32  `json:"gen"`
 	Category    string  `json:"category"`
 	Pocket      string  `json:"pocket"`
-	Sprite      *string `json:"sprite"`
+	Image       *string `json:"image"`
 }
 
 func (q *Queries) GetItemsList(ctx context.Context) ([]GetItemsListRow, error) {
@@ -176,7 +176,7 @@ func (q *Queries) GetItemsList(ctx context.Context) ([]GetItemsListRow, error) {
 			&i.Gen,
 			&i.Category,
 			&i.Pocket,
-			&i.Sprite,
+			&i.Image,
 		); err != nil {
 			return nil, err
 		}

@@ -224,7 +224,7 @@ func newBulbapediaOnlyRow(id int32, sd showdownItem) itemRow {
 	}
 	gen := int32(sd.Gen)
 	sdID := sd.ID
-	spriteKey := "items/" + slug + ".png"
+	imageKey := "items/" + slug + ".png"
 
 	category, pocket := "held-items", "misc"
 	switch {
@@ -236,7 +236,7 @@ func newBulbapediaOnlyRow(id int32, sd showdownItem) itemRow {
 
 	return itemRow{
 		ID: id, Name: slug, DisplayName: sd.Name, Category: category, Pocket: pocket,
-		Gen: &gen, Sprite: &spriteKey, ShowdownID: &sdID, Holdable: true, LegalFormats: sd.LegalFormats,
+		Gen: &gen, Image: &imageKey, ShowdownID: &sdID, Holdable: true, LegalFormats: sd.LegalFormats,
 		Source: "bulbapedia",
 	}
 }

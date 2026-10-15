@@ -40,7 +40,7 @@ func (s *ItemsService) GetItemList(ctx context.Context) ([]dto.ItemSnap, error) 
 			Gen:      r.Gen,
 			Category: r.Category,
 			Pocket:   r.Pocket,
-			Sprite:   deref(r.Sprite),
+			Image:    deref(r.Image),
 		})
 	}
 	return response, nil
@@ -77,7 +77,7 @@ func (s *ItemsService) GetHoldableItems(ctx context.Context, format string) ([]d
 		response = append(response, dto.HoldableItem{
 			ShowdownID:  deref(r.ShowdownID),
 			Name:        r.DisplayName,
-			Sprite:      deref(r.Sprite),
+			Image:       deref(r.Image),
 			ShortEffect: deref(r.ShortEffect),
 		})
 	}
@@ -131,7 +131,7 @@ func (s *ItemsService) buildDetail(ctx context.Context, i store.Item) (*dto.Item
 		FlingEffect:  flingEffect,
 		Effect:       deref(i.Effect),
 		ShortEffect:  deref(i.ShortEffect),
-		Sprite:       deref(i.Sprite),
+		Image:        deref(i.Image),
 		Holdable:     i.Holdable,
 		ShowdownID:   i.ShowdownID,
 		LegalFormats: legalFormats,

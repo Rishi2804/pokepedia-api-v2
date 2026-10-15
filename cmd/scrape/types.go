@@ -98,7 +98,7 @@ type itemRow struct {
 	FlingEffect  *string
 	Effect       *string
 	ShortEffect  *string
-	Sprite       *string // conventional object-store key, e.g. "items/choice-scarf.png"; the image may not exist
+	Image        *string // conventional object-store key, e.g. "items/choice-scarf.png"; the file may not exist
 	ShowdownID   *string
 	Holdable     bool
 	LegalFormats []string

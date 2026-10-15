@@ -152,8 +152,8 @@ func buildItemDoc(r itemRow, descriptions map[int32][]string) indexDoc {
 	}
 
 	meta := map[string]any{"pocket": r.Pocket}
-	if r.Sprite != nil {
-		meta["sprite"] = *r.Sprite
+	if r.Image != nil {
+		meta["image"] = *r.Image
 	}
 
 	return indexDoc{

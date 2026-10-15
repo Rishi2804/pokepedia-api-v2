@@ -41,7 +41,7 @@ type itemRow struct {
 	DisplayName string
 	Gen         int32
 	Pocket      string
-	Sprite      *string
+	Image       *string
 	Holdable    bool
 	Effect      *string
 }
@@ -115,7 +115,7 @@ func fetchItems(ctx context.Context, pool *pgxpool.Pool) ([]itemRow, error) {
 	var out []itemRow
 	for rows.Next() {
 		var r itemRow
-		if err := rows.Scan(&r.ID, &r.Slug, &r.DisplayName, &r.Gen, &r.Pocket, &r.Sprite, &r.Holdable, &r.Effect); err != nil {
+		if err := rows.Scan(&r.ID, &r.Slug, &r.DisplayName, &r.Gen, &r.Pocket, &r.Image, &r.Holdable, &r.Effect); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

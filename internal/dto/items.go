@@ -10,7 +10,7 @@ type ItemSnap struct {
 	Gen      *int32 `json:"gen"`
 	Category string `json:"category"`
 	Pocket   string `json:"pocket"`
-	Sprite   string `json:"sprite"`
+	Image    string `json:"image"`
 }
 
 type ItemDetail struct {
@@ -25,7 +25,7 @@ type ItemDetail struct {
 	FlingEffect  *string       `json:"flingEffect"`
 	Effect       string        `json:"effect"`
 	ShortEffect  string        `json:"shortEffect"`
-	Sprite       string        `json:"sprite"`
+	Image        string        `json:"image"`
 	Holdable     bool          `json:"holdable"`
 	ShowdownID   *string       `json:"showdownId"`
 	LegalFormats []string      `json:"legalFormats"`
@@ -39,6 +39,6 @@ type ItemDetail struct {
 type HoldableItem struct {
 	ShowdownID  string `json:"showdownId"`
 	Name        string `json:"name"`
-	Sprite      string `json:"sprite"`
+	Image       string `json:"image"`
 	ShortEffect string `json:"shortEffect"`
 }

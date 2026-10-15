@@ -113,7 +113,7 @@
           "power": { "type": "short" }, "accuracy": { "type": "short" },
           "pp": { "type": "short" },
           "pocket": { "type": "keyword" },
-          "sprite": { "type": "keyword", "index": false, "doc_values": false }
+          "image": { "type": "keyword", "index": false, "doc_values": false }
         }
       }
     }

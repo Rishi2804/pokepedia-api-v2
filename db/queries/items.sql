@@ -1,5 +1,5 @@
 -- name: GetItemsList :many
-SELECT id, name, display_name, gen, category, pocket, sprite
+SELECT id, name, display_name, gen, category, pocket, image
 FROM item
 ORDER BY id;
 
@@ -31,7 +31,7 @@ ORDER BY p.species_id, p.id ASC;
 -- battle server accepts in the given format ('2'..'9', 'nationaldex',
 -- 'legendsza'). legal_formats comes from Showdown's own dex, so a pick here
 -- can't fail the server's team validation.
-SELECT showdown_id, display_name, sprite, short_effect
+SELECT showdown_id, display_name, image, short_effect
 FROM item
 WHERE holdable
   AND showdown_id IS NOT NULL

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Downloads item images into the MinIO seed folder as items/<slug>.png,
-# matching the `sprite` key stored on every row of public.item.
+# matching the `image` key stored on every row of public.item.
 #
 # Larger images win. Bulbapedia's bag and Dream World images are 120-160px,
 # PokeAPI's sprites are ~30px pixel art, so Bulbapedia is tried first and

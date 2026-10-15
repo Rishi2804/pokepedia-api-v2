@@ -83,8 +83,8 @@ func TestNewBulbapediaOnlyRow(t *testing.T) {
 	if row.Name != "mint-berry" || row.Category != "medicine" || row.Pocket != "berries" {
 		t.Errorf("row = %+v", row)
 	}
-	if row.Sprite == nil || *row.Sprite != "items/mint-berry.png" {
-		t.Errorf("sprite = %v", row.Sprite)
+	if row.Image == nil || *row.Image != "items/mint-berry.png" {
+		t.Errorf("image = %v", row.Image)
 	}
 	if !row.Holdable || row.ShowdownID == nil || *row.ShowdownID != "mintberry" || row.Gen == nil || *row.Gen != 2 {
 		t.Errorf("row = %+v", row)

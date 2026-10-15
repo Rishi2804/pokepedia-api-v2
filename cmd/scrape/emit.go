@@ -374,7 +374,7 @@ func emitItemMigration(path string, rows []itemRow) error {
 	fmt.Fprintf(&b, "-- NOTHING on an existing primary key.\n\n")
 	fmt.Fprintf(&b, "BEGIN;\n\n")
 
-	fmt.Fprintf(&b, "INSERT INTO public.item (id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect, sprite, showdown_id, holdable, legal_formats, display_name) VALUES\n")
+	fmt.Fprintf(&b, "INSERT INTO public.item (id, name, category, pocket, gen, cost, fling_power, fling_effect, effect, short_effect, image, showdown_id, holdable, legal_formats, display_name) VALUES\n")
 	for i, r := range rows {
 		sep := ","
 		if i == len(rows)-1 {
@@ -384,7 +384,7 @@ func emitItemMigration(path string, rows []itemRow) error {
 			r.ID, sqlString(r.Name), sqlString(r.Category), sqlString(r.Pocket),
 			sqlNullableInt(r.Gen), r.Cost, sqlNullableInt(r.FlingPower),
 			sqlNullableString(r.FlingEffect), sqlNullableString(r.Effect),
-			sqlNullableString(r.ShortEffect), sqlNullableString(r.Sprite),
+			sqlNullableString(r.ShortEffect), sqlNullableString(r.Image),
 			sqlNullableString(r.ShowdownID), r.Holdable, sqlTextArray(r.LegalFormats), sqlString(r.DisplayName), sep)
 	}
 	fmt.Fprintf(&b, "ON CONFLICT (id) DO NOTHING;\n\n")
