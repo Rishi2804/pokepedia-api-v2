@@ -12,7 +12,7 @@ package main
 // variant nationally (Alolan Raichu is default_variate for the Alola dex,
 // which wrongly scored it 10 via an EXISTS-across-any-dex check).
 const pokemonQuery = `
-SELECT p.id, p.name, p.gen::int, p.type1::text, p.type2::text, p.species_id,
+SELECT p.id, p.name, p.display_name, p.gen::int, p.type1::text, p.type2::text, p.species_id,
        CASE
          WHEN NOT EXISTS (
            SELECT 1 FROM pokemon base
@@ -27,19 +27,19 @@ ORDER BY p.id
 `
 
 const moveQuery = `
-SELECT id, name, gen::int, type::text, class::text, power, accuracy, pp, effect
+SELECT id, name, display_name, gen::int, type::text, class::text, power, accuracy, pp, effect
 FROM move
 ORDER BY id
 `
 
 const abilityQuery = `
-SELECT id, name, gen::int, effect
+SELECT id, name, display_name, gen::int, effect
 FROM ability
 ORDER BY id
 `
 
 const speciesQuery = `
-SELECT id, name
+SELECT id, display_name
 FROM species
 ORDER BY id
 `

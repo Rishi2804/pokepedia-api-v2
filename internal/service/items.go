@@ -102,7 +102,7 @@ func (s *ItemsService) buildDetail(ctx context.Context, i store.Item) (*dto.Item
 		pokemon = append(pokemon, dto.PokemonSnap{
 			SpeciesID: p.SpeciesID,
 			ID:        p.ID,
-			Name:      util.FormatName(p.Name, true),
+			Name:      p.DisplayName,
 			Type1:     pokeenum.ToDisplay(p.Type1),
 			Type2:     displayPtr(p.Type2),
 		})

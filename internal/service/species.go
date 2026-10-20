@@ -33,7 +33,7 @@ func (s *SpeciesService) GetSpeciesDetail(ctx context.Context, id int32) (*dto.S
 	if err != nil {
 		return nil, err
 	}
-	return s.buildDetail(ctx, sp.ID, sp.Name)
+	return s.buildDetail(ctx, sp.ID, sp.DisplayName)
 }
 
 func (s *SpeciesService) GetSpeciesDetailByName(ctx context.Context, name string) (*dto.SpeciesDetail, error) {
@@ -41,7 +41,7 @@ func (s *SpeciesService) GetSpeciesDetailByName(ctx context.Context, name string
 	if err != nil {
 		return nil, err
 	}
-	return s.buildDetail(ctx, sp.ID, sp.Name)
+	return s.buildDetail(ctx, sp.ID, sp.DisplayName)
 }
 
 func (s *SpeciesService) buildDetail(ctx context.Context, id int32, name string) (*dto.SpeciesDetail, error) {

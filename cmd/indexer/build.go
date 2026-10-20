@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
-	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
 // nonPokemonPopularity is the rank_feature value for moves and abilities —
@@ -49,13 +48,12 @@ var aliasOverrides = map[string][]string{
 	"mr-rime":   {"mister rime"},
 }
 
-func buildAliases(slug, speciesName string) []string {
+// buildAliases lets a form be found by its species' name: "Raichu" finds
+// Alolan Raichu. Both names are the stored display names.
+func buildAliases(slug, displayName, speciesDisplayName string) []string {
 	var aliases []string
-	if speciesName != "" {
-		base := util.FormatName(speciesName, true)
-		if !strings.EqualFold(base, util.FormatName(slug, true)) {
-			aliases = append(aliases, base)
-		}
+	if speciesDisplayName != "" && !strings.EqualFold(speciesDisplayName, displayName) {
+		aliases = append(aliases, speciesDisplayName)
 	}
 	return append(aliases, aliasOverrides[slug]...)
 }
@@ -63,7 +61,7 @@ func buildAliases(slug, speciesName string) []string {
 // PokemonCard (pokepedia-ui) only ever reads type1/type2/speciesId/dexNumber
 // from a Pokemon search hit — hp/atk/def/spatk/spdef/speed/height/weight
 // have no reader anywhere and are deliberately left out.
-func buildPokemonDoc(r pokemonRow, speciesName string, descriptions map[int32][]string) indexDoc {
+func buildPokemonDoc(r pokemonRow, speciesDisplayName string, descriptions map[int32][]string) indexDoc {
 	meta := map[string]any{
 		"type1":      pokeenum.ToDisplay(r.Type1),
 		"species_id": r.SpeciesID,
@@ -80,8 +78,8 @@ func buildPokemonDoc(r pokemonRow, speciesName string, descriptions map[int32][]
 		Type:        "pokemon",
 		EntityID:    r.ID,
 		Slug:        r.Slug,
-		Name:        util.FormatName(r.Slug, true),
-		Aliases:     buildAliases(r.Slug, speciesName),
+		Name:        r.DisplayName,
+		Aliases:     buildAliases(r.Slug, r.DisplayName, speciesDisplayName),
 		Description: descriptions[r.ID],
 		Gen:         r.Gen,
 		Popularity:  r.Popularity,
@@ -113,7 +111,7 @@ func buildMoveDoc(r moveRow, descriptions map[int32][]string) indexDoc {
 		Type:        "move",
 		EntityID:    r.ID,
 		Slug:        r.Slug,
-		Name:        util.FormatName(r.Slug, false),
+		Name:        r.DisplayName,
 		Description: descriptions[r.ID],
 		Effect:      effect,
 		Gen:         r.Gen,
@@ -132,7 +130,7 @@ func buildAbilityDoc(r abilityRow, descriptions map[int32][]string) indexDoc {
 		Type:        "ability",
 		EntityID:    r.ID,
 		Slug:        r.Slug,
-		Name:        util.FormatName(r.Slug, false),
+		Name:        r.DisplayName,
 		Description: descriptions[r.ID],
 		Effect:      effect,
 		Gen:         r.Gen,

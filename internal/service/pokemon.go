@@ -7,7 +7,6 @@ import (
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
-	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
 type PokemonService struct {
@@ -115,7 +114,7 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 	result := dto.PokemonDetail{
 		ID:         p.ID,
 		SpeciesID:  p.SpeciesID,
-		Name:       util.FormatName(p.Name, true),
+		Name:       p.DisplayName,
 		Gen:        p.Gen,
 		Type1:      pokeenum.ToDisplay(p.Type1),
 		Type2:      displayPtr(p.Type2),
@@ -138,7 +137,7 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 	for _, a := range abilities {
 		result.Abilities = append(result.Abilities, dto.AbilityInfo{
 			ID:         a.AbilityID,
-			Name:       util.FormatName(a.AbilityName, false),
+			Name:       a.AbilityDisplayName,
 			IsHidden:   a.Hidden,
 			GenRemoved: a.GenRemoved,
 		})
@@ -163,9 +162,9 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 		result.Evolution = append(result.Evolution, dto.EvolutionLine{
 			ID:          e.ID,
 			FromPokemon: e.FromPokemon,
-			FromDisplay: util.FormatName(e.FromSlug, true),
+			FromDisplay: e.FromDisplayName,
 			ToPokemon:   e.ToPokemon,
-			ToDisplay:   util.FormatName(e.ToSlug, true),
+			ToDisplay:   e.ToDisplayName,
 			Details:     e.Details,
 			Region:      e.Region,
 			AltForm:     e.AltForm,
@@ -222,7 +221,7 @@ func groupMoveset(moves []store.GetPokemonMovesByIDsRow) []dto.VersionMoveset {
 			for _, m := range moveList {
 				moveInfos = append(moveInfos, dto.MoveInfo{
 					ID:             m.MoveID,
-					Name:           util.FormatName(m.Name, false),
+					Name:           m.DisplayName,
 					Type:           pokeenum.ToDisplay(m.Type),
 					MoveClass:      pokeenum.ToDisplay(m.Class),
 					Power:          m.Power,

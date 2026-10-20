@@ -6,7 +6,6 @@ import (
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
-	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
 type AbilitiesService struct {
@@ -26,7 +25,7 @@ func (s *AbilitiesService) GetAbilityList(ctx context.Context) ([]dto.AbilitySna
 	for _, r := range rows {
 		response = append(response, dto.AbilitySnap{
 			ID:   r.ID,
-			Name: util.FormatName(r.Name, false),
+			Name: r.DisplayName,
 			Gen:  r.Gen,
 		})
 	}
@@ -68,7 +67,7 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRo
 		pokemonResponse = append(pokemonResponse, dto.PokemonSnap{
 			SpeciesID: p.SpeciesID,
 			ID:        p.ID,
-			Name:      util.FormatName(p.Name, true),
+			Name:      p.DisplayName,
 			Type1:     pokeenum.ToDisplay(p.Type1),
 			Type2:     displayPtr(p.Type2),
 		})
@@ -76,7 +75,7 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRo
 
 	response := &dto.AbilityDetail{
 		ID:           a.ID,
-		Name:         util.FormatName(a.Name, false),
+		Name:         a.DisplayName,
 		Gen:          a.Gen,
 		Descriptions: descriptions,
 		Pokemon:      pokemonResponse,

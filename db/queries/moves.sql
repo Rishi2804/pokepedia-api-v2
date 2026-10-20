@@ -1,16 +1,16 @@
 -- name: GetMoves :many
-SELECT id, name, type, class, power, accuracy, pp, gen 
-FROM move 
+SELECT id, name, display_name, type, class, power, accuracy, pp, gen
+FROM move
 ORDER BY id, gen ASC;
 
 -- name: GetMove :one
-SELECT id, name, type, class, power, accuracy, pp, gen, effect
-FROM move 
+SELECT id, name, display_name, type, class, power, accuracy, pp, gen, effect
+FROM move
 WHERE id = $1;
 
 -- name: GetMoveByName :one
-SELECT id, name, type, class, power, accuracy, pp, gen, effect
-FROM move 
+SELECT id, name, display_name, type, class, power, accuracy, pp, gen, effect
+FROM move
 WHERE name = $1;
 
 -- name: GetMoveDescriptions :many
@@ -23,7 +23,7 @@ GROUP BY text
 ORDER BY min(version);
 
 -- name: GetPokemonLearnableMove :many
-SELECT DISTINCT p.species_id, p.id, p.name, p.type1, type2, md.method
+SELECT DISTINCT p.species_id, p.id, p.name, p.display_name, p.type1, type2, md.method
 FROM movedetails md
 JOIN pokemon p ON p.id = md.pokemon_id
 WHERE md.move_id = $1

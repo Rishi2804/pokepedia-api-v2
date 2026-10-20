@@ -189,7 +189,7 @@ func (q *Queries) GetItemsList(ctx context.Context) ([]GetItemsListRow, error) {
 }
 
 const getPokemonHoldingItem = `-- name: GetPokemonHoldingItem :many
-SELECT DISTINCT p.id, p.name, p.gen, p.type1, p.type2, p.species_id
+SELECT DISTINCT p.id, p.name, p.display_name, p.gen, p.type1, p.type2, p.species_id
 FROM itemheldby h
 JOIN pokemon p ON p.id = h.pokemon_id
 WHERE h.item_id = $1
@@ -197,12 +197,13 @@ ORDER BY p.species_id, p.id ASC
 `
 
 type GetPokemonHoldingItemRow struct {
-	ID        int32   `json:"id"`
-	Name      string  `json:"name"`
-	Gen       int32   `json:"gen"`
-	Type1     string  `json:"type1"`
-	Type2     *string `json:"type2"`
-	SpeciesID int32   `json:"species_id"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	Gen         int32   `json:"gen"`
+	Type1       string  `json:"type1"`
+	Type2       *string `json:"type2"`
+	SpeciesID   int32   `json:"species_id"`
 }
 
 func (q *Queries) GetPokemonHoldingItem(ctx context.Context, itemID int32) ([]GetPokemonHoldingItemRow, error) {
@@ -217,6 +218,7 @@ func (q *Queries) GetPokemonHoldingItem(ctx context.Context, itemID int32) ([]Ge
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Gen,
 			&i.Type1,
 			&i.Type2,

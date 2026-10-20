@@ -10,7 +10,7 @@ import (
 )
 
 const getPokemonBySpeciesID = `-- name: GetPokemonBySpeciesID :many
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE species_id = $1
@@ -18,23 +18,24 @@ ORDER BY id
 `
 
 type GetPokemonBySpeciesIDRow struct {
-	ID         int32    `json:"id"`
-	SpeciesID  int32    `json:"species_id"`
-	Name       string   `json:"name"`
-	Gen        int32    `json:"gen"`
-	Type1      string   `json:"type1"`
-	Type2      *string  `json:"type2"`
-	Weight     float64  `json:"weight"`
-	Height     float64  `json:"height"`
-	GenderRate int32    `json:"gender_rate"`
-	Hp         int32    `json:"hp"`
-	Atk        int32    `json:"atk"`
-	Def        int32    `json:"def"`
-	Spatk      int32    `json:"spatk"`
-	Spdef      int32    `json:"spdef"`
-	Speed      int32    `json:"speed"`
-	Bst        int32    `json:"bst"`
-	Forms      []string `json:"forms"`
+	ID          int32    `json:"id"`
+	SpeciesID   int32    `json:"species_id"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	Gen         int32    `json:"gen"`
+	Type1       string   `json:"type1"`
+	Type2       *string  `json:"type2"`
+	Weight      float64  `json:"weight"`
+	Height      float64  `json:"height"`
+	GenderRate  int32    `json:"gender_rate"`
+	Hp          int32    `json:"hp"`
+	Atk         int32    `json:"atk"`
+	Def         int32    `json:"def"`
+	Spatk       int32    `json:"spatk"`
+	Spdef       int32    `json:"spdef"`
+	Speed       int32    `json:"speed"`
+	Bst         int32    `json:"bst"`
+	Forms       []string `json:"forms"`
 }
 
 func (q *Queries) GetPokemonBySpeciesID(ctx context.Context, speciesID int32) ([]GetPokemonBySpeciesIDRow, error) {
@@ -50,6 +51,7 @@ func (q *Queries) GetPokemonBySpeciesID(ctx context.Context, speciesID int32) ([
 			&i.ID,
 			&i.SpeciesID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Gen,
 			&i.Type1,
 			&i.Type2,
@@ -76,34 +78,24 @@ func (q *Queries) GetPokemonBySpeciesID(ctx context.Context, speciesID int32) ([
 }
 
 const getSpeciesByID = `-- name: GetSpeciesByID :one
-SELECT id, name FROM species WHERE id = $1
+SELECT id, name, display_name FROM species WHERE id = $1
 `
 
-type GetSpeciesByIDRow struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
-}
-
-func (q *Queries) GetSpeciesByID(ctx context.Context, id int32) (GetSpeciesByIDRow, error) {
+func (q *Queries) GetSpeciesByID(ctx context.Context, id int32) (Species, error) {
 	row := q.db.QueryRow(ctx, getSpeciesByID, id)
-	var i GetSpeciesByIDRow
-	err := row.Scan(&i.ID, &i.Name)
+	var i Species
+	err := row.Scan(&i.ID, &i.Name, &i.DisplayName)
 	return i, err
 }
 
 const getSpeciesByName = `-- name: GetSpeciesByName :one
-SELECT id, name FROM species WHERE name = $1
+SELECT id, name, display_name FROM species WHERE name = $1
 `
 
-type GetSpeciesByNameRow struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
-}
-
-func (q *Queries) GetSpeciesByName(ctx context.Context, name string) (GetSpeciesByNameRow, error) {
+func (q *Queries) GetSpeciesByName(ctx context.Context, name string) (Species, error) {
 	row := q.db.QueryRow(ctx, getSpeciesByName, name)
-	var i GetSpeciesByNameRow
-	err := row.Scan(&i.ID, &i.Name)
+	var i Species
+	err := row.Scan(&i.ID, &i.Name, &i.DisplayName)
 	return i, err
 }
 

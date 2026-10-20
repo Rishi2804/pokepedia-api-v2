@@ -8,7 +8,6 @@ import (
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
-	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
 // ErrVersionNotFound signals an unrecognised version group name, so handlers can
@@ -42,7 +41,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 			for _, r := range rows {
 				fullDex = append(fullDex, dto.PokedexEntry{
 					DexNumber: r.SpeciesID, SpeciesID: r.SpeciesID, PokemonID: r.ID,
-					Name: util.FormatName(r.Name, true), Gen: r.Gen,
+					Name: r.Name, Gen: r.Gen,
 					Type1: pokeenum.ToDisplay(r.Type1),
 					Type2: displayPtr(r.Type2),
 				})
@@ -95,7 +94,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 		for _, r := range rows {
 			entries = append(entries, dto.PokedexEntry{
 				DexNumber: r.Num, SpeciesID: r.SpeciesID, PokemonID: r.ID,
-				Name: util.FormatName(r.Name, true), Gen: r.Gen,
+				Name: r.Name, Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1),
 				Type2: displayPtr(r.Type2),
 			})
@@ -125,7 +124,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		candidates := make([]dto.TeamCandidateSummary, len(rows))
 		for i, r := range rows {
 			candidates[i] = dto.TeamCandidateSummary{
-				ID: r.ID, Name: util.FormatName(r.Name, true), Slug: r.Name, Gen: r.Gen,
+				ID: r.ID, Name: r.DisplayName, Slug: r.Name, Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 		}
@@ -155,7 +154,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		for i, r := range rows {
 			seen[r.ID] = true
 			candidates[i] = dto.TeamCandidateSummary{
-				ID: r.ID, Name: util.FormatName(r.Name, true), Slug: r.Name, Gen: r.Gen,
+				ID: r.ID, Name: r.DisplayName, Slug: r.Name, Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 		}
@@ -179,7 +178,7 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			continue
 		}
 		national = append(national, dto.TeamCandidateSummary{
-			ID: r.ID, Name: util.FormatName(r.Name, true), Slug: r.Name, Gen: r.Gen,
+			ID: r.ID, Name: r.DisplayName, Slug: r.Name, Gen: r.Gen,
 			Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 		})
 	}
@@ -209,7 +208,7 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 			return dto.TeamCandidate{}, err
 		}
 		plain = dto.TeamCandidateSummary{
-			ID: row.ID, Name: util.FormatName(row.Name, true), Slug: row.Name, Gen: row.Gen,
+			ID: row.ID, Name: row.DisplayName, Slug: row.Name, Gen: row.Gen,
 			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
 		}
 		stats = dto.Stats{
@@ -227,7 +226,7 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 			return dto.TeamCandidate{}, err
 		}
 		plain = dto.TeamCandidateSummary{
-			ID: row.ID, Name: util.FormatName(row.Name, true), Slug: row.Name, Gen: row.Gen,
+			ID: row.ID, Name: row.DisplayName, Slug: row.Name, Gen: row.Gen,
 			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
 		}
 		stats = dto.Stats{
@@ -334,7 +333,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 					continue
 				}
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
-					ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
+					ID: a.AbilityID, Name: a.AbilityDisplayName,
 				})
 			}
 		} else {
@@ -348,7 +347,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 						continue
 					}
 					abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
-						ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
+						ID: a.AbilityID, Name: a.AbilityDisplayName,
 					})
 				}
 			}
@@ -357,7 +356,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 		for _, a := range abilities {
 			if a.AbilityGen <= gen && a.GenRemoved == nil {
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
-					ID: a.AbilityID, Name: util.FormatName(a.AbilityName, false),
+					ID: a.AbilityID, Name: a.AbilityDisplayName,
 				})
 			}
 		}
@@ -371,7 +370,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 		}
 		seenMoves[m.MoveID] = true
 		movesDto = append(movesDto, dto.CandidateMove{
-			ID: m.MoveID, Name: util.FormatName(m.Name, false),
+			ID: m.MoveID, Name: m.DisplayName,
 			Type: pokeenum.ToDisplay(m.Type), MoveClass: pokeenum.ToDisplay(m.Class),
 			Power: m.Power, Accuracy: m.Accuracy, PP: m.Pp, Cooldown: m.Cooldown,
 			Description: descriptions[m.MoveID],

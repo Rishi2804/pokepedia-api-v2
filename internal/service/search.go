@@ -141,9 +141,6 @@ func (s *SearchService) suggestFallback(ctx context.Context, query string, limit
 }
 
 func toFallbackHit(r store.SearchNamesFallbackRow) dto.SearchHit {
-	name := r.Name
-	if r.Type != "item" { // items already come back as their display name
-		name = util.FormatName(r.Name, r.Type == "pokemon")
-	}
-	return dto.SearchHit{Type: r.Type, ID: r.ID, Name: name, Gen: r.Gen}
+	// The fallback query returns the stored display name for every type.
+	return dto.SearchHit{Type: r.Type, ID: r.ID, Name: r.Name, Gen: r.Gen}
 }

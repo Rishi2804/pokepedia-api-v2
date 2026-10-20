@@ -53,26 +53,29 @@ func (q *Queries) GetDexNumbersByIDs(ctx context.Context, pokemonIds []int32) ([
 }
 
 const getEvolutionChainByIDs = `-- name: GetEvolutionChainByIDs :many
-SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_slug, e.to_pokemon,
-       e.to_slug, e.details, e.region, e.alt_form, e.next_evo, e.prev_evo
+SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, fp.display_name AS from_display_name,
+       e.to_pokemon, tp.display_name AS to_display_name, e.details, e.region, e.alt_form,
+       e.next_evo, e.prev_evo
 FROM unnest($1::int[]) AS ids(pokemon_id)
 CROSS JOIN LATERAL get_evolution_chain_by_id(ids.pokemon_id) e
+JOIN pokemon fp ON fp.id = e.from_pokemon
+JOIN pokemon tp ON tp.id = e.to_pokemon
 ORDER BY ids.pokemon_id, e.id
 `
 
 type GetEvolutionChainByIDsRow struct {
-	PokemonID   *int32   `json:"pokemon_id"`
-	ChainID     int32    `json:"chain_id"`
-	ID          int32    `json:"id"`
-	FromPokemon int32    `json:"from_pokemon"`
-	FromSlug    string   `json:"from_slug"`
-	ToPokemon   int32    `json:"to_pokemon"`
-	ToSlug      string   `json:"to_slug"`
-	Details     []string `json:"details"`
-	Region      *string  `json:"region"`
-	AltForm     int32    `json:"alt_form"`
-	NextEvo     []int32  `json:"next_evo"`
-	PrevEvo     []int32  `json:"prev_evo"`
+	PokemonID       *int32   `json:"pokemon_id"`
+	ChainID         int32    `json:"chain_id"`
+	ID              int32    `json:"id"`
+	FromPokemon     int32    `json:"from_pokemon"`
+	FromDisplayName string   `json:"from_display_name"`
+	ToPokemon       int32    `json:"to_pokemon"`
+	ToDisplayName   string   `json:"to_display_name"`
+	Details         []string `json:"details"`
+	Region          *string  `json:"region"`
+	AltForm         int32    `json:"alt_form"`
+	NextEvo         []int32  `json:"next_evo"`
+	PrevEvo         []int32  `json:"prev_evo"`
 }
 
 func (q *Queries) GetEvolutionChainByIDs(ctx context.Context, pokemonIds []int32) ([]GetEvolutionChainByIDsRow, error) {
@@ -89,9 +92,9 @@ func (q *Queries) GetEvolutionChainByIDs(ctx context.Context, pokemonIds []int32
 			&i.ChainID,
 			&i.ID,
 			&i.FromPokemon,
-			&i.FromSlug,
+			&i.FromDisplayName,
 			&i.ToPokemon,
-			&i.ToSlug,
+			&i.ToDisplayName,
 			&i.Details,
 			&i.Region,
 			&i.AltForm,
@@ -109,30 +112,31 @@ func (q *Queries) GetEvolutionChainByIDs(ctx context.Context, pokemonIds []int32
 }
 
 const getPokemon = `-- name: GetPokemon :one
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE id = $1
 `
 
 type GetPokemonRow struct {
-	ID         int32    `json:"id"`
-	SpeciesID  int32    `json:"species_id"`
-	Name       string   `json:"name"`
-	Gen        int32    `json:"gen"`
-	Type1      string   `json:"type1"`
-	Type2      *string  `json:"type2"`
-	Weight     float64  `json:"weight"`
-	Height     float64  `json:"height"`
-	GenderRate int32    `json:"gender_rate"`
-	Hp         int32    `json:"hp"`
-	Atk        int32    `json:"atk"`
-	Def        int32    `json:"def"`
-	Spatk      int32    `json:"spatk"`
-	Spdef      int32    `json:"spdef"`
-	Speed      int32    `json:"speed"`
-	Bst        int32    `json:"bst"`
-	Forms      []string `json:"forms"`
+	ID          int32    `json:"id"`
+	SpeciesID   int32    `json:"species_id"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	Gen         int32    `json:"gen"`
+	Type1       string   `json:"type1"`
+	Type2       *string  `json:"type2"`
+	Weight      float64  `json:"weight"`
+	Height      float64  `json:"height"`
+	GenderRate  int32    `json:"gender_rate"`
+	Hp          int32    `json:"hp"`
+	Atk         int32    `json:"atk"`
+	Def         int32    `json:"def"`
+	Spatk       int32    `json:"spatk"`
+	Spdef       int32    `json:"spdef"`
+	Speed       int32    `json:"speed"`
+	Bst         int32    `json:"bst"`
+	Forms       []string `json:"forms"`
 }
 
 func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, error) {
@@ -142,6 +146,7 @@ func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, erro
 		&i.ID,
 		&i.SpeciesID,
 		&i.Name,
+		&i.DisplayName,
 		&i.Gen,
 		&i.Type1,
 		&i.Type2,
@@ -161,8 +166,8 @@ func (q *Queries) GetPokemon(ctx context.Context, id int32) (GetPokemonRow, erro
 }
 
 const getPokemonAbilitiesByIDs = `-- name: GetPokemonAbilitiesByIDs :many
-SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
-       d.hidden, d.gen AS gen_removed
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.display_name AS ability_display_name,
+       a.gen AS ability_gen, d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
 WHERE d.pokemon_id = ANY($1::int[])
@@ -170,12 +175,13 @@ ORDER BY d.pokemon_id, d.hidden, a.id
 `
 
 type GetPokemonAbilitiesByIDsRow struct {
-	PokemonID   int32  `json:"pokemon_id"`
-	AbilityID   int32  `json:"ability_id"`
-	AbilityName string `json:"ability_name"`
-	AbilityGen  int32  `json:"ability_gen"`
-	Hidden      bool   `json:"hidden"`
-	GenRemoved  *int32 `json:"gen_removed"`
+	PokemonID          int32  `json:"pokemon_id"`
+	AbilityID          int32  `json:"ability_id"`
+	AbilityName        string `json:"ability_name"`
+	AbilityDisplayName string `json:"ability_display_name"`
+	AbilityGen         int32  `json:"ability_gen"`
+	Hidden             bool   `json:"hidden"`
+	GenRemoved         *int32 `json:"gen_removed"`
 }
 
 func (q *Queries) GetPokemonAbilitiesByIDs(ctx context.Context, pokemonIds []int32) ([]GetPokemonAbilitiesByIDsRow, error) {
@@ -191,6 +197,7 @@ func (q *Queries) GetPokemonAbilitiesByIDs(ctx context.Context, pokemonIds []int
 			&i.PokemonID,
 			&i.AbilityID,
 			&i.AbilityName,
+			&i.AbilityDisplayName,
 			&i.AbilityGen,
 			&i.Hidden,
 			&i.GenRemoved,
@@ -206,30 +213,31 @@ func (q *Queries) GetPokemonAbilitiesByIDs(ctx context.Context, pokemonIds []int
 }
 
 const getPokemonByName = `-- name: GetPokemonByName :one
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE name = $1
 `
 
 type GetPokemonByNameRow struct {
-	ID         int32    `json:"id"`
-	SpeciesID  int32    `json:"species_id"`
-	Name       string   `json:"name"`
-	Gen        int32    `json:"gen"`
-	Type1      string   `json:"type1"`
-	Type2      *string  `json:"type2"`
-	Weight     float64  `json:"weight"`
-	Height     float64  `json:"height"`
-	GenderRate int32    `json:"gender_rate"`
-	Hp         int32    `json:"hp"`
-	Atk        int32    `json:"atk"`
-	Def        int32    `json:"def"`
-	Spatk      int32    `json:"spatk"`
-	Spdef      int32    `json:"spdef"`
-	Speed      int32    `json:"speed"`
-	Bst        int32    `json:"bst"`
-	Forms      []string `json:"forms"`
+	ID          int32    `json:"id"`
+	SpeciesID   int32    `json:"species_id"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	Gen         int32    `json:"gen"`
+	Type1       string   `json:"type1"`
+	Type2       *string  `json:"type2"`
+	Weight      float64  `json:"weight"`
+	Height      float64  `json:"height"`
+	GenderRate  int32    `json:"gender_rate"`
+	Hp          int32    `json:"hp"`
+	Atk         int32    `json:"atk"`
+	Def         int32    `json:"def"`
+	Spatk       int32    `json:"spatk"`
+	Spdef       int32    `json:"spdef"`
+	Speed       int32    `json:"speed"`
+	Bst         int32    `json:"bst"`
+	Forms       []string `json:"forms"`
 }
 
 func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemonByNameRow, error) {
@@ -239,6 +247,7 @@ func (q *Queries) GetPokemonByName(ctx context.Context, name string) (GetPokemon
 		&i.ID,
 		&i.SpeciesID,
 		&i.Name,
+		&i.DisplayName,
 		&i.Gen,
 		&i.Type1,
 		&i.Type2,
@@ -288,7 +297,7 @@ func (q *Queries) GetPokemonDescriptionsByIDs(ctx context.Context, pokemonIds []
 
 const getPokemonMovesByIDs = `-- name: GetPokemonMovesByIDs :many
 SELECT
-    d.pokemon_id, d.move_id, m.name, m.type, d.level_learned, d.method,
+    d.pokemon_id, d.move_id, m.name, m.display_name, m.type, d.level_learned, d.method,
     d.version, m.class,
     CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
          ELSE COALESCE(pmv.power, m.power) END AS power,
@@ -309,6 +318,7 @@ type GetPokemonMovesByIDsRow struct {
 	PokemonID    int32   `json:"pokemon_id"`
 	MoveID       int32   `json:"move_id"`
 	Name         string  `json:"name"`
+	DisplayName  string  `json:"display_name"`
 	Type         string  `json:"type"`
 	LevelLearned int32   `json:"level_learned"`
 	Method       string  `json:"method"`
@@ -345,6 +355,7 @@ func (q *Queries) GetPokemonMovesByIDs(ctx context.Context, pokemonIds []int32) 
 			&i.PokemonID,
 			&i.MoveID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Type,
 			&i.LevelLearned,
 			&i.Method,

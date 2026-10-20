@@ -91,9 +91,7 @@ func buildDocs(ctx context.Context, pool *pgxpool.Pool, types map[string]bool) (
 	}
 	speciesNames := map[int32]string{}
 	for _, s := range species {
-		if s.Name != nil {
-			speciesNames[s.ID] = *s.Name
-		}
+		speciesNames[s.ID] = s.DisplayName
 	}
 
 	var docs []indexDoc

@@ -7,7 +7,6 @@ import (
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
-	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
 type MovesService struct {
@@ -27,7 +26,7 @@ func (s *MovesService) GetMoveList(ctx context.Context) ([]dto.MoveSnap, error) 
 	for _, r := range rows {
 		response = append(response, dto.MoveSnap{
 			ID:       r.ID,
-			Name:     util.FormatName(r.Name, false),
+			Name:     r.DisplayName,
 			Type:     pokeenum.ToDisplay(r.Type),
 			Class:    pokeenum.ToDisplay(r.Class),
 			Power:    r.Power,
@@ -74,7 +73,7 @@ func (s *MovesService) buildDetail(ctx context.Context, m store.GetMoveRow) (*dt
 
 	response := &dto.MoveDetail{
 		ID:             m.ID,
-		Name:           util.FormatName(m.Name, false),
+		Name:           m.DisplayName,
 		Type:           pokeenum.ToDisplay(m.Type),
 		Gen:            m.Gen,
 		Class:          pokeenum.ToDisplay(m.Class),
@@ -128,7 +127,7 @@ func groupPokemonLearnable(rows []store.GetPokemonLearnableMoveRow) []dto.Pokemo
 			entry := dto.PokemonSnap{
 				SpeciesID: r.SpeciesID,
 				ID:        r.ID,
-				Name:      util.FormatName(r.Name, true),
+				Name:      r.DisplayName,
 				Type1:     pokeenum.ToDisplay(r.Type1),
 				Type2:     displayPtr(r.Type2),
 			}
