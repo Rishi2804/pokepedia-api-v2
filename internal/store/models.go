@@ -416,10 +416,12 @@ func (ns NullRegion) Value() (driver.Value, error) {
 }
 
 type Ability struct {
-	ID     int32   `json:"id"`
-	Name   string  `json:"name"`
-	Gen    int32   `json:"gen"`
-	Effect *string `json:"effect"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	Gen         int32   `json:"gen"`
+	Effect      *string `json:"effect"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
 }
 
 type Abilitydescription struct {
@@ -508,15 +510,17 @@ type Legendsmovevalue struct {
 }
 
 type Move struct {
-	ID       int32   `json:"id"`
-	Name     string  `json:"name"`
-	Gen      int32   `json:"gen"`
-	Type     string  `json:"type"`
-	Class    string  `json:"class"`
-	Power    *int32  `json:"power"`
-	Accuracy *int32  `json:"accuracy"`
-	Pp       *int32  `json:"pp"`
-	Effect   *string `json:"effect"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	Gen         int32   `json:"gen"`
+	Type        string  `json:"type"`
+	Class       string  `json:"class"`
+	Power       *int32  `json:"power"`
+	Accuracy    *int32  `json:"accuracy"`
+	Pp          *int32  `json:"pp"`
+	Effect      *string `json:"effect"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
 }
 
 type Movedescription struct {
@@ -549,23 +553,29 @@ type Pasttype struct {
 }
 
 type Pokemon struct {
-	ID         int32    `json:"id"`
-	Name       string   `json:"name"`
-	Gen        int32    `json:"gen"`
-	Type1      string   `json:"type1"`
-	Type2      *string  `json:"type2"`
-	Weight     float64  `json:"weight"`
-	Height     float64  `json:"height"`
-	GenderRate int32    `json:"gender_rate"`
-	Hp         int32    `json:"hp"`
-	Atk        int32    `json:"atk"`
-	Def        int32    `json:"def"`
-	Spatk      int32    `json:"spatk"`
-	Spdef      int32    `json:"spdef"`
-	Speed      int32    `json:"speed"`
-	Bst        int32    `json:"bst"`
-	SpeciesID  int32    `json:"species_id"`
-	Forms      []string `json:"forms"`
+	ID               int32    `json:"id"`
+	Name             string   `json:"name"`
+	Gen              int32    `json:"gen"`
+	Type1            string   `json:"type1"`
+	Type2            *string  `json:"type2"`
+	Weight           float64  `json:"weight"`
+	Height           float64  `json:"height"`
+	GenderRate       int32    `json:"gender_rate"`
+	Hp               int32    `json:"hp"`
+	Atk              int32    `json:"atk"`
+	Def              int32    `json:"def"`
+	Spatk            int32    `json:"spatk"`
+	Spdef            int32    `json:"spdef"`
+	Speed            int32    `json:"speed"`
+	Bst              int32    `json:"bst"`
+	SpeciesID        int32    `json:"species_id"`
+	Forms            []string `json:"forms"`
+	DisplayName      string   `json:"display_name"`
+	ShowdownID       *string  `json:"showdown_id"`
+	ShowdownName     *string  `json:"showdown_name"`
+	BattleOnlyBaseID *int32   `json:"battle_only_base_id"`
+	RequiredItemID   *int32   `json:"required_item_id"`
+	Gigantamax       bool     `json:"gigantamax"`
 }
 
 type Pokemondescription struct {
@@ -575,8 +585,9 @@ type Pokemondescription struct {
 }
 
 type Species struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
+	ID          int32  `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
 }
 
 type VgGame struct {

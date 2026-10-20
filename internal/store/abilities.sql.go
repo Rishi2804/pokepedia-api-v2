@@ -47,9 +47,16 @@ FROM ability
 WHERE id = $1
 `
 
-func (q *Queries) GetAbility(ctx context.Context, id int32) (Ability, error) {
+type GetAbilityRow struct {
+	ID     int32   `json:"id"`
+	Name   string  `json:"name"`
+	Gen    int32   `json:"gen"`
+	Effect *string `json:"effect"`
+}
+
+func (q *Queries) GetAbility(ctx context.Context, id int32) (GetAbilityRow, error) {
 	row := q.db.QueryRow(ctx, getAbility, id)
-	var i Ability
+	var i GetAbilityRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -65,9 +72,16 @@ FROM ability
 WHERE name = $1
 `
 
-func (q *Queries) GetAbilityByName(ctx context.Context, name string) (Ability, error) {
+type GetAbilityByNameRow struct {
+	ID     int32   `json:"id"`
+	Name   string  `json:"name"`
+	Gen    int32   `json:"gen"`
+	Effect *string `json:"effect"`
+}
+
+func (q *Queries) GetAbilityByName(ctx context.Context, name string) (GetAbilityByNameRow, error) {
 	row := q.db.QueryRow(ctx, getAbilityByName, name)
-	var i Ability
+	var i GetAbilityByNameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,

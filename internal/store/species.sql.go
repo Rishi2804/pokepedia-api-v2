@@ -79,9 +79,14 @@ const getSpeciesByID = `-- name: GetSpeciesByID :one
 SELECT id, name FROM species WHERE id = $1
 `
 
-func (q *Queries) GetSpeciesByID(ctx context.Context, id int32) (Species, error) {
+type GetSpeciesByIDRow struct {
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) GetSpeciesByID(ctx context.Context, id int32) (GetSpeciesByIDRow, error) {
 	row := q.db.QueryRow(ctx, getSpeciesByID, id)
-	var i Species
+	var i GetSpeciesByIDRow
 	err := row.Scan(&i.ID, &i.Name)
 	return i, err
 }
@@ -90,9 +95,14 @@ const getSpeciesByName = `-- name: GetSpeciesByName :one
 SELECT id, name FROM species WHERE name = $1
 `
 
-func (q *Queries) GetSpeciesByName(ctx context.Context, name string) (Species, error) {
+type GetSpeciesByNameRow struct {
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) GetSpeciesByName(ctx context.Context, name string) (GetSpeciesByNameRow, error) {
 	row := q.db.QueryRow(ctx, getSpeciesByName, name)
-	var i Species
+	var i GetSpeciesByNameRow
 	err := row.Scan(&i.ID, &i.Name)
 	return i, err
 }
