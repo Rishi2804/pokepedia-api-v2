@@ -30,6 +30,6 @@ WHERE md.move_id = $1
 ORDER BY p.species_id, p.id ASC;
 
 -- name: GetPastMoveValues :many
-SELECT id, power, accuracy, pp, version_groups
+SELECT move_id, power, accuracy, pp, version_groups
 FROM pastmovevalues
-WHERE id = $1;
+WHERE move_id = $1;

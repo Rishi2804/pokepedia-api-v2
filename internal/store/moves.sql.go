@@ -161,13 +161,13 @@ func (q *Queries) GetMoves(ctx context.Context) ([]GetMovesRow, error) {
 }
 
 const getPastMoveValues = `-- name: GetPastMoveValues :many
-SELECT id, power, accuracy, pp, version_groups
+SELECT move_id, power, accuracy, pp, version_groups
 FROM pastmovevalues
-WHERE id = $1
+WHERE move_id = $1
 `
 
-func (q *Queries) GetPastMoveValues(ctx context.Context, id int32) ([]Pastmovevalue, error) {
-	rows, err := q.db.Query(ctx, getPastMoveValues, id)
+func (q *Queries) GetPastMoveValues(ctx context.Context, moveID int32) ([]Pastmovevalue, error) {
+	rows, err := q.db.Query(ctx, getPastMoveValues, moveID)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (q *Queries) GetPastMoveValues(ctx context.Context, id int32) ([]Pastmoveva
 	for rows.Next() {
 		var i Pastmovevalue
 		if err := rows.Scan(
-			&i.ID,
+			&i.MoveID,
 			&i.Power,
 			&i.Accuracy,
 			&i.Pp,

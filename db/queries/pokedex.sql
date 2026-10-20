@@ -12,7 +12,7 @@ FROM dexnumber d
 JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
-WHERE d.name = $2
+WHERE d.dex = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id;
 
 -- name: GetTeamCandidatesNational :many
@@ -32,7 +32,7 @@ FROM dexnumber d
 JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
-WHERE d.name = $2
+WHERE d.dex = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id;
 
 -- name: GetTeamCandidatesNationalByVersionGroup :many
@@ -67,7 +67,7 @@ WHERE p.id = sqlc.arg(pokemon_id)::int
   AND (
     EXISTS (
       SELECT 1 FROM dexnumber d
-      WHERE d.name::text = ANY(sqlc.arg(regions)::text[])
+      WHERE d.dex::text = ANY(sqlc.arg(regions)::text[])
         AND (d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id])
     )
     OR EXISTS (
@@ -107,7 +107,7 @@ SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
        lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
-LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.move_id AND pmv.version_groups @> ARRAY[d.version]
 LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[]) AND d.version = sqlc.arg(version)
 ORDER BY d.pokemon_id, d.move_id;

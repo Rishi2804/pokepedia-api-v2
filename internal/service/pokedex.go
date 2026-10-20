@@ -85,8 +85,8 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 			return nil, err
 		}
 		rows, err := s.q.GetDexByRegion(ctx, store.GetDexByRegionParams{
-			Gen:  *region.Gen,
-			Name: store.Dex(regionName),
+			Gen: *region.Gen,
+			Dex: store.Dex(regionName),
 		})
 		if err != nil {
 			return nil, err
@@ -144,8 +144,8 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			return nil, err
 		}
 		rows, err := s.q.GetTeamCandidatesByRegion(ctx, store.GetTeamCandidatesByRegionParams{
-			Gen:  *region.Gen,
-			Name: store.Dex(regionName),
+			Gen: *region.Gen,
+			Dex: store.Dex(regionName),
 		})
 		if err != nil {
 			return nil, err

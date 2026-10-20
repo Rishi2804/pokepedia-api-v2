@@ -154,7 +154,7 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 
 	for _, d := range dexNumbers {
 		result.DexNumbers = append(result.DexNumbers, dto.DexNumberInfo{
-			DexName:   pokeenum.ToDisplay(d.Name),
+			DexName:   pokeenum.ToDisplay(d.Dex),
 			DexNumber: d.Num,
 		})
 	}
@@ -163,9 +163,9 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 		result.Evolution = append(result.Evolution, dto.EvolutionLine{
 			ID:          e.ID,
 			FromPokemon: e.FromPokemon,
-			FromDisplay: util.FormatName(e.FromDisplay, true),
+			FromDisplay: util.FormatName(e.FromSlug, true),
 			ToPokemon:   e.ToPokemon,
-			ToDisplay:   util.FormatName(e.ToDisplay, true),
+			ToDisplay:   util.FormatName(e.ToSlug, true),
 			Details:     e.Details,
 			Region:      e.Region,
 			AltForm:     e.AltForm,

@@ -160,7 +160,7 @@ SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
        lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
-LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.move_id AND pmv.version_groups @> ARRAY[d.version]
 LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY($1::int[]) AND d.version = $2
 ORDER BY d.pokemon_id, d.move_id
@@ -224,13 +224,13 @@ FROM dexnumber d
 JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
-WHERE d.name = $2
+WHERE d.dex = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id
 `
 
 type GetDexByRegionParams struct {
-	Gen  int32 `json:"gen"`
-	Name Dex   `json:"name"`
+	Gen int32 `json:"gen"`
+	Dex Dex   `json:"dex"`
 }
 
 type GetDexByRegionRow struct {
@@ -244,7 +244,7 @@ type GetDexByRegionRow struct {
 }
 
 func (q *Queries) GetDexByRegion(ctx context.Context, arg GetDexByRegionParams) ([]GetDexByRegionRow, error) {
-	rows, err := q.db.Query(ctx, getDexByRegion, arg.Gen, arg.Name)
+	rows, err := q.db.Query(ctx, getDexByRegion, arg.Gen, arg.Dex)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ WHERE p.id = $2::int
   AND (
     EXISTS (
       SELECT 1 FROM dexnumber d
-      WHERE d.name::text = ANY($3::text[])
+      WHERE d.dex::text = ANY($3::text[])
         AND (d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id])
     )
     OR EXISTS (
@@ -450,13 +450,13 @@ FROM dexnumber d
 JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
-WHERE d.name = $2
+WHERE d.dex = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id
 `
 
 type GetTeamCandidatesByRegionParams struct {
-	Gen  int32 `json:"gen"`
-	Name Dex   `json:"name"`
+	Gen int32 `json:"gen"`
+	Dex Dex   `json:"dex"`
 }
 
 type GetTeamCandidatesByRegionRow struct {
@@ -470,7 +470,7 @@ type GetTeamCandidatesByRegionRow struct {
 }
 
 func (q *Queries) GetTeamCandidatesByRegion(ctx context.Context, arg GetTeamCandidatesByRegionParams) ([]GetTeamCandidatesByRegionRow, error) {
-	rows, err := q.db.Query(ctx, getTeamCandidatesByRegion, arg.Gen, arg.Name)
+	rows, err := q.db.Query(ctx, getTeamCandidatesByRegion, arg.Gen, arg.Dex)
 	if err != nil {
 		return nil, err
 	}

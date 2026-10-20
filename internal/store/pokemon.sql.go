@@ -10,16 +10,16 @@ import (
 )
 
 const getDexNumbersByIDs = `-- name: GetDexNumbersByIDs :many
-SELECT ids.pokemon_id, d.species_id, d.name, d.num, d.default_variate, d.alt_variates
+SELECT ids.pokemon_id, d.species_id, d.dex, d.num, d.default_variate, d.alt_variates
 FROM unnest($1::int[]) AS ids(pokemon_id)
 JOIN dexnumber d ON d.default_variate = ids.pokemon_id OR d.alt_variates @> ARRAY[ids.pokemon_id]
-ORDER BY ids.pokemon_id, d.name
+ORDER BY ids.pokemon_id, d.dex
 `
 
 type GetDexNumbersByIDsRow struct {
 	PokemonID      *int32  `json:"pokemon_id"`
 	SpeciesID      int32   `json:"species_id"`
-	Name           string  `json:"name"`
+	Dex            string  `json:"dex"`
 	Num            int32   `json:"num"`
 	DefaultVariate int32   `json:"default_variate"`
 	AltVariates    []int32 `json:"alt_variates"`
@@ -37,7 +37,7 @@ func (q *Queries) GetDexNumbersByIDs(ctx context.Context, pokemonIds []int32) ([
 		if err := rows.Scan(
 			&i.PokemonID,
 			&i.SpeciesID,
-			&i.Name,
+			&i.Dex,
 			&i.Num,
 			&i.DefaultVariate,
 			&i.AltVariates,
@@ -53,8 +53,8 @@ func (q *Queries) GetDexNumbersByIDs(ctx context.Context, pokemonIds []int32) ([
 }
 
 const getEvolutionChainByIDs = `-- name: GetEvolutionChainByIDs :many
-SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_display, e.to_pokemon,
-       e.to_display, e.details, e.region, e.alt_form, e.next_evo, e.prev_evo
+SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_slug, e.to_pokemon,
+       e.to_slug, e.details, e.region, e.alt_form, e.next_evo, e.prev_evo
 FROM unnest($1::int[]) AS ids(pokemon_id)
 CROSS JOIN LATERAL get_evolution_chain_by_id(ids.pokemon_id) e
 ORDER BY ids.pokemon_id, e.id
@@ -65,9 +65,9 @@ type GetEvolutionChainByIDsRow struct {
 	ChainID     int32    `json:"chain_id"`
 	ID          int32    `json:"id"`
 	FromPokemon int32    `json:"from_pokemon"`
-	FromDisplay string   `json:"from_display"`
+	FromSlug    string   `json:"from_slug"`
 	ToPokemon   int32    `json:"to_pokemon"`
-	ToDisplay   string   `json:"to_display"`
+	ToSlug      string   `json:"to_slug"`
 	Details     []string `json:"details"`
 	Region      *string  `json:"region"`
 	AltForm     int32    `json:"alt_form"`
@@ -89,9 +89,9 @@ func (q *Queries) GetEvolutionChainByIDs(ctx context.Context, pokemonIds []int32
 			&i.ChainID,
 			&i.ID,
 			&i.FromPokemon,
-			&i.FromDisplay,
+			&i.FromSlug,
 			&i.ToPokemon,
-			&i.ToDisplay,
+			&i.ToSlug,
 			&i.Details,
 			&i.Region,
 			&i.AltForm,
@@ -299,7 +299,7 @@ SELECT
     lmv.second_level, lmv.power_strong, lmv.power_agile, lmv.accuracy_2, lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
-LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.move_id AND pmv.version_groups @> ARRAY[d.version]
 LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY($1::int[])
 ORDER BY d.pokemon_id, d.version, d.method, d.level_learned, d.move_id

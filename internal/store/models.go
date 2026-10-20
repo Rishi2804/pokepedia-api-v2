@@ -437,7 +437,7 @@ type Abilitydetail struct {
 
 type Dexnumber struct {
 	SpeciesID      int32   `json:"species_id"`
-	Name           string  `json:"name"`
+	Dex            string  `json:"dex"`
 	Num            int32   `json:"num"`
 	DefaultVariate int32   `json:"default_variate"`
 	AltVariates    []int32 `json:"alt_variates"`
@@ -447,9 +447,9 @@ type Evolution struct {
 	ChainID     int32    `json:"chain_id"`
 	ID          int32    `json:"id"`
 	FromPokemon int32    `json:"from_pokemon"`
-	FromDisplay string   `json:"from_display"`
+	FromSlug    string   `json:"from_slug"`
 	ToPokemon   int32    `json:"to_pokemon"`
-	ToDisplay   string   `json:"to_display"`
+	ToSlug      string   `json:"to_slug"`
 	Details     []string `json:"details"`
 	Region      *string  `json:"region"`
 	AltForm     int32    `json:"alt_form"`
@@ -534,7 +534,7 @@ type Movedetail struct {
 }
 
 type Pastmovevalue struct {
-	ID            int32    `json:"id"`
+	MoveID        int32    `json:"move_id"`
 	Power         *int32   `json:"power"`
 	Accuracy      *int32   `json:"accuracy"`
 	Pp            *int32   `json:"pp"`
