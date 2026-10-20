@@ -90,7 +90,7 @@ const getSpeciesByName = `-- name: GetSpeciesByName :one
 SELECT id, name FROM species WHERE name = $1
 `
 
-func (q *Queries) GetSpeciesByName(ctx context.Context, name *string) (Species, error) {
+func (q *Queries) GetSpeciesByName(ctx context.Context, name string) (Species, error) {
 	row := q.db.QueryRow(ctx, getSpeciesByName, name)
 	var i Species
 	err := row.Scan(&i.ID, &i.Name)

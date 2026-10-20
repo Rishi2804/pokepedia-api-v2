@@ -123,10 +123,12 @@ func downMigration(byEntity map[entity][]descriptionRow) string {
 }
 
 // emitEggMoveMigration is emitMigration's movedetails counterpart. It can't
-// reuse writeInsertBlock/downMigration above: movedetails has no unique
-// constraint (see insertEggMove in queries.go), so the generated SQL needs
-// a WHERE NOT EXISTS guard per row instead of ON CONFLICT, and the row
-// shape itself differs (method/level_learned, no text column).
+// reuse writeInsertBlock/downMigration above: the row shape differs
+// (method/level_learned, no text column), and the generated SQL keeps a
+// WHERE NOT EXISTS guard per row rather than ON CONFLICT. movedetails has had
+// a primary key since 000020 (the scraper's own writes use ON CONFLICT now,
+// see insertEggMove in queries.go), but a migration generated here may be
+// applied beside older ones, so the guard keeps it valid on either schema.
 func emitEggMoveMigration(path string, rows []moveDetailRow) error {
 	if len(rows) == 0 {
 		return fmt.Errorf("no rows to emit")

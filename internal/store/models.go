@@ -575,8 +575,8 @@ type Pokemondescription struct {
 }
 
 type Species struct {
-	ID   int32   `json:"id"`
-	Name *string `json:"name"`
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
 }
 
 type VgGame struct {

@@ -236,7 +236,7 @@ type GetDexByRegionParams struct {
 type GetDexByRegionRow struct {
 	Num       int32   `json:"num"`
 	ID        int32   `json:"id"`
-	Name      *string `json:"name"`
+	Name      string  `json:"name"`
 	SpeciesID int32   `json:"species_id"`
 	Gen       int32   `json:"gen"`
 	Type1     string  `json:"type1"`
@@ -281,7 +281,7 @@ ORDER BY s.id, p.id ASC
 type GetDexNationalRow struct {
 	SpeciesID int32   `json:"species_id"`
 	ID        int32   `json:"id"`
-	Name      *string `json:"name"`
+	Name      string  `json:"name"`
 	Gen       int32   `json:"gen"`
 	Type1     string  `json:"type1"`
 	Type2     *string `json:"type2"`

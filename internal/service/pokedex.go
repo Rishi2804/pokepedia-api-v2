@@ -23,13 +23,6 @@ func NewPokedexService(q *store.Queries) *PokedexService {
 	return &PokedexService{q: q}
 }
 
-func formatNullableName(name *string) string {
-	if name == nil {
-		return ""
-	}
-	return util.FormatName(*name, true)
-}
-
 func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string) ([]dto.PokedexRegionGroup, error) {
 	pv, err := pokeenum.GetPokedexVersion(versionName)
 	if err != nil {
@@ -49,7 +42,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 			for _, r := range rows {
 				fullDex = append(fullDex, dto.PokedexEntry{
 					DexNumber: r.SpeciesID, SpeciesID: r.SpeciesID, PokemonID: r.ID,
-					Name: formatNullableName(r.Name), Gen: r.Gen,
+					Name: util.FormatName(r.Name, true), Gen: r.Gen,
 					Type1: pokeenum.ToDisplay(r.Type1),
 					Type2: displayPtr(r.Type2),
 				})
@@ -102,7 +95,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 		for _, r := range rows {
 			entries = append(entries, dto.PokedexEntry{
 				DexNumber: r.Num, SpeciesID: r.SpeciesID, PokemonID: r.ID,
-				Name: formatNullableName(r.Name), Gen: r.Gen,
+				Name: util.FormatName(r.Name, true), Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1),
 				Type2: displayPtr(r.Type2),
 			})
