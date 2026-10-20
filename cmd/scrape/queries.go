@@ -93,3 +93,18 @@ INSERT INTO public.itemheldby (item_id, pokemon_id, version, rarity)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT (item_id, pokemon_id, version) DO NOTHING
 `
+
+// Name writes: one UPDATE per row, since these columns are added to tables
+// whose rows already exist (000023). Re-running is idempotent.
+const updateSpeciesName = `UPDATE public.species SET display_name = $2 WHERE id = $1`
+
+const updatePokemonName = `
+UPDATE public.pokemon
+SET display_name = $2, showdown_id = $3, showdown_name = $4,
+    battle_only_base_id = $5, required_item_id = $6, gigantamax = $7
+WHERE id = $1
+`
+
+const updateMoveName = `UPDATE public.move SET display_name = $2, showdown_id = $3 WHERE id = $1`
+
+const updateAbilityName = `UPDATE public.ability SET display_name = $2, showdown_id = $3 WHERE id = $1`
