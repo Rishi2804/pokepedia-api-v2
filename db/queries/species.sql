@@ -8,7 +8,7 @@ SELECT id, name, display_name FROM species WHERE name = $1;
 SELECT species_id FROM pokemon WHERE id = $1;
 
 -- name: GetPokemonBySpeciesID :many
-SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, showdown_id, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE species_id = $1

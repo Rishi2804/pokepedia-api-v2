@@ -8,9 +8,9 @@
 WITH q AS (
     SELECT sqlc.arg(term)::text AS term
 )
-SELECT s.type, s.id, s.name, s.gen, s.score
+SELECT s.type, s.id, s.name, s.slug, s.gen, s.score
 FROM (
-    SELECT 'pokemon'::text AS type, p.id, p.display_name AS name, p.gen::int AS gen,
+    SELECT 'pokemon'::text AS type, p.id, p.display_name AS name, p.name AS slug, p.gen::int AS gen,
            GREATEST(similarity(p.name, q.term),
                     CASE WHEN p.name LIKE q.term || '%' THEN 1.0 ELSE 0 END) AS score
     FROM public.pokemon p, q
@@ -18,7 +18,7 @@ FROM (
        OR p.name LIKE q.term || '%'
        OR p.name LIKE '%' || q.term || '%'
     UNION ALL
-    SELECT 'move', m.id, m.display_name, m.gen::int,
+    SELECT 'move', m.id, m.display_name, m.name, m.gen::int,
            GREATEST(similarity(m.name, q.term),
                     CASE WHEN m.name LIKE q.term || '%' THEN 1.0 ELSE 0 END)
     FROM public.move m, q
@@ -26,7 +26,7 @@ FROM (
        OR m.name LIKE q.term || '%'
        OR m.name LIKE '%' || q.term || '%'
     UNION ALL
-    SELECT 'ability', a.id, a.display_name, a.gen::int,
+    SELECT 'ability', a.id, a.display_name, a.name, a.gen::int,
            GREATEST(similarity(a.name, q.term),
                     CASE WHEN a.name LIKE q.term || '%' THEN 1.0 ELSE 0 END)
     FROM public.ability a, q
@@ -34,7 +34,7 @@ FROM (
        OR a.name LIKE q.term || '%'
        OR a.name LIKE '%' || q.term || '%'
     UNION ALL
-    SELECT 'item', i.id, i.display_name, i.gen::int,
+    SELECT 'item', i.id, i.display_name, i.name, i.gen::int,
            GREATEST(similarity(i.name, q.term),
                     CASE WHEN i.name LIKE q.term || '%' THEN 1.0 ELSE 0 END)
     FROM public.item i, q

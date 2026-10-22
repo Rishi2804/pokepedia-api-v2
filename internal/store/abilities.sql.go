@@ -10,16 +10,17 @@ import (
 )
 
 const getAbilitiesList = `-- name: GetAbilitiesList :many
-SELECT id, name, display_name, gen
+SELECT id, name, display_name, showdown_id, gen
 FROM ability
 ORDER BY id, gen ASC
 `
 
 type GetAbilitiesListRow struct {
-	ID          int32  `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Gen         int32  `json:"gen"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Gen         int32   `json:"gen"`
 }
 
 func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, error) {
@@ -35,6 +36,7 @@ func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, 
 			&i.ID,
 			&i.Name,
 			&i.DisplayName,
+			&i.ShowdownID,
 			&i.Gen,
 		); err != nil {
 			return nil, err
@@ -48,7 +50,7 @@ func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, 
 }
 
 const getAbility = `-- name: GetAbility :one
-SELECT id, name, display_name, gen, effect
+SELECT id, name, display_name, showdown_id, gen, effect
 FROM ability 
 WHERE id = $1
 `
@@ -57,6 +59,7 @@ type GetAbilityRow struct {
 	ID          int32   `json:"id"`
 	Name        string  `json:"name"`
 	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
 	Gen         int32   `json:"gen"`
 	Effect      *string `json:"effect"`
 }
@@ -68,6 +71,7 @@ func (q *Queries) GetAbility(ctx context.Context, id int32) (GetAbilityRow, erro
 		&i.ID,
 		&i.Name,
 		&i.DisplayName,
+		&i.ShowdownID,
 		&i.Gen,
 		&i.Effect,
 	)
@@ -75,7 +79,7 @@ func (q *Queries) GetAbility(ctx context.Context, id int32) (GetAbilityRow, erro
 }
 
 const getAbilityByName = `-- name: GetAbilityByName :one
-SELECT id, name, display_name, gen, effect
+SELECT id, name, display_name, showdown_id, gen, effect
 FROM ability 
 WHERE name = $1
 `
@@ -84,6 +88,7 @@ type GetAbilityByNameRow struct {
 	ID          int32   `json:"id"`
 	Name        string  `json:"name"`
 	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
 	Gen         int32   `json:"gen"`
 	Effect      *string `json:"effect"`
 }
@@ -95,6 +100,7 @@ func (q *Queries) GetAbilityByName(ctx context.Context, name string) (GetAbility
 		&i.ID,
 		&i.Name,
 		&i.DisplayName,
+		&i.ShowdownID,
 		&i.Gen,
 		&i.Effect,
 	)

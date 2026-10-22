@@ -1,11 +1,11 @@
 -- name: GetPokemon :one
-SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, showdown_id, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE id = $1;
 
 -- name: GetPokemonByName :one
-SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, showdown_id, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE name = $1;
@@ -44,7 +44,7 @@ ORDER BY ids.pokemon_id, e.id;
 -- Legends: Z-A row's NULL pp (that game has no PP stat; it has cooldown
 -- instead) must stay NULL, not fall back to an unrelated mainline value.
 SELECT
-    d.pokemon_id, d.move_id, m.name, m.display_name, m.type, d.level_learned, d.method,
+    d.pokemon_id, d.move_id, m.name, m.display_name, m.showdown_id, m.type, d.level_learned, d.method,
     d.version, m.class,
     CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
          ELSE COALESCE(pmv.power, m.power) END AS power,
@@ -61,7 +61,7 @@ WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
 ORDER BY d.pokemon_id, d.version, d.method, d.level_learned, d.move_id;
 
 -- name: GetPokemonAbilitiesByIDs :many
-SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.display_name AS ability_display_name,
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.display_name AS ability_display_name, a.showdown_id AS ability_showdown_id,
        a.gen AS ability_gen, d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id

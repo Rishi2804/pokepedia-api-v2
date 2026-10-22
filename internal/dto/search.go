@@ -6,6 +6,7 @@ type SearchHit struct {
 	Type string          `json:"type"`
 	ID   int32           `json:"id"`
 	Name string          `json:"name"`
+	Slug string          `json:"slug"`
 	Gen  int32           `json:"gen"`
 	Meta json.RawMessage `json:"meta,omitempty"`
 }

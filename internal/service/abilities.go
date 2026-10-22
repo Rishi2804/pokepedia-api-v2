@@ -24,9 +24,11 @@ func (s *AbilitiesService) GetAbilityList(ctx context.Context) ([]dto.AbilitySna
 	response := []dto.AbilitySnap{}
 	for _, r := range rows {
 		response = append(response, dto.AbilitySnap{
-			ID:   r.ID,
-			Name: r.DisplayName,
-			Gen:  r.Gen,
+			ID:         r.ID,
+			Slug:       r.Name,
+			Name:       r.DisplayName,
+			ShowdownID: r.ShowdownID,
+			Gen:        r.Gen,
 		})
 	}
 	return response, nil
@@ -67,6 +69,7 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRo
 		pokemonResponse = append(pokemonResponse, dto.PokemonSnap{
 			SpeciesID: p.SpeciesID,
 			ID:        p.ID,
+			Slug:      p.Name,
 			Name:      p.DisplayName,
 			Type1:     pokeenum.ToDisplay(p.Type1),
 			Type2:     displayPtr(p.Type2),
@@ -75,7 +78,9 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRo
 
 	response := &dto.AbilityDetail{
 		ID:           a.ID,
+		Slug:         a.Name,
 		Name:         a.DisplayName,
+		ShowdownID:   a.ShowdownID,
 		Gen:          a.Gen,
 		Descriptions: descriptions,
 		Pokemon:      pokemonResponse,

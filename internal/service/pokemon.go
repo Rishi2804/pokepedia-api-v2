@@ -114,7 +114,9 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 	result := dto.PokemonDetail{
 		ID:         p.ID,
 		SpeciesID:  p.SpeciesID,
+		Slug:       p.Name,
 		Name:       p.DisplayName,
+		ShowdownID: deref(p.ShowdownID),
 		Gen:        p.Gen,
 		Type1:      pokeenum.ToDisplay(p.Type1),
 		Type2:      displayPtr(p.Type2),
@@ -137,7 +139,9 @@ func assembleDetail(p store.GetPokemonRow, dexNumbers []store.GetDexNumbersByIDs
 	for _, a := range abilities {
 		result.Abilities = append(result.Abilities, dto.AbilityInfo{
 			ID:         a.AbilityID,
+			Slug:       a.AbilityName,
 			Name:       a.AbilityDisplayName,
+			ShowdownID: a.AbilityShowdownID,
 			IsHidden:   a.Hidden,
 			GenRemoved: a.GenRemoved,
 		})
@@ -221,7 +225,9 @@ func groupMoveset(moves []store.GetPokemonMovesByIDsRow) []dto.VersionMoveset {
 			for _, m := range moveList {
 				moveInfos = append(moveInfos, dto.MoveInfo{
 					ID:             m.MoveID,
+					Slug:           m.Name,
 					Name:           m.DisplayName,
+					ShowdownID:     deref(m.ShowdownID),
 					Type:           pokeenum.ToDisplay(m.Type),
 					MoveClass:      pokeenum.ToDisplay(m.Class),
 					Power:          m.Power,

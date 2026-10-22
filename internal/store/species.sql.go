@@ -10,7 +10,7 @@ import (
 )
 
 const getPokemonBySpeciesID = `-- name: GetPokemonBySpeciesID :many
-SELECT id, species_id, name, display_name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, showdown_id, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE species_id = $1
@@ -22,6 +22,7 @@ type GetPokemonBySpeciesIDRow struct {
 	SpeciesID   int32    `json:"species_id"`
 	Name        string   `json:"name"`
 	DisplayName string   `json:"display_name"`
+	ShowdownID  *string  `json:"showdown_id"`
 	Gen         int32    `json:"gen"`
 	Type1       string   `json:"type1"`
 	Type2       *string  `json:"type2"`
@@ -52,6 +53,7 @@ func (q *Queries) GetPokemonBySpeciesID(ctx context.Context, speciesID int32) ([
 			&i.SpeciesID,
 			&i.Name,
 			&i.DisplayName,
+			&i.ShowdownID,
 			&i.Gen,
 			&i.Type1,
 			&i.Type2,

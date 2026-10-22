@@ -1,15 +1,15 @@
 -- name: GetMoves :many
-SELECT id, name, display_name, type, class, power, accuracy, pp, gen
+SELECT id, name, display_name, showdown_id, type, class, power, accuracy, pp, gen
 FROM move
 ORDER BY id, gen ASC;
 
 -- name: GetMove :one
-SELECT id, name, display_name, type, class, power, accuracy, pp, gen, effect
+SELECT id, name, display_name, showdown_id, type, class, power, accuracy, pp, gen, effect
 FROM move
 WHERE id = $1;
 
 -- name: GetMoveByName :one
-SELECT id, name, display_name, type, class, power, accuracy, pp, gen, effect
+SELECT id, name, display_name, showdown_id, type, class, power, accuracy, pp, gen, effect
 FROM move
 WHERE name = $1;
 

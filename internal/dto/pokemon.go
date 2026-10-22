@@ -3,7 +3,9 @@ package dto
 type PokemonDetail struct {
 	ID           int32                `json:"id"`
 	SpeciesID    int32                `json:"speciesId"`
+	Slug         string               `json:"slug"`
 	Name         string               `json:"name"`
+	ShowdownID   string               `json:"showdownId"`
 	Gen          int32                `json:"gen"`
 	Type1        string               `json:"type1"`
 	Type2        *string              `json:"type2"`
@@ -38,10 +40,12 @@ type Stats struct {
 }
 
 type AbilityInfo struct {
-	ID         int32  `json:"id"`
-	Name       string `json:"name"`
-	IsHidden   bool   `json:"isHidden"`
-	GenRemoved *int32 `json:"genRemoved"`
+	ID         int32   `json:"id"`
+	Slug       string  `json:"slug"`
+	Name       string  `json:"name"`
+	ShowdownID *string `json:"showdownId"`
+	IsHidden   bool    `json:"isHidden"`
+	GenRemoved *int32  `json:"genRemoved"`
 }
 
 type DexNumberInfo struct {
@@ -79,7 +83,9 @@ type LearnMethodSet struct {
 // leaving the other three nil -- see 000010_legends_move_values.up.sql.
 type MoveInfo struct {
 	ID             int32  `json:"id"`
+	Slug           string `json:"slug"`
 	Name           string `json:"name"`
+	ShowdownID     string `json:"showdownId"`
 	Type           string `json:"type"`
 	MoveClass      string `json:"moveClass"`
 	Power          *int32 `json:"power"`

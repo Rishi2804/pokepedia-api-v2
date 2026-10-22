@@ -68,7 +68,7 @@ func toSearchResponse(query string, res *search.Results) *dto.SearchResponse {
 func toSearchHits(hits []search.Hit) []dto.SearchHit {
 	out := make([]dto.SearchHit, len(hits))
 	for i, h := range hits {
-		out[i] = dto.SearchHit{Type: h.Type, ID: h.EntityID, Name: h.Name, Gen: h.Gen, Meta: h.Meta}
+		out[i] = dto.SearchHit{Type: h.Type, ID: h.EntityID, Name: h.Name, Slug: h.Slug, Gen: h.Gen, Meta: h.Meta}
 	}
 	return out
 }
@@ -142,5 +142,5 @@ func (s *SearchService) suggestFallback(ctx context.Context, query string, limit
 
 func toFallbackHit(r store.SearchNamesFallbackRow) dto.SearchHit {
 	// The fallback query returns the stored display name for every type.
-	return dto.SearchHit{Type: r.Type, ID: r.ID, Name: r.Name, Gen: r.Gen}
+	return dto.SearchHit{Type: r.Type, ID: r.ID, Name: r.Name, Slug: r.Slug, Gen: r.Gen}
 }

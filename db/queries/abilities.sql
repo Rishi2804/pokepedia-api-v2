@@ -1,15 +1,15 @@
 -- name: GetAbilitiesList :many
-SELECT id, name, display_name, gen
+SELECT id, name, display_name, showdown_id, gen
 FROM ability
 ORDER BY id, gen ASC;
 
 -- name: GetAbility :one
-SELECT id, name, display_name, gen, effect
+SELECT id, name, display_name, showdown_id, gen, effect
 FROM ability 
 WHERE id = $1;
 
 -- name: GetAbilityByName :one
-SELECT id, name, display_name, gen, effect
+SELECT id, name, display_name, showdown_id, gen, effect
 FROM ability 
 WHERE name = $1;
 

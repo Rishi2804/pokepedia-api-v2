@@ -10,7 +10,7 @@ import (
 )
 
 const getMove = `-- name: GetMove :one
-SELECT id, name, display_name, type, class, power, accuracy, pp, gen, effect
+SELECT id, name, display_name, showdown_id, type, class, power, accuracy, pp, gen, effect
 FROM move
 WHERE id = $1
 `
@@ -19,6 +19,7 @@ type GetMoveRow struct {
 	ID          int32   `json:"id"`
 	Name        string  `json:"name"`
 	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
 	Type        string  `json:"type"`
 	Class       string  `json:"class"`
 	Power       *int32  `json:"power"`
@@ -35,6 +36,7 @@ func (q *Queries) GetMove(ctx context.Context, id int32) (GetMoveRow, error) {
 		&i.ID,
 		&i.Name,
 		&i.DisplayName,
+		&i.ShowdownID,
 		&i.Type,
 		&i.Class,
 		&i.Power,
@@ -47,7 +49,7 @@ func (q *Queries) GetMove(ctx context.Context, id int32) (GetMoveRow, error) {
 }
 
 const getMoveByName = `-- name: GetMoveByName :one
-SELECT id, name, display_name, type, class, power, accuracy, pp, gen, effect
+SELECT id, name, display_name, showdown_id, type, class, power, accuracy, pp, gen, effect
 FROM move
 WHERE name = $1
 `
@@ -56,6 +58,7 @@ type GetMoveByNameRow struct {
 	ID          int32   `json:"id"`
 	Name        string  `json:"name"`
 	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
 	Type        string  `json:"type"`
 	Class       string  `json:"class"`
 	Power       *int32  `json:"power"`
@@ -72,6 +75,7 @@ func (q *Queries) GetMoveByName(ctx context.Context, name string) (GetMoveByName
 		&i.ID,
 		&i.Name,
 		&i.DisplayName,
+		&i.ShowdownID,
 		&i.Type,
 		&i.Class,
 		&i.Power,
@@ -119,21 +123,22 @@ func (q *Queries) GetMoveDescriptions(ctx context.Context, moveID int32) ([]GetM
 }
 
 const getMoves = `-- name: GetMoves :many
-SELECT id, name, display_name, type, class, power, accuracy, pp, gen
+SELECT id, name, display_name, showdown_id, type, class, power, accuracy, pp, gen
 FROM move
 ORDER BY id, gen ASC
 `
 
 type GetMovesRow struct {
-	ID          int32  `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Type        string `json:"type"`
-	Class       string `json:"class"`
-	Power       *int32 `json:"power"`
-	Accuracy    *int32 `json:"accuracy"`
-	Pp          *int32 `json:"pp"`
-	Gen         int32  `json:"gen"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Type        string  `json:"type"`
+	Class       string  `json:"class"`
+	Power       *int32  `json:"power"`
+	Accuracy    *int32  `json:"accuracy"`
+	Pp          *int32  `json:"pp"`
+	Gen         int32   `json:"gen"`
 }
 
 func (q *Queries) GetMoves(ctx context.Context) ([]GetMovesRow, error) {
@@ -149,6 +154,7 @@ func (q *Queries) GetMoves(ctx context.Context) ([]GetMovesRow, error) {
 			&i.ID,
 			&i.Name,
 			&i.DisplayName,
+			&i.ShowdownID,
 			&i.Type,
 			&i.Class,
 			&i.Power,

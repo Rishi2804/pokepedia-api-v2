@@ -41,7 +41,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 			for _, r := range rows {
 				fullDex = append(fullDex, dto.PokedexEntry{
 					DexNumber: r.SpeciesID, SpeciesID: r.SpeciesID, PokemonID: r.ID,
-					Name: r.Name, Gen: r.Gen,
+					Slug: r.Slug, Name: r.Name, Gen: r.Gen,
 					Type1: pokeenum.ToDisplay(r.Type1),
 					Type2: displayPtr(r.Type2),
 				})
@@ -94,7 +94,7 @@ func (s *PokedexService) GetDexByVersion(ctx context.Context, versionName string
 		for _, r := range rows {
 			entries = append(entries, dto.PokedexEntry{
 				DexNumber: r.Num, SpeciesID: r.SpeciesID, PokemonID: r.ID,
-				Name: r.Name, Gen: r.Gen,
+				Slug: r.Slug, Name: r.Name, Gen: r.Gen,
 				Type1: pokeenum.ToDisplay(r.Type1),
 				Type2: displayPtr(r.Type2),
 			})
@@ -125,7 +125,9 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		for i, r := range rows {
 			candidates[i] = dto.TeamCandidateSummary{
 				ID: r.ID, Name: r.DisplayName, Slug: r.Name, Gen: r.Gen,
-				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
+				ShowdownID: deref(r.ShowdownID), ShowdownName: deref(r.ShowdownName),
+				BattleOnly: battleOnly(r.BattleOnlyBaseID, r.Gigantamax, r.RequiredItemShowdownID, r.RequiredItemName),
+				Type1:      pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 		}
 
@@ -155,7 +157,9 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 			seen[r.ID] = true
 			candidates[i] = dto.TeamCandidateSummary{
 				ID: r.ID, Name: r.DisplayName, Slug: r.Name, Gen: r.Gen,
-				Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
+				ShowdownID: deref(r.ShowdownID), ShowdownName: deref(r.ShowdownName),
+				BattleOnly: battleOnly(r.BattleOnlyBaseID, r.Gigantamax, r.RequiredItemShowdownID, r.RequiredItemName),
+				Type1:      pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 			}
 		}
 
@@ -179,7 +183,9 @@ func (s *PokedexService) GetTeamCandidates(ctx context.Context, versionName stri
 		}
 		national = append(national, dto.TeamCandidateSummary{
 			ID: r.ID, Name: r.DisplayName, Slug: r.Name, Gen: r.Gen,
-			Type1: pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
+			ShowdownID: deref(r.ShowdownID), ShowdownName: deref(r.ShowdownName),
+			BattleOnly: battleOnly(r.BattleOnlyBaseID, r.Gigantamax, r.RequiredItemShowdownID, r.RequiredItemName),
+			Type1:      pokeenum.ToDisplay(r.Type1), Type2: displayPtr(r.Type2), GenderRate: r.GenderRate,
 		})
 	}
 
@@ -209,7 +215,9 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 		}
 		plain = dto.TeamCandidateSummary{
 			ID: row.ID, Name: row.DisplayName, Slug: row.Name, Gen: row.Gen,
-			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
+			ShowdownID: deref(row.ShowdownID), ShowdownName: deref(row.ShowdownName),
+			BattleOnly: battleOnly(row.BattleOnlyBaseID, row.Gigantamax, row.RequiredItemShowdownID, row.RequiredItemName),
+			Type1:      pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
 		}
 		stats = dto.Stats{
 			HP: row.Hp, Atk: row.Atk, Def: row.Def,
@@ -227,7 +235,9 @@ func (s *PokedexService) GetTeamCandidate(ctx context.Context, versionName strin
 		}
 		plain = dto.TeamCandidateSummary{
 			ID: row.ID, Name: row.DisplayName, Slug: row.Name, Gen: row.Gen,
-			Type1: pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
+			ShowdownID: deref(row.ShowdownID), ShowdownName: deref(row.ShowdownName),
+			BattleOnly: battleOnly(row.BattleOnlyBaseID, row.Gigantamax, row.RequiredItemShowdownID, row.RequiredItemName),
+			Type1:      pokeenum.ToDisplay(row.Type1), Type2: displayPtr(row.Type2), GenderRate: row.GenderRate,
 		}
 		stats = dto.Stats{
 			HP: row.Hp, Atk: row.Atk, Def: row.Def,
@@ -333,21 +343,21 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 					continue
 				}
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
-					ID: a.AbilityID, Name: a.AbilityDisplayName,
+					ID: a.AbilityID, Slug: a.AbilityName, Name: a.AbilityDisplayName, ShowdownID: a.AbilityShowdownID,
 				})
 			}
 		} else {
 			// special cases, ported verbatim
 			switch cand.ID {
 			case 94:
-				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{ID: 26, Name: "Levitate"})
+				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{ID: 26, Slug: "levitate", Name: "Levitate", ShowdownID: ptr("levitate")})
 			case 275:
 				for _, a := range abilities {
 					if a.AbilityID == 274 {
 						continue
 					}
 					abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
-						ID: a.AbilityID, Name: a.AbilityDisplayName,
+						ID: a.AbilityID, Slug: a.AbilityName, Name: a.AbilityDisplayName, ShowdownID: a.AbilityShowdownID,
 					})
 				}
 			}
@@ -356,7 +366,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 		for _, a := range abilities {
 			if a.AbilityGen <= gen && a.GenRemoved == nil {
 				abilitiesDto = append(abilitiesDto, dto.CandidateAbility{
-					ID: a.AbilityID, Name: a.AbilityDisplayName,
+					ID: a.AbilityID, Slug: a.AbilityName, Name: a.AbilityDisplayName, ShowdownID: a.AbilityShowdownID,
 				})
 			}
 		}
@@ -370,7 +380,7 @@ func buildCandidateDetail(cand dto.TeamCandidateSummary, stats dto.Stats, abilit
 		}
 		seenMoves[m.MoveID] = true
 		movesDto = append(movesDto, dto.CandidateMove{
-			ID: m.MoveID, Name: m.DisplayName,
+			ID: m.MoveID, Slug: m.Name, Name: m.DisplayName, ShowdownID: deref(m.ShowdownID),
 			Type: pokeenum.ToDisplay(m.Type), MoveClass: pokeenum.ToDisplay(m.Class),
 			Power: m.Power, Accuracy: m.Accuracy, PP: m.Pp, Cooldown: m.Cooldown,
 			Description: descriptions[m.MoveID],
@@ -392,3 +402,19 @@ func displayPtr(s *string) *string {
 	display := pokeenum.ToDisplay(*s)
 	return &display
 }
+
+// battleOnly describes the forme a team can't submit directly, or nil for an
+// ordinary Pokemon: its base species, the item that reaches it and the Gmax
+// flag, all precomputed from Showdown's data when the names were scraped.
+func battleOnly(baseID *int32, gigantamax bool, itemShowdownID, itemName *string) *dto.BattleOnly {
+	if baseID == nil && itemShowdownID == nil && !gigantamax {
+		return nil
+	}
+	result := &dto.BattleOnly{BaseID: baseID, Gigantamax: gigantamax}
+	if itemShowdownID != nil {
+		result.RequiredItem = &dto.RequiredItem{ShowdownID: *itemShowdownID, Name: deref(itemName)}
+	}
+	return result
+}
+
+func ptr[T any](v T) *T { return &v }
