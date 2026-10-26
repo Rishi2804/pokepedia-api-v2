@@ -10,8 +10,8 @@ import (
 )
 
 const getCandidateAbilitiesByIDs = `-- name: GetCandidateAbilitiesByIDs :many
-SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
-       d.hidden, d.gen AS gen_removed
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.display_name AS ability_display_name, a.showdown_id AS ability_showdown_id,
+       a.gen AS ability_gen, d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
 WHERE d.pokemon_id = ANY($1::int[])
@@ -19,12 +19,14 @@ ORDER BY d.pokemon_id, d.hidden, a.id
 `
 
 type GetCandidateAbilitiesByIDsRow struct {
-	PokemonID   int32  `json:"pokemon_id"`
-	AbilityID   int32  `json:"ability_id"`
-	AbilityName string `json:"ability_name"`
-	AbilityGen  int32  `json:"ability_gen"`
-	Hidden      bool   `json:"hidden"`
-	GenRemoved  *int32 `json:"gen_removed"`
+	PokemonID          int32   `json:"pokemon_id"`
+	AbilityID          int32   `json:"ability_id"`
+	AbilityName        string  `json:"ability_name"`
+	AbilityDisplayName string  `json:"ability_display_name"`
+	AbilityShowdownID  *string `json:"ability_showdown_id"`
+	AbilityGen         int32   `json:"ability_gen"`
+	Hidden             bool    `json:"hidden"`
+	GenRemoved         *int32  `json:"gen_removed"`
 }
 
 func (q *Queries) GetCandidateAbilitiesByIDs(ctx context.Context, pokemonIds []int32) ([]GetCandidateAbilitiesByIDsRow, error) {
@@ -40,6 +42,8 @@ func (q *Queries) GetCandidateAbilitiesByIDs(ctx context.Context, pokemonIds []i
 			&i.PokemonID,
 			&i.AbilityID,
 			&i.AbilityName,
+			&i.AbilityDisplayName,
+			&i.AbilityShowdownID,
 			&i.AbilityGen,
 			&i.Hidden,
 			&i.GenRemoved,
@@ -96,7 +100,7 @@ func (q *Queries) GetCandidateMoveDescriptions(ctx context.Context, arg GetCandi
 }
 
 const getCandidateMovesByIDs = `-- name: GetCandidateMovesByIDs :many
-SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.display_name, m.showdown_id, m.type, m.class,
        m.power, m.accuracy, m.pp, NULL::int AS cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
@@ -105,15 +109,17 @@ ORDER BY d.pokemon_id, d.move_id
 `
 
 type GetCandidateMovesByIDsRow struct {
-	PokemonID int32  `json:"pokemon_id"`
-	MoveID    int32  `json:"move_id"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	Class     string `json:"class"`
-	Power     *int32 `json:"power"`
-	Accuracy  *int32 `json:"accuracy"`
-	Pp        *int32 `json:"pp"`
-	Cooldown  *int32 `json:"cooldown"`
+	PokemonID   int32   `json:"pokemon_id"`
+	MoveID      int32   `json:"move_id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Type        string  `json:"type"`
+	Class       string  `json:"class"`
+	Power       *int32  `json:"power"`
+	Accuracy    *int32  `json:"accuracy"`
+	Pp          *int32  `json:"pp"`
+	Cooldown    *int32  `json:"cooldown"`
 }
 
 // National has no game to resolve against, so it reports the move's current
@@ -132,6 +138,8 @@ func (q *Queries) GetCandidateMovesByIDs(ctx context.Context, pokemonIds []int32
 			&i.PokemonID,
 			&i.MoveID,
 			&i.Name,
+			&i.DisplayName,
+			&i.ShowdownID,
 			&i.Type,
 			&i.Class,
 			&i.Power,
@@ -150,7 +158,7 @@ func (q *Queries) GetCandidateMovesByIDs(ctx context.Context, pokemonIds []int32
 }
 
 const getCandidateMovesByIDsAndVersion = `-- name: GetCandidateMovesByIDsAndVersion :many
-SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
+SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.display_name, m.showdown_id, m.type, m.class,
        CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
             ELSE COALESCE(pmv.power, m.power) END AS power,
        CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.accuracy_1
@@ -160,7 +168,7 @@ SELECT DISTINCT d.pokemon_id, d.move_id, m.name, m.type, m.class,
        lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
-LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.move_id AND pmv.version_groups @> ARRAY[d.version]
 LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY($1::int[]) AND d.version = $2
 ORDER BY d.pokemon_id, d.move_id
@@ -172,15 +180,17 @@ type GetCandidateMovesByIDsAndVersionParams struct {
 }
 
 type GetCandidateMovesByIDsAndVersionRow struct {
-	PokemonID int32  `json:"pokemon_id"`
-	MoveID    int32  `json:"move_id"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	Class     string `json:"class"`
-	Power     *int32 `json:"power"`
-	Accuracy  *int32 `json:"accuracy"`
-	Pp        *int32 `json:"pp"`
-	Cooldown  *int32 `json:"cooldown"`
+	PokemonID   int32   `json:"pokemon_id"`
+	MoveID      int32   `json:"move_id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Type        string  `json:"type"`
+	Class       string  `json:"class"`
+	Power       *int32  `json:"power"`
+	Accuracy    *int32  `json:"accuracy"`
+	Pp          *int32  `json:"pp"`
+	Cooldown    *int32  `json:"cooldown"`
 }
 
 // Power/accuracy/pp resolve the same way as GetPokemonMovesByIDs (see the note
@@ -199,6 +209,8 @@ func (q *Queries) GetCandidateMovesByIDsAndVersion(ctx context.Context, arg GetC
 			&i.PokemonID,
 			&i.MoveID,
 			&i.Name,
+			&i.DisplayName,
+			&i.ShowdownID,
 			&i.Type,
 			&i.Class,
 			&i.Power,
@@ -217,26 +229,27 @@ func (q *Queries) GetCandidateMovesByIDsAndVersion(ctx context.Context, arg GetC
 }
 
 const getDexByRegion = `-- name: GetDexByRegion :many
-SELECT d.num, p.id, s.name, s.id AS species_id, p.gen,
+SELECT d.num, p.id, p.name AS slug, s.display_name AS name, s.id AS species_id, p.gen,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM dexnumber d
 JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
-WHERE d.name = $2
+WHERE d.dex = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id
 `
 
 type GetDexByRegionParams struct {
-	Gen  int32 `json:"gen"`
-	Name Dex   `json:"name"`
+	Gen int32 `json:"gen"`
+	Dex Dex   `json:"dex"`
 }
 
 type GetDexByRegionRow struct {
 	Num       int32   `json:"num"`
 	ID        int32   `json:"id"`
-	Name      *string `json:"name"`
+	Slug      string  `json:"slug"`
+	Name      string  `json:"name"`
 	SpeciesID int32   `json:"species_id"`
 	Gen       int32   `json:"gen"`
 	Type1     string  `json:"type1"`
@@ -244,7 +257,7 @@ type GetDexByRegionRow struct {
 }
 
 func (q *Queries) GetDexByRegion(ctx context.Context, arg GetDexByRegionParams) ([]GetDexByRegionRow, error) {
-	rows, err := q.db.Query(ctx, getDexByRegion, arg.Gen, arg.Name)
+	rows, err := q.db.Query(ctx, getDexByRegion, arg.Gen, arg.Dex)
 	if err != nil {
 		return nil, err
 	}
@@ -255,6 +268,7 @@ func (q *Queries) GetDexByRegion(ctx context.Context, arg GetDexByRegionParams) 
 		if err := rows.Scan(
 			&i.Num,
 			&i.ID,
+			&i.Slug,
 			&i.Name,
 			&i.SpeciesID,
 			&i.Gen,
@@ -272,7 +286,7 @@ func (q *Queries) GetDexByRegion(ctx context.Context, arg GetDexByRegionParams) 
 }
 
 const getDexNational = `-- name: GetDexNational :many
-SELECT s.id AS species_id, p.id, s.name, p.gen, p.type1, p.type2
+SELECT s.id AS species_id, p.id, p.name AS slug, s.display_name AS name, p.gen, p.type1, p.type2
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
 ORDER BY s.id, p.id ASC
@@ -281,7 +295,8 @@ ORDER BY s.id, p.id ASC
 type GetDexNationalRow struct {
 	SpeciesID int32   `json:"species_id"`
 	ID        int32   `json:"id"`
-	Name      *string `json:"name"`
+	Slug      string  `json:"slug"`
+	Name      string  `json:"name"`
 	Gen       int32   `json:"gen"`
 	Type1     string  `json:"type1"`
 	Type2     *string `json:"type2"`
@@ -299,6 +314,7 @@ func (q *Queries) GetDexNational(ctx context.Context) ([]GetDexNationalRow, erro
 		if err := rows.Scan(
 			&i.SpeciesID,
 			&i.ID,
+			&i.Slug,
 			&i.Name,
 			&i.Gen,
 			&i.Type1,
@@ -315,11 +331,13 @@ func (q *Queries) GetDexNational(ctx context.Context) ([]GetDexNationalRow, erro
 }
 
 const getTeamCandidateByID = `-- name: GetTeamCandidateByID :one
-SELECT p.id, p.name, p.gen, p.gender_rate,
-       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst,
+SELECT p.id, p.name, p.display_name, p.gen, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst, p.showdown_id, p.showdown_name, p.battle_only_base_id, p.gigantamax,
+       ri.showdown_id AS required_item_showdown_id, ri.display_name AS required_item_name,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM pokemon p
+LEFT JOIN item ri ON ri.id = p.required_item_id
 LEFT JOIN LATERAL (
     SELECT type1, type2
     FROM pasttypes
@@ -331,7 +349,7 @@ WHERE p.id = $2::int
   AND (
     EXISTS (
       SELECT 1 FROM dexnumber d
-      WHERE d.name::text = ANY($3::text[])
+      WHERE d.dex::text = ANY($3::text[])
         AND (d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id])
     )
     OR EXISTS (
@@ -349,19 +367,26 @@ type GetTeamCandidateByIDParams struct {
 }
 
 type GetTeamCandidateByIDRow struct {
-	ID         int32   `json:"id"`
-	Name       string  `json:"name"`
-	Gen        int32   `json:"gen"`
-	GenderRate int32   `json:"gender_rate"`
-	Hp         int32   `json:"hp"`
-	Atk        int32   `json:"atk"`
-	Def        int32   `json:"def"`
-	Spatk      int32   `json:"spatk"`
-	Spdef      int32   `json:"spdef"`
-	Speed      int32   `json:"speed"`
-	Bst        int32   `json:"bst"`
-	Type1      string  `json:"type1"`
-	Type2      *string `json:"type2"`
+	ID                     int32   `json:"id"`
+	Name                   string  `json:"name"`
+	DisplayName            string  `json:"display_name"`
+	Gen                    int32   `json:"gen"`
+	GenderRate             int32   `json:"gender_rate"`
+	Hp                     int32   `json:"hp"`
+	Atk                    int32   `json:"atk"`
+	Def                    int32   `json:"def"`
+	Spatk                  int32   `json:"spatk"`
+	Spdef                  int32   `json:"spdef"`
+	Speed                  int32   `json:"speed"`
+	Bst                    int32   `json:"bst"`
+	ShowdownID             *string `json:"showdown_id"`
+	ShowdownName           *string `json:"showdown_name"`
+	BattleOnlyBaseID       *int32  `json:"battle_only_base_id"`
+	Gigantamax             bool    `json:"gigantamax"`
+	RequiredItemShowdownID *string `json:"required_item_showdown_id"`
+	RequiredItemName       *string `json:"required_item_name"`
+	Type1                  string  `json:"type1"`
+	Type2                  *string `json:"type2"`
 }
 
 // Single candidate for a non-national version group. The EXISTS pair is the same
@@ -380,6 +405,7 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.DisplayName,
 		&i.Gen,
 		&i.GenderRate,
 		&i.Hp,
@@ -389,6 +415,12 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 		&i.Spdef,
 		&i.Speed,
 		&i.Bst,
+		&i.ShowdownID,
+		&i.ShowdownName,
+		&i.BattleOnlyBaseID,
+		&i.Gigantamax,
+		&i.RequiredItemShowdownID,
+		&i.RequiredItemName,
 		&i.Type1,
 		&i.Type2,
 	)
@@ -396,26 +428,35 @@ func (q *Queries) GetTeamCandidateByID(ctx context.Context, arg GetTeamCandidate
 }
 
 const getTeamCandidateNationalByID = `-- name: GetTeamCandidateNationalByID :one
-SELECT p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate,
-       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst
+SELECT p.id, p.name, p.display_name, p.gen, p.type1, p.type2, p.gender_rate,
+       p.hp, p.atk, p.def, p.spatk, p.spdef, p.speed, p.bst, p.showdown_id, p.showdown_name, p.battle_only_base_id, p.gigantamax,
+       ri.showdown_id AS required_item_showdown_id, ri.display_name AS required_item_name
 FROM pokemon p
+LEFT JOIN item ri ON ri.id = p.required_item_id
 WHERE p.id = $1
 `
 
 type GetTeamCandidateNationalByIDRow struct {
-	ID         int32   `json:"id"`
-	Name       string  `json:"name"`
-	Gen        int32   `json:"gen"`
-	Type1      string  `json:"type1"`
-	Type2      *string `json:"type2"`
-	GenderRate int32   `json:"gender_rate"`
-	Hp         int32   `json:"hp"`
-	Atk        int32   `json:"atk"`
-	Def        int32   `json:"def"`
-	Spatk      int32   `json:"spatk"`
-	Spdef      int32   `json:"spdef"`
-	Speed      int32   `json:"speed"`
-	Bst        int32   `json:"bst"`
+	ID                     int32   `json:"id"`
+	Name                   string  `json:"name"`
+	DisplayName            string  `json:"display_name"`
+	Gen                    int32   `json:"gen"`
+	Type1                  string  `json:"type1"`
+	Type2                  *string `json:"type2"`
+	GenderRate             int32   `json:"gender_rate"`
+	Hp                     int32   `json:"hp"`
+	Atk                    int32   `json:"atk"`
+	Def                    int32   `json:"def"`
+	Spatk                  int32   `json:"spatk"`
+	Spdef                  int32   `json:"spdef"`
+	Speed                  int32   `json:"speed"`
+	Bst                    int32   `json:"bst"`
+	ShowdownID             *string `json:"showdown_id"`
+	ShowdownName           *string `json:"showdown_name"`
+	BattleOnlyBaseID       *int32  `json:"battle_only_base_id"`
+	Gigantamax             bool    `json:"gigantamax"`
+	RequiredItemShowdownID *string `json:"required_item_showdown_id"`
+	RequiredItemName       *string `json:"required_item_name"`
 }
 
 // Mirrors GetTeamCandidatesNational: the pokemon's own name (so an alternate
@@ -427,6 +468,7 @@ func (q *Queries) GetTeamCandidateNationalByID(ctx context.Context, id int32) (G
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.DisplayName,
 		&i.Gen,
 		&i.Type1,
 		&i.Type2,
@@ -438,39 +480,54 @@ func (q *Queries) GetTeamCandidateNationalByID(ctx context.Context, id int32) (G
 		&i.Spdef,
 		&i.Speed,
 		&i.Bst,
+		&i.ShowdownID,
+		&i.ShowdownName,
+		&i.BattleOnlyBaseID,
+		&i.Gigantamax,
+		&i.RequiredItemShowdownID,
+		&i.RequiredItemName,
 	)
 	return i, err
 }
 
 const getTeamCandidatesByRegion = `-- name: GetTeamCandidatesByRegion :many
-SELECT d.num, p.id, p.name, p.gen, p.gender_rate,
+SELECT d.num, p.id, p.name, p.display_name, p.gen, p.gender_rate, p.showdown_id, p.showdown_name, p.battle_only_base_id, p.gigantamax,
+       ri.showdown_id AS required_item_showdown_id, ri.display_name AS required_item_name,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM dexnumber d
 JOIN pokemon p ON d.default_variate = p.id OR d.alt_variates @> ARRAY[p.id]
 JOIN species s ON s.id = d.species_id
+LEFT JOIN item ri ON ri.id = p.required_item_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
-WHERE d.name = $2
+WHERE d.dex = $2
 ORDER BY d.num, CASE WHEN p.id = d.default_variate THEN 0 ELSE 1 END, p.id
 `
 
 type GetTeamCandidatesByRegionParams struct {
-	Gen  int32 `json:"gen"`
-	Name Dex   `json:"name"`
+	Gen int32 `json:"gen"`
+	Dex Dex   `json:"dex"`
 }
 
 type GetTeamCandidatesByRegionRow struct {
-	Num        int32   `json:"num"`
-	ID         int32   `json:"id"`
-	Name       string  `json:"name"`
-	Gen        int32   `json:"gen"`
-	GenderRate int32   `json:"gender_rate"`
-	Type1      string  `json:"type1"`
-	Type2      *string `json:"type2"`
+	Num                    int32   `json:"num"`
+	ID                     int32   `json:"id"`
+	Name                   string  `json:"name"`
+	DisplayName            string  `json:"display_name"`
+	Gen                    int32   `json:"gen"`
+	GenderRate             int32   `json:"gender_rate"`
+	ShowdownID             *string `json:"showdown_id"`
+	ShowdownName           *string `json:"showdown_name"`
+	BattleOnlyBaseID       *int32  `json:"battle_only_base_id"`
+	Gigantamax             bool    `json:"gigantamax"`
+	RequiredItemShowdownID *string `json:"required_item_showdown_id"`
+	RequiredItemName       *string `json:"required_item_name"`
+	Type1                  string  `json:"type1"`
+	Type2                  *string `json:"type2"`
 }
 
 func (q *Queries) GetTeamCandidatesByRegion(ctx context.Context, arg GetTeamCandidatesByRegionParams) ([]GetTeamCandidatesByRegionRow, error) {
-	rows, err := q.db.Query(ctx, getTeamCandidatesByRegion, arg.Gen, arg.Name)
+	rows, err := q.db.Query(ctx, getTeamCandidatesByRegion, arg.Gen, arg.Dex)
 	if err != nil {
 		return nil, err
 	}
@@ -482,8 +539,15 @@ func (q *Queries) GetTeamCandidatesByRegion(ctx context.Context, arg GetTeamCand
 			&i.Num,
 			&i.ID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Gen,
 			&i.GenderRate,
+			&i.ShowdownID,
+			&i.ShowdownName,
+			&i.BattleOnlyBaseID,
+			&i.Gigantamax,
+			&i.RequiredItemShowdownID,
+			&i.RequiredItemName,
 			&i.Type1,
 			&i.Type2,
 		); err != nil {
@@ -498,21 +562,30 @@ func (q *Queries) GetTeamCandidatesByRegion(ctx context.Context, arg GetTeamCand
 }
 
 const getTeamCandidatesNational = `-- name: GetTeamCandidatesNational :many
-SELECT s.id AS num, s.id AS species_id, p.id, p.name, p.gen, p.type1, p.type2, p.gender_rate
+SELECT s.id AS num, s.id AS species_id, p.id, p.name, p.display_name, p.gen, p.type1, p.type2, p.gender_rate, p.showdown_id, p.showdown_name, p.battle_only_base_id, p.gigantamax,
+       ri.showdown_id AS required_item_showdown_id, ri.display_name AS required_item_name
 FROM pokemon p
 JOIN species s ON s.id = p.species_id
+LEFT JOIN item ri ON ri.id = p.required_item_id
 ORDER BY s.id, p.id ASC
 `
 
 type GetTeamCandidatesNationalRow struct {
-	Num        int32   `json:"num"`
-	SpeciesID  int32   `json:"species_id"`
-	ID         int32   `json:"id"`
-	Name       string  `json:"name"`
-	Gen        int32   `json:"gen"`
-	Type1      string  `json:"type1"`
-	Type2      *string `json:"type2"`
-	GenderRate int32   `json:"gender_rate"`
+	Num                    int32   `json:"num"`
+	SpeciesID              int32   `json:"species_id"`
+	ID                     int32   `json:"id"`
+	Name                   string  `json:"name"`
+	DisplayName            string  `json:"display_name"`
+	Gen                    int32   `json:"gen"`
+	Type1                  string  `json:"type1"`
+	Type2                  *string `json:"type2"`
+	GenderRate             int32   `json:"gender_rate"`
+	ShowdownID             *string `json:"showdown_id"`
+	ShowdownName           *string `json:"showdown_name"`
+	BattleOnlyBaseID       *int32  `json:"battle_only_base_id"`
+	Gigantamax             bool    `json:"gigantamax"`
+	RequiredItemShowdownID *string `json:"required_item_showdown_id"`
+	RequiredItemName       *string `json:"required_item_name"`
 }
 
 // p.name (not s.name) so an alternate form's own name/slug is used, not its
@@ -532,10 +605,17 @@ func (q *Queries) GetTeamCandidatesNational(ctx context.Context) ([]GetTeamCandi
 			&i.SpeciesID,
 			&i.ID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Gen,
 			&i.Type1,
 			&i.Type2,
 			&i.GenderRate,
+			&i.ShowdownID,
+			&i.ShowdownName,
+			&i.BattleOnlyBaseID,
+			&i.Gigantamax,
+			&i.RequiredItemShowdownID,
+			&i.RequiredItemName,
 		); err != nil {
 			return nil, err
 		}
@@ -548,11 +628,13 @@ func (q *Queries) GetTeamCandidatesNational(ctx context.Context) ([]GetTeamCandi
 }
 
 const getTeamCandidatesNationalByVersionGroup = `-- name: GetTeamCandidatesNationalByVersionGroup :many
-SELECT DISTINCT p.id, p.name, p.gen, p.gender_rate, p.species_id,
+SELECT DISTINCT p.id, p.name, p.display_name, p.gen, p.gender_rate, p.species_id, p.showdown_id, p.showdown_name, p.battle_only_base_id, p.gigantamax,
+       ri.showdown_id AS required_item_showdown_id, ri.display_name AS required_item_name,
        COALESCE(pt.type1, p.type1) AS type1,
        CASE WHEN pt.type1 IS NOT NULL THEN pt.type2 ELSE p.type2 END AS type2
 FROM pokemon p
 JOIN movedetails md ON p.id = md.pokemon_id
+LEFT JOIN item ri ON ri.id = p.required_item_id
 LEFT JOIN pasttypes pt ON p.id = pt.pokemon_id AND pt.gen >= $1
 WHERE md.version = $2
 ORDER BY p.species_id, p.id
@@ -564,13 +646,20 @@ type GetTeamCandidatesNationalByVersionGroupParams struct {
 }
 
 type GetTeamCandidatesNationalByVersionGroupRow struct {
-	ID         int32   `json:"id"`
-	Name       string  `json:"name"`
-	Gen        int32   `json:"gen"`
-	GenderRate int32   `json:"gender_rate"`
-	SpeciesID  int32   `json:"species_id"`
-	Type1      string  `json:"type1"`
-	Type2      *string `json:"type2"`
+	ID                     int32   `json:"id"`
+	Name                   string  `json:"name"`
+	DisplayName            string  `json:"display_name"`
+	Gen                    int32   `json:"gen"`
+	GenderRate             int32   `json:"gender_rate"`
+	SpeciesID              int32   `json:"species_id"`
+	ShowdownID             *string `json:"showdown_id"`
+	ShowdownName           *string `json:"showdown_name"`
+	BattleOnlyBaseID       *int32  `json:"battle_only_base_id"`
+	Gigantamax             bool    `json:"gigantamax"`
+	RequiredItemShowdownID *string `json:"required_item_showdown_id"`
+	RequiredItemName       *string `json:"required_item_name"`
+	Type1                  string  `json:"type1"`
+	Type2                  *string `json:"type2"`
 }
 
 func (q *Queries) GetTeamCandidatesNationalByVersionGroup(ctx context.Context, arg GetTeamCandidatesNationalByVersionGroupParams) ([]GetTeamCandidatesNationalByVersionGroupRow, error) {
@@ -585,9 +674,16 @@ func (q *Queries) GetTeamCandidatesNationalByVersionGroup(ctx context.Context, a
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Gen,
 			&i.GenderRate,
 			&i.SpeciesID,
+			&i.ShowdownID,
+			&i.ShowdownName,
+			&i.BattleOnlyBaseID,
+			&i.Gigantamax,
+			&i.RequiredItemShowdownID,
+			&i.RequiredItemName,
 			&i.Type1,
 			&i.Type2,
 		); err != nil {

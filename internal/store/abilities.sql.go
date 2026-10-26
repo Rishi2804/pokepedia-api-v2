@@ -10,15 +10,17 @@ import (
 )
 
 const getAbilitiesList = `-- name: GetAbilitiesList :many
-SELECT id, name, gen 
-FROM ability 
+SELECT id, name, display_name, showdown_id, gen
+FROM ability
 ORDER BY id, gen ASC
 `
 
 type GetAbilitiesListRow struct {
-	ID   int32  `json:"id"`
-	Name string `json:"name"`
-	Gen  int32  `json:"gen"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Gen         int32   `json:"gen"`
 }
 
 func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, error) {
@@ -30,7 +32,13 @@ func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, 
 	var items []GetAbilitiesListRow
 	for rows.Next() {
 		var i GetAbilitiesListRow
-		if err := rows.Scan(&i.ID, &i.Name, &i.Gen); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.DisplayName,
+			&i.ShowdownID,
+			&i.Gen,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -42,17 +50,28 @@ func (q *Queries) GetAbilitiesList(ctx context.Context) ([]GetAbilitiesListRow, 
 }
 
 const getAbility = `-- name: GetAbility :one
-SELECT id, name, gen, effect
+SELECT id, name, display_name, showdown_id, gen, effect
 FROM ability 
 WHERE id = $1
 `
 
-func (q *Queries) GetAbility(ctx context.Context, id int32) (Ability, error) {
+type GetAbilityRow struct {
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Gen         int32   `json:"gen"`
+	Effect      *string `json:"effect"`
+}
+
+func (q *Queries) GetAbility(ctx context.Context, id int32) (GetAbilityRow, error) {
 	row := q.db.QueryRow(ctx, getAbility, id)
-	var i Ability
+	var i GetAbilityRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.DisplayName,
+		&i.ShowdownID,
 		&i.Gen,
 		&i.Effect,
 	)
@@ -60,17 +79,28 @@ func (q *Queries) GetAbility(ctx context.Context, id int32) (Ability, error) {
 }
 
 const getAbilityByName = `-- name: GetAbilityByName :one
-SELECT id, name, gen, effect
+SELECT id, name, display_name, showdown_id, gen, effect
 FROM ability 
 WHERE name = $1
 `
 
-func (q *Queries) GetAbilityByName(ctx context.Context, name string) (Ability, error) {
+type GetAbilityByNameRow struct {
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	ShowdownID  *string `json:"showdown_id"`
+	Gen         int32   `json:"gen"`
+	Effect      *string `json:"effect"`
+}
+
+func (q *Queries) GetAbilityByName(ctx context.Context, name string) (GetAbilityByNameRow, error) {
 	row := q.db.QueryRow(ctx, getAbilityByName, name)
-	var i Ability
+	var i GetAbilityByNameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.DisplayName,
+		&i.ShowdownID,
 		&i.Gen,
 		&i.Effect,
 	)
@@ -113,7 +143,7 @@ func (q *Queries) GetAbilityDescriptions(ctx context.Context, abilityID int32) (
 }
 
 const getPokemonLearnableAbility = `-- name: GetPokemonLearnableAbility :many
-SELECT DISTINCT p.id, p.name, p.gen, p.type1, p.type2, p.species_id
+SELECT DISTINCT p.id, p.name, p.display_name, p.gen, p.type1, p.type2, p.species_id
 FROM abilitydetails
 JOIN pokemon p ON p.id = pokemon_id
 WHERE ability_id = $1
@@ -121,12 +151,13 @@ ORDER BY p.species_id, p.id ASC
 `
 
 type GetPokemonLearnableAbilityRow struct {
-	ID        int32   `json:"id"`
-	Name      string  `json:"name"`
-	Gen       int32   `json:"gen"`
-	Type1     string  `json:"type1"`
-	Type2     *string `json:"type2"`
-	SpeciesID int32   `json:"species_id"`
+	ID          int32   `json:"id"`
+	Name        string  `json:"name"`
+	DisplayName string  `json:"display_name"`
+	Gen         int32   `json:"gen"`
+	Type1       string  `json:"type1"`
+	Type2       *string `json:"type2"`
+	SpeciesID   int32   `json:"species_id"`
 }
 
 func (q *Queries) GetPokemonLearnableAbility(ctx context.Context, abilityID int32) ([]GetPokemonLearnableAbilityRow, error) {
@@ -141,6 +172,7 @@ func (q *Queries) GetPokemonLearnableAbility(ctx context.Context, abilityID int3
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.DisplayName,
 			&i.Gen,
 			&i.Type1,
 			&i.Type2,

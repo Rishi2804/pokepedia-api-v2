@@ -32,7 +32,7 @@ import (
 
 func main() {
 	source := flag.String("source", "both", "pokeapi | bulbapedia | both")
-	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to scrape (also: item, eggmoves, legends -- each runs on its own)")
+	only := flag.String("only", "pokemon,move,ability", "comma-separated entity types to scrape (also: item, names, eggmoves, legends -- each runs on its own)")
 	dryRun := flag.Bool("dry-run", false, "fetch and parse without writing to Postgres")
 	emit := flag.String("emit", "", "also write a golang-migrate .up.sql file with the same rows")
 	emitNames := flag.String("emit-names", "", "with -only item, write a migration that adds and backfills item.display_name")
@@ -144,6 +144,38 @@ func main() {
 			log.Fatalf("write failed: %v", err)
 		}
 		fmt.Printf("wrote %d items to Postgres\n", len(itemRows))
+		return
+	}
+
+	// names is a separate pipeline too: it fills display_name, showdown_id and
+	// the battle-only columns on species, pokemon, move and ability rows. It
+	// reads PokeAPI names from the cache the other passes already fill.
+	if types["names"] {
+		data, unresolved, err := scrapeNames(ctx, pool, *cacheDir)
+		if err != nil {
+			log.Fatalf("names pass failed: %v", err)
+		}
+
+		reportNames(data, unresolved)
+
+		// -emit works under -dry-run, so the rows can be read as SQL without
+		// touching Postgres (the columns only exist after 000023).
+		if *emit != "" {
+			if err := emitNamesMigration(*emit, data); err != nil {
+				log.Fatalf("emit failed: %v", err)
+			}
+			fmt.Printf("wrote migration: %s\n", *emit)
+		}
+
+		if *dryRun {
+			return
+		}
+
+		if err := writeNameRows(ctx, pool, data); err != nil {
+			log.Fatalf("write failed: %v", err)
+		}
+		fmt.Printf("wrote names for %d species, %d pokemon, %d moves and %d abilities to Postgres\n",
+			len(data.Species), len(data.Pokemon), len(data.Moves), len(data.Abilities))
 		return
 	}
 

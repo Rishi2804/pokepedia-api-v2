@@ -6,7 +6,6 @@ import (
 	"github.com/Rishi2804/pokepedia-api-v2/internal/dto"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/pokeenum"
 	"github.com/Rishi2804/pokepedia-api-v2/internal/store"
-	"github.com/Rishi2804/pokepedia-api-v2/internal/util"
 )
 
 type AbilitiesService struct {
@@ -25,9 +24,11 @@ func (s *AbilitiesService) GetAbilityList(ctx context.Context) ([]dto.AbilitySna
 	response := []dto.AbilitySnap{}
 	for _, r := range rows {
 		response = append(response, dto.AbilitySnap{
-			ID:   r.ID,
-			Name: util.FormatName(r.Name, false),
-			Gen:  r.Gen,
+			ID:         r.ID,
+			Slug:       r.Name,
+			Name:       r.DisplayName,
+			ShowdownID: r.ShowdownID,
+			Gen:        r.Gen,
 		})
 	}
 	return response, nil
@@ -46,10 +47,10 @@ func (s *AbilitiesService) GetAbilityByName(ctx context.Context, name string) (*
 	if err != nil {
 		return nil, err
 	}
-	return s.buildDetail(ctx, a)
+	return s.buildDetail(ctx, store.GetAbilityRow(a))
 }
 
-func (s *AbilitiesService) buildDetail(ctx context.Context, a store.Ability) (*dto.AbilityDetail, error) {
+func (s *AbilitiesService) buildDetail(ctx context.Context, a store.GetAbilityRow) (*dto.AbilityDetail, error) {
 	descriptionRows, err := s.q.GetAbilityDescriptions(ctx, a.ID)
 	if err != nil {
 		return nil, err
@@ -68,7 +69,8 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.Ability) (*d
 		pokemonResponse = append(pokemonResponse, dto.PokemonSnap{
 			SpeciesID: p.SpeciesID,
 			ID:        p.ID,
-			Name:      util.FormatName(p.Name, true),
+			Slug:      p.Name,
+			Name:      p.DisplayName,
 			Type1:     pokeenum.ToDisplay(p.Type1),
 			Type2:     displayPtr(p.Type2),
 		})
@@ -76,7 +78,9 @@ func (s *AbilitiesService) buildDetail(ctx context.Context, a store.Ability) (*d
 
 	response := &dto.AbilityDetail{
 		ID:           a.ID,
-		Name:         util.FormatName(a.Name, false),
+		Slug:         a.Name,
+		Name:         a.DisplayName,
+		ShowdownID:   a.ShowdownID,
 		Gen:          a.Gen,
 		Descriptions: descriptions,
 		Pokemon:      pokemonResponse,

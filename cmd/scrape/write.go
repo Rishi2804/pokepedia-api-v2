@@ -148,3 +148,31 @@ func writeItemRows(ctx context.Context, pool *pgxpool.Pool, rows []itemRow, over
 	}
 	return nil
 }
+
+// writeNameRows stores display names, Showdown ids and battle-only info on
+// the species, pokemon, move and ability rows.
+func writeNameRows(ctx context.Context, pool *pgxpool.Pool, data *nameData) error {
+	batch := &pgx.Batch{}
+	for _, r := range data.Species {
+		batch.Queue(updateSpeciesName, r.ID, r.DisplayName)
+	}
+	for _, r := range data.Pokemon {
+		batch.Queue(updatePokemonName, r.ID, r.DisplayName, r.ShowdownID, r.ShowdownName,
+			r.BattleOnlyBaseID, r.RequiredItemID, r.Gigantamax)
+	}
+	for _, r := range data.Moves {
+		batch.Queue(updateMoveName, r.ID, r.DisplayName, r.ShowdownID)
+	}
+	for _, r := range data.Abilities {
+		batch.Queue(updateAbilityName, r.ID, r.DisplayName, r.ShowdownID)
+	}
+
+	br := pool.SendBatch(ctx, batch)
+	defer br.Close()
+	for i := 0; i < batch.Len(); i++ {
+		if _, err := br.Exec(); err != nil {
+			return fmt.Errorf("batch exec: %w", err)
+		}
+	}
+	return nil
+}

@@ -32,36 +32,24 @@ VALUES ($1, $2, $3)
 ON CONFLICT (ability_id, version) DO %s
 `
 
-// movedetails has no primary key or unique constraint -- 8,575
-// (pokemon_id, move_id, method, version) groups already have duplicates,
-// all of them method='level-up' and all legitimate (the same move learned
-// at two different levels across sub-versions, e.g. Bulbasaur's Vine Whip
-// at both level 7 and 9 in Sun/Moon). Egg moves have zero such duplicates
-// today, so a WHERE NOT EXISTS guard gives the same gap-fill-only
-// idempotency the ON CONFLICT upserts above give the *descriptions tables,
-// without a schema change.
+// movedetails has a primary key (pokemon_id, move_id, method, level_learned,
+// version) since 000020, so egg and Legends rows are ordinary gap-fill
+// upserts: ON CONFLICT DO NOTHING, the same policy every other write path in
+// this tool uses. Before that key existed these were WHERE NOT EXISTS guards,
+// because 8,575 (pokemon_id, move_id, method, version) groups legitimately
+// repeat at different levels (Bulbasaur's Vine Whip at 7 and 9 in Sun/Moon);
+// level_learned is part of the key, so that case is still never blocked.
 const insertEggMove = `
 INSERT INTO public.movedetails (pokemon_id, move_id, method, level_learned, version)
-SELECT $1, $2, 'egg', 0, $3
-WHERE NOT EXISTS (
-  SELECT 1 FROM public.movedetails
-  WHERE pokemon_id = $1 AND move_id = $2 AND method = 'egg' AND version = $3
-)
+VALUES ($1, $2, 'egg', 0, $3)
+ON CONFLICT (pokemon_id, move_id, method, level_learned, version) DO NOTHING
 `
 
-// insertLegendsMove is insertEggMove's Legends: Arceus/Z-A counterpart:
-// movedetails still has no unique constraint, so this stays a
-// WHERE NOT EXISTS guard rather than ON CONFLICT. level_learned is part of
-// the guard (unlike insertEggMove, where it's always 0) so a genuine
-// two-different-levels case, if one ever exists, isn't blocked by an
-// unrelated row at a different level for the same move.
+// insertLegendsMove is insertEggMove's Legends: Arceus/Z-A counterpart.
 const insertLegendsMove = `
 INSERT INTO public.movedetails (pokemon_id, move_id, method, level_learned, version)
-SELECT $1, $2, $3, $4, $5
-WHERE NOT EXISTS (
-  SELECT 1 FROM public.movedetails
-  WHERE pokemon_id = $1 AND move_id = $2 AND method = $3 AND level_learned = $4 AND version = $5
-)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (pokemon_id, move_id, method, level_learned, version) DO NOTHING
 `
 
 // upsertLegendsMoveValues writes the per-(pokemon, move, game) stat extras.
@@ -105,3 +93,18 @@ INSERT INTO public.itemheldby (item_id, pokemon_id, version, rarity)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT (item_id, pokemon_id, version) DO NOTHING
 `
+
+// Name writes: one UPDATE per row, since these columns are added to tables
+// whose rows already exist (000023). Re-running is idempotent.
+const updateSpeciesName = `UPDATE public.species SET display_name = $2 WHERE id = $1`
+
+const updatePokemonName = `
+UPDATE public.pokemon
+SET display_name = $2, showdown_id = $3, showdown_name = $4,
+    battle_only_base_id = $5, required_item_id = $6, gigantamax = $7
+WHERE id = $1
+`
+
+const updateMoveName = `UPDATE public.move SET display_name = $2, showdown_id = $3 WHERE id = $1`
+
+const updateAbilityName = `UPDATE public.ability SET display_name = $2, showdown_id = $3 WHERE id = $1`

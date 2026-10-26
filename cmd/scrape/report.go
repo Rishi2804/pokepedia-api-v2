@@ -200,3 +200,38 @@ func reportItems(rows []itemRow, unresolved []unresolvedItem) {
 
 	printUnresolved(unresolved)
 }
+
+// reportNames prints the names pass summary and a few sample rows, so the
+// results can be eyeballed before anything is written.
+func reportNames(data *nameData, unresolved []unresolvedItem) {
+	var withShowdown, battleOnly, withItem, gmax int
+	for _, p := range data.Pokemon {
+		if p.ShowdownID != nil {
+			withShowdown++
+		}
+		if p.BattleOnlyBaseID != nil {
+			battleOnly++
+		}
+		if p.RequiredItemID != nil {
+			withItem++
+		}
+		if p.Gigantamax {
+			gmax++
+		}
+	}
+	matched := func(rows []nameRow) int {
+		n := 0
+		for _, r := range rows {
+			if r.ShowdownID != nil {
+				n++
+			}
+		}
+		return n
+	}
+	fmt.Printf("species:   %d named\n", len(data.Species))
+	fmt.Printf("pokemon:   %d named, %d with a Showdown id (%d battle-only, %d with a required item, %d Gmax)\n",
+		len(data.Pokemon), withShowdown, battleOnly, withItem, gmax)
+	fmt.Printf("moves:     %d named, %d with a Showdown id\n", len(data.Moves), matched(data.Moves))
+	fmt.Printf("abilities: %d named, %d with a Showdown id\n", len(data.Abilities), matched(data.Abilities))
+	printUnresolved(unresolved)
+}

@@ -1,20 +1,20 @@
 -- name: GetPokemon :one
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, showdown_id, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE id = $1;
 
 -- name: GetPokemonByName :one
-SELECT id, species_id, name, gen, type1, type2, weight, height, gender_rate,
+SELECT id, species_id, name, display_name, showdown_id, gen, type1, type2, weight, height, gender_rate,
        hp, atk, def, spatk, spdef, speed, bst, forms
 FROM pokemon
 WHERE name = $1;
 
 -- name: GetDexNumbersByIDs :many
-SELECT ids.pokemon_id, d.species_id, d.name, d.num, d.default_variate, d.alt_variates
+SELECT ids.pokemon_id, d.species_id, d.dex, d.num, d.default_variate, d.alt_variates
 FROM unnest(sqlc.arg(pokemon_ids)::int[]) AS ids(pokemon_id)
 JOIN dexnumber d ON d.default_variate = ids.pokemon_id OR d.alt_variates @> ARRAY[ids.pokemon_id]
-ORDER BY ids.pokemon_id, d.name;
+ORDER BY ids.pokemon_id, d.dex;
 
 -- name: GetPokemonDescriptionsByIDs :many
 -- One row per game. `version` is the public.game enum, declared in release
@@ -25,10 +25,13 @@ WHERE pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
 ORDER BY pokemon_id, version;
 
 -- name: GetEvolutionChainByIDs :many
-SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, e.from_display, e.to_pokemon,
-       e.to_display, e.details, e.region, e.alt_form, e.next_evo, e.prev_evo
+SELECT ids.pokemon_id, e.chain_id, e.id, e.from_pokemon, fp.display_name AS from_display_name,
+       e.to_pokemon, tp.display_name AS to_display_name, e.details, e.region, e.alt_form,
+       e.next_evo, e.prev_evo
 FROM unnest(sqlc.arg(pokemon_ids)::int[]) AS ids(pokemon_id)
 CROSS JOIN LATERAL get_evolution_chain_by_id(ids.pokemon_id) e
+JOIN pokemon fp ON fp.id = e.from_pokemon
+JOIN pokemon tp ON tp.id = e.to_pokemon
 ORDER BY ids.pokemon_id, e.id;
 
 -- name: GetPokemonMovesByIDs :many
@@ -41,7 +44,7 @@ ORDER BY ids.pokemon_id, e.id;
 -- Legends: Z-A row's NULL pp (that game has no PP stat; it has cooldown
 -- instead) must stay NULL, not fall back to an unrelated mainline value.
 SELECT
-    d.pokemon_id, d.move_id, m.name, m.type, d.level_learned, d.method,
+    d.pokemon_id, d.move_id, m.name, m.display_name, m.showdown_id, m.type, d.level_learned, d.method,
     d.version, m.class,
     CASE WHEN lmv.pokemon_id IS NOT NULL THEN lmv.power_base
          ELSE COALESCE(pmv.power, m.power) END AS power,
@@ -52,14 +55,14 @@ SELECT
     lmv.second_level, lmv.power_strong, lmv.power_agile, lmv.accuracy_2, lmv.cooldown
 FROM movedetails d
 JOIN move m ON d.move_id = m.id
-LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.id AND pmv.version_groups @> ARRAY[d.version]
+LEFT JOIN pastmovevalues pmv ON d.move_id = pmv.move_id AND pmv.version_groups @> ARRAY[d.version]
 LEFT JOIN legendsmovevalues lmv ON lmv.pokemon_id = d.pokemon_id AND lmv.move_id = d.move_id AND lmv.version = d.version
 WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])
 ORDER BY d.pokemon_id, d.version, d.method, d.level_learned, d.move_id;
 
 -- name: GetPokemonAbilitiesByIDs :many
-SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.gen AS ability_gen,
-       d.hidden, d.gen AS gen_removed
+SELECT d.pokemon_id, a.id AS ability_id, a.name AS ability_name, a.display_name AS ability_display_name, a.showdown_id AS ability_showdown_id,
+       a.gen AS ability_gen, d.hidden, d.gen AS gen_removed
 FROM abilitydetails d
 JOIN ability a ON a.id = d.ability_id
 WHERE d.pokemon_id = ANY(sqlc.arg(pokemon_ids)::int[])

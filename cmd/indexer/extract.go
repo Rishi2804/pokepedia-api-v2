@@ -7,32 +7,35 @@ import (
 )
 
 type pokemonRow struct {
-	ID         int32
-	Slug       string
-	Gen        int32
-	Type1      string
-	Type2      *string
-	SpeciesID  int32
-	Popularity int32
+	ID          int32
+	Slug        string
+	DisplayName string
+	Gen         int32
+	Type1       string
+	Type2       *string
+	SpeciesID   int32
+	Popularity  int32
 }
 
 type moveRow struct {
-	ID       int32
-	Slug     string
-	Gen      int32
-	Type     string
-	Class    string
-	Power    *int32
-	Accuracy *int32
-	PP       *int32
-	Effect   *string
+	ID          int32
+	Slug        string
+	DisplayName string
+	Gen         int32
+	Type        string
+	Class       string
+	Power       *int32
+	Accuracy    *int32
+	PP          *int32
+	Effect      *string
 }
 
 type abilityRow struct {
-	ID     int32
-	Slug   string
-	Gen    int32
-	Effect *string
+	ID          int32
+	Slug        string
+	DisplayName string
+	Gen         int32
+	Effect      *string
 }
 
 type itemRow struct {
@@ -47,8 +50,8 @@ type itemRow struct {
 }
 
 type speciesRow struct {
-	ID   int32
-	Name *string
+	ID          int32
+	DisplayName string
 }
 
 func fetchPokemon(ctx context.Context, pool *pgxpool.Pool) ([]pokemonRow, error) {
@@ -61,7 +64,7 @@ func fetchPokemon(ctx context.Context, pool *pgxpool.Pool) ([]pokemonRow, error)
 	var out []pokemonRow
 	for rows.Next() {
 		var r pokemonRow
-		if err := rows.Scan(&r.ID, &r.Slug, &r.Gen, &r.Type1, &r.Type2, &r.SpeciesID, &r.Popularity); err != nil {
+		if err := rows.Scan(&r.ID, &r.Slug, &r.DisplayName, &r.Gen, &r.Type1, &r.Type2, &r.SpeciesID, &r.Popularity); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -79,7 +82,7 @@ func fetchMoves(ctx context.Context, pool *pgxpool.Pool) ([]moveRow, error) {
 	var out []moveRow
 	for rows.Next() {
 		var r moveRow
-		if err := rows.Scan(&r.ID, &r.Slug, &r.Gen, &r.Type, &r.Class, &r.Power, &r.Accuracy, &r.PP, &r.Effect); err != nil {
+		if err := rows.Scan(&r.ID, &r.Slug, &r.DisplayName, &r.Gen, &r.Type, &r.Class, &r.Power, &r.Accuracy, &r.PP, &r.Effect); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -97,7 +100,7 @@ func fetchAbilities(ctx context.Context, pool *pgxpool.Pool) ([]abilityRow, erro
 	var out []abilityRow
 	for rows.Next() {
 		var r abilityRow
-		if err := rows.Scan(&r.ID, &r.Slug, &r.Gen, &r.Effect); err != nil {
+		if err := rows.Scan(&r.ID, &r.Slug, &r.DisplayName, &r.Gen, &r.Effect); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -133,7 +136,7 @@ func fetchSpecies(ctx context.Context, pool *pgxpool.Pool) ([]speciesRow, error)
 	var out []speciesRow
 	for rows.Next() {
 		var r speciesRow
-		if err := rows.Scan(&r.ID, &r.Name); err != nil {
+		if err := rows.Scan(&r.ID, &r.DisplayName); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

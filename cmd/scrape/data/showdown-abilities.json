@@ -1,0 +1,1922 @@
+[
+	{
+		"id": "adaptability",
+		"name": "Adaptability",
+		"num": 91,
+		"isNonstandard": null
+	},
+	{
+		"id": "aerilate",
+		"name": "Aerilate",
+		"num": 184,
+		"isNonstandard": null
+	},
+	{
+		"id": "aftermath",
+		"name": "Aftermath",
+		"num": 106,
+		"isNonstandard": null
+	},
+	{
+		"id": "airlock",
+		"name": "Air Lock",
+		"num": 76,
+		"isNonstandard": null
+	},
+	{
+		"id": "analytic",
+		"name": "Analytic",
+		"num": 148,
+		"isNonstandard": null
+	},
+	{
+		"id": "angerpoint",
+		"name": "Anger Point",
+		"num": 83,
+		"isNonstandard": null
+	},
+	{
+		"id": "angershell",
+		"name": "Anger Shell",
+		"num": 271,
+		"isNonstandard": null
+	},
+	{
+		"id": "anticipation",
+		"name": "Anticipation",
+		"num": 107,
+		"isNonstandard": null
+	},
+	{
+		"id": "arenatrap",
+		"name": "Arena Trap",
+		"num": 71,
+		"isNonstandard": null
+	},
+	{
+		"id": "armortail",
+		"name": "Armor Tail",
+		"num": 296,
+		"isNonstandard": null
+	},
+	{
+		"id": "aromaveil",
+		"name": "Aroma Veil",
+		"num": 165,
+		"isNonstandard": null
+	},
+	{
+		"id": "asoneglastrier",
+		"name": "As One (Glastrier)",
+		"num": 266,
+		"isNonstandard": null
+	},
+	{
+		"id": "asonespectrier",
+		"name": "As One (Spectrier)",
+		"num": 267,
+		"isNonstandard": null
+	},
+	{
+		"id": "aurabreak",
+		"name": "Aura Break",
+		"num": 188,
+		"isNonstandard": null
+	},
+	{
+		"id": "baddreams",
+		"name": "Bad Dreams",
+		"num": 123,
+		"isNonstandard": null
+	},
+	{
+		"id": "ballfetch",
+		"name": "Ball Fetch",
+		"num": 237,
+		"isNonstandard": null
+	},
+	{
+		"id": "battery",
+		"name": "Battery",
+		"num": 217,
+		"isNonstandard": null
+	},
+	{
+		"id": "battlearmor",
+		"name": "Battle Armor",
+		"num": 4,
+		"isNonstandard": null
+	},
+	{
+		"id": "battlebond",
+		"name": "Battle Bond",
+		"num": 210,
+		"isNonstandard": null
+	},
+	{
+		"id": "beadsofruin",
+		"name": "Beads of Ruin",
+		"num": 284,
+		"isNonstandard": null
+	},
+	{
+		"id": "beastboost",
+		"name": "Beast Boost",
+		"num": 224,
+		"isNonstandard": null
+	},
+	{
+		"id": "berserk",
+		"name": "Berserk",
+		"num": 201,
+		"isNonstandard": null
+	},
+	{
+		"id": "bigpecks",
+		"name": "Big Pecks",
+		"num": 145,
+		"isNonstandard": null
+	},
+	{
+		"id": "blaze",
+		"name": "Blaze",
+		"num": 66,
+		"isNonstandard": null
+	},
+	{
+		"id": "bulletproof",
+		"name": "Bulletproof",
+		"num": 171,
+		"isNonstandard": null
+	},
+	{
+		"id": "cheekpouch",
+		"name": "Cheek Pouch",
+		"num": 167,
+		"isNonstandard": null
+	},
+	{
+		"id": "chillingneigh",
+		"name": "Chilling Neigh",
+		"num": 264,
+		"isNonstandard": null
+	},
+	{
+		"id": "chlorophyll",
+		"name": "Chlorophyll",
+		"num": 34,
+		"isNonstandard": null
+	},
+	{
+		"id": "clearbody",
+		"name": "Clear Body",
+		"num": 29,
+		"isNonstandard": null
+	},
+	{
+		"id": "cloudnine",
+		"name": "Cloud Nine",
+		"num": 13,
+		"isNonstandard": null
+	},
+	{
+		"id": "colorchange",
+		"name": "Color Change",
+		"num": 16,
+		"isNonstandard": null
+	},
+	{
+		"id": "comatose",
+		"name": "Comatose",
+		"num": 213,
+		"isNonstandard": null
+	},
+	{
+		"id": "commander",
+		"name": "Commander",
+		"num": 279,
+		"isNonstandard": null
+	},
+	{
+		"id": "competitive",
+		"name": "Competitive",
+		"num": 172,
+		"isNonstandard": null
+	},
+	{
+		"id": "compoundeyes",
+		"name": "Compound Eyes",
+		"num": 14,
+		"isNonstandard": null
+	},
+	{
+		"id": "contrary",
+		"name": "Contrary",
+		"num": 126,
+		"isNonstandard": null
+	},
+	{
+		"id": "corrosion",
+		"name": "Corrosion",
+		"num": 212,
+		"isNonstandard": null
+	},
+	{
+		"id": "costar",
+		"name": "Costar",
+		"num": 294,
+		"isNonstandard": null
+	},
+	{
+		"id": "cottondown",
+		"name": "Cotton Down",
+		"num": 238,
+		"isNonstandard": null
+	},
+	{
+		"id": "cudchew",
+		"name": "Cud Chew",
+		"num": 291,
+		"isNonstandard": null
+	},
+	{
+		"id": "curiousmedicine",
+		"name": "Curious Medicine",
+		"num": 261,
+		"isNonstandard": null
+	},
+	{
+		"id": "cursedbody",
+		"name": "Cursed Body",
+		"num": 130,
+		"isNonstandard": null
+	},
+	{
+		"id": "cutecharm",
+		"name": "Cute Charm",
+		"num": 56,
+		"isNonstandard": null
+	},
+	{
+		"id": "damp",
+		"name": "Damp",
+		"num": 6,
+		"isNonstandard": null
+	},
+	{
+		"id": "dancer",
+		"name": "Dancer",
+		"num": 216,
+		"isNonstandard": null
+	},
+	{
+		"id": "darkaura",
+		"name": "Dark Aura",
+		"num": 186,
+		"isNonstandard": null
+	},
+	{
+		"id": "dauntlessshield",
+		"name": "Dauntless Shield",
+		"num": 235,
+		"isNonstandard": null
+	},
+	{
+		"id": "dazzling",
+		"name": "Dazzling",
+		"num": 219,
+		"isNonstandard": null
+	},
+	{
+		"id": "defeatist",
+		"name": "Defeatist",
+		"num": 129,
+		"isNonstandard": null
+	},
+	{
+		"id": "defiant",
+		"name": "Defiant",
+		"num": 128,
+		"isNonstandard": null
+	},
+	{
+		"id": "deltastream",
+		"name": "Delta Stream",
+		"num": 191,
+		"isNonstandard": null
+	},
+	{
+		"id": "desolateland",
+		"name": "Desolate Land",
+		"num": 190,
+		"isNonstandard": null
+	},
+	{
+		"id": "disguise",
+		"name": "Disguise",
+		"num": 209,
+		"isNonstandard": null
+	},
+	{
+		"id": "download",
+		"name": "Download",
+		"num": 88,
+		"isNonstandard": null
+	},
+	{
+		"id": "dragonize",
+		"name": "Dragonize",
+		"num": 312,
+		"isNonstandard": "Future"
+	},
+	{
+		"id": "dragonsmaw",
+		"name": "Dragon's Maw",
+		"num": 263,
+		"isNonstandard": null
+	},
+	{
+		"id": "drizzle",
+		"name": "Drizzle",
+		"num": 2,
+		"isNonstandard": null
+	},
+	{
+		"id": "drought",
+		"name": "Drought",
+		"num": 70,
+		"isNonstandard": null
+	},
+	{
+		"id": "dryskin",
+		"name": "Dry Skin",
+		"num": 87,
+		"isNonstandard": null
+	},
+	{
+		"id": "earlybird",
+		"name": "Early Bird",
+		"num": 48,
+		"isNonstandard": null
+	},
+	{
+		"id": "eartheater",
+		"name": "Earth Eater",
+		"num": 297,
+		"isNonstandard": null
+	},
+	{
+		"id": "eelevate",
+		"name": "Eelevate",
+		"num": 313,
+		"isNonstandard": "Future"
+	},
+	{
+		"id": "effectspore",
+		"name": "Effect Spore",
+		"num": 27,
+		"isNonstandard": null
+	},
+	{
+		"id": "electricsurge",
+		"name": "Electric Surge",
+		"num": 226,
+		"isNonstandard": null
+	},
+	{
+		"id": "electromorphosis",
+		"name": "Electromorphosis",
+		"num": 280,
+		"isNonstandard": null
+	},
+	{
+		"id": "embodyaspectcornerstone",
+		"name": "Embody Aspect (Cornerstone)",
+		"num": 304,
+		"isNonstandard": null
+	},
+	{
+		"id": "embodyaspecthearthflame",
+		"name": "Embody Aspect (Hearthflame)",
+		"num": 303,
+		"isNonstandard": null
+	},
+	{
+		"id": "embodyaspectteal",
+		"name": "Embody Aspect (Teal)",
+		"num": 301,
+		"isNonstandard": null
+	},
+	{
+		"id": "embodyaspectwellspring",
+		"name": "Embody Aspect (Wellspring)",
+		"num": 302,
+		"isNonstandard": null
+	},
+	{
+		"id": "emergencyexit",
+		"name": "Emergency Exit",
+		"num": 194,
+		"isNonstandard": null
+	},
+	{
+		"id": "fairyaura",
+		"name": "Fairy Aura",
+		"num": 187,
+		"isNonstandard": null
+	},
+	{
+		"id": "filter",
+		"name": "Filter",
+		"num": 111,
+		"isNonstandard": null
+	},
+	{
+		"id": "firemane",
+		"name": "Fire Mane",
+		"num": 316,
+		"isNonstandard": "Future"
+	},
+	{
+		"id": "flamebody",
+		"name": "Flame Body",
+		"num": 49,
+		"isNonstandard": null
+	},
+	{
+		"id": "flareboost",
+		"name": "Flare Boost",
+		"num": 138,
+		"isNonstandard": null
+	},
+	{
+		"id": "flashfire",
+		"name": "Flash Fire",
+		"num": 18,
+		"isNonstandard": null
+	},
+	{
+		"id": "flowergift",
+		"name": "Flower Gift",
+		"num": 122,
+		"isNonstandard": null
+	},
+	{
+		"id": "flowerveil",
+		"name": "Flower Veil",
+		"num": 166,
+		"isNonstandard": null
+	},
+	{
+		"id": "fluffy",
+		"name": "Fluffy",
+		"num": 218,
+		"isNonstandard": null
+	},
+	{
+		"id": "forecast",
+		"name": "Forecast",
+		"num": 59,
+		"isNonstandard": null
+	},
+	{
+		"id": "forewarn",
+		"name": "Forewarn",
+		"num": 108,
+		"isNonstandard": null
+	},
+	{
+		"id": "friendguard",
+		"name": "Friend Guard",
+		"num": 132,
+		"isNonstandard": null
+	},
+	{
+		"id": "frisk",
+		"name": "Frisk",
+		"num": 119,
+		"isNonstandard": null
+	},
+	{
+		"id": "fullmetalbody",
+		"name": "Full Metal Body",
+		"num": 230,
+		"isNonstandard": null
+	},
+	{
+		"id": "furcoat",
+		"name": "Fur Coat",
+		"num": 169,
+		"isNonstandard": null
+	},
+	{
+		"id": "galewings",
+		"name": "Gale Wings",
+		"num": 177,
+		"isNonstandard": null
+	},
+	{
+		"id": "galvanize",
+		"name": "Galvanize",
+		"num": 206,
+		"isNonstandard": null
+	},
+	{
+		"id": "gluttony",
+		"name": "Gluttony",
+		"num": 82,
+		"isNonstandard": null
+	},
+	{
+		"id": "goodasgold",
+		"name": "Good as Gold",
+		"num": 283,
+		"isNonstandard": null
+	},
+	{
+		"id": "gooey",
+		"name": "Gooey",
+		"num": 183,
+		"isNonstandard": null
+	},
+	{
+		"id": "gorillatactics",
+		"name": "Gorilla Tactics",
+		"num": 255,
+		"isNonstandard": null
+	},
+	{
+		"id": "grasspelt",
+		"name": "Grass Pelt",
+		"num": 179,
+		"isNonstandard": null
+	},
+	{
+		"id": "grassysurge",
+		"name": "Grassy Surge",
+		"num": 229,
+		"isNonstandard": null
+	},
+	{
+		"id": "grimneigh",
+		"name": "Grim Neigh",
+		"num": 265,
+		"isNonstandard": null
+	},
+	{
+		"id": "guarddog",
+		"name": "Guard Dog",
+		"num": 275,
+		"isNonstandard": null
+	},
+	{
+		"id": "gulpmissile",
+		"name": "Gulp Missile",
+		"num": 241,
+		"isNonstandard": null
+	},
+	{
+		"id": "guts",
+		"name": "Guts",
+		"num": 62,
+		"isNonstandard": null
+	},
+	{
+		"id": "hadronengine",
+		"name": "Hadron Engine",
+		"num": 289,
+		"isNonstandard": null
+	},
+	{
+		"id": "harvest",
+		"name": "Harvest",
+		"num": 139,
+		"isNonstandard": null
+	},
+	{
+		"id": "healer",
+		"name": "Healer",
+		"num": 131,
+		"isNonstandard": null
+	},
+	{
+		"id": "heatproof",
+		"name": "Heatproof",
+		"num": 85,
+		"isNonstandard": null
+	},
+	{
+		"id": "heavymetal",
+		"name": "Heavy Metal",
+		"num": 134,
+		"isNonstandard": null
+	},
+	{
+		"id": "honeygather",
+		"name": "Honey Gather",
+		"num": 118,
+		"isNonstandard": null
+	},
+	{
+		"id": "hospitality",
+		"name": "Hospitality",
+		"num": 299,
+		"isNonstandard": null
+	},
+	{
+		"id": "hugepower",
+		"name": "Huge Power",
+		"num": 37,
+		"isNonstandard": null
+	},
+	{
+		"id": "hungerswitch",
+		"name": "Hunger Switch",
+		"num": 258,
+		"isNonstandard": null
+	},
+	{
+		"id": "hustle",
+		"name": "Hustle",
+		"num": 55,
+		"isNonstandard": null
+	},
+	{
+		"id": "hydration",
+		"name": "Hydration",
+		"num": 93,
+		"isNonstandard": null
+	},
+	{
+		"id": "hypercutter",
+		"name": "Hyper Cutter",
+		"num": 52,
+		"isNonstandard": null
+	},
+	{
+		"id": "icebody",
+		"name": "Ice Body",
+		"num": 115,
+		"isNonstandard": null
+	},
+	{
+		"id": "iceface",
+		"name": "Ice Face",
+		"num": 248,
+		"isNonstandard": null
+	},
+	{
+		"id": "icescales",
+		"name": "Ice Scales",
+		"num": 246,
+		"isNonstandard": null
+	},
+	{
+		"id": "illuminate",
+		"name": "Illuminate",
+		"num": 35,
+		"isNonstandard": null
+	},
+	{
+		"id": "illusion",
+		"name": "Illusion",
+		"num": 149,
+		"isNonstandard": null
+	},
+	{
+		"id": "immunity",
+		"name": "Immunity",
+		"num": 17,
+		"isNonstandard": null
+	},
+	{
+		"id": "imposter",
+		"name": "Imposter",
+		"num": 150,
+		"isNonstandard": null
+	},
+	{
+		"id": "infiltrator",
+		"name": "Infiltrator",
+		"num": 151,
+		"isNonstandard": null
+	},
+	{
+		"id": "innardsout",
+		"name": "Innards Out",
+		"num": 215,
+		"isNonstandard": null
+	},
+	{
+		"id": "innerfocus",
+		"name": "Inner Focus",
+		"num": 39,
+		"isNonstandard": null
+	},
+	{
+		"id": "insomnia",
+		"name": "Insomnia",
+		"num": 15,
+		"isNonstandard": null
+	},
+	{
+		"id": "intimidate",
+		"name": "Intimidate",
+		"num": 22,
+		"isNonstandard": null
+	},
+	{
+		"id": "intrepidsword",
+		"name": "Intrepid Sword",
+		"num": 234,
+		"isNonstandard": null
+	},
+	{
+		"id": "ironbarbs",
+		"name": "Iron Barbs",
+		"num": 160,
+		"isNonstandard": null
+	},
+	{
+		"id": "ironfist",
+		"name": "Iron Fist",
+		"num": 89,
+		"isNonstandard": null
+	},
+	{
+		"id": "justified",
+		"name": "Justified",
+		"num": 154,
+		"isNonstandard": null
+	},
+	{
+		"id": "keeneye",
+		"name": "Keen Eye",
+		"num": 51,
+		"isNonstandard": null
+	},
+	{
+		"id": "klutz",
+		"name": "Klutz",
+		"num": 103,
+		"isNonstandard": null
+	},
+	{
+		"id": "leafguard",
+		"name": "Leaf Guard",
+		"num": 102,
+		"isNonstandard": null
+	},
+	{
+		"id": "levitate",
+		"name": "Levitate",
+		"num": 26,
+		"isNonstandard": null
+	},
+	{
+		"id": "libero",
+		"name": "Libero",
+		"num": 236,
+		"isNonstandard": null
+	},
+	{
+		"id": "lightmetal",
+		"name": "Light Metal",
+		"num": 135,
+		"isNonstandard": null
+	},
+	{
+		"id": "lightningrod",
+		"name": "Lightning Rod",
+		"num": 31,
+		"isNonstandard": null
+	},
+	{
+		"id": "limber",
+		"name": "Limber",
+		"num": 7,
+		"isNonstandard": null
+	},
+	{
+		"id": "lingeringaroma",
+		"name": "Lingering Aroma",
+		"num": 268,
+		"isNonstandard": null
+	},
+	{
+		"id": "liquidooze",
+		"name": "Liquid Ooze",
+		"num": 64,
+		"isNonstandard": null
+	},
+	{
+		"id": "liquidvoice",
+		"name": "Liquid Voice",
+		"num": 204,
+		"isNonstandard": null
+	},
+	{
+		"id": "longreach",
+		"name": "Long Reach",
+		"num": 203,
+		"isNonstandard": null
+	},
+	{
+		"id": "magicbounce",
+		"name": "Magic Bounce",
+		"num": 156,
+		"isNonstandard": null
+	},
+	{
+		"id": "magicguard",
+		"name": "Magic Guard",
+		"num": 98,
+		"isNonstandard": null
+	},
+	{
+		"id": "magician",
+		"name": "Magician",
+		"num": 170,
+		"isNonstandard": null
+	},
+	{
+		"id": "magmaarmor",
+		"name": "Magma Armor",
+		"num": 40,
+		"isNonstandard": null
+	},
+	{
+		"id": "magnetpull",
+		"name": "Magnet Pull",
+		"num": 42,
+		"isNonstandard": null
+	},
+	{
+		"id": "marvelscale",
+		"name": "Marvel Scale",
+		"num": 63,
+		"isNonstandard": null
+	},
+	{
+		"id": "megalauncher",
+		"name": "Mega Launcher",
+		"num": 178,
+		"isNonstandard": null
+	},
+	{
+		"id": "megasol",
+		"name": "Mega Sol",
+		"num": 315,
+		"isNonstandard": "Future"
+	},
+	{
+		"id": "merciless",
+		"name": "Merciless",
+		"num": 196,
+		"isNonstandard": null
+	},
+	{
+		"id": "mimicry",
+		"name": "Mimicry",
+		"num": 250,
+		"isNonstandard": null
+	},
+	{
+		"id": "mindseye",
+		"name": "Mind's Eye",
+		"num": 300,
+		"isNonstandard": null
+	},
+	{
+		"id": "minus",
+		"name": "Minus",
+		"num": 58,
+		"isNonstandard": null
+	},
+	{
+		"id": "mirrorarmor",
+		"name": "Mirror Armor",
+		"num": 240,
+		"isNonstandard": null
+	},
+	{
+		"id": "mistysurge",
+		"name": "Misty Surge",
+		"num": 228,
+		"isNonstandard": null
+	},
+	{
+		"id": "moldbreaker",
+		"name": "Mold Breaker",
+		"num": 104,
+		"isNonstandard": null
+	},
+	{
+		"id": "moody",
+		"name": "Moody",
+		"num": 141,
+		"isNonstandard": null
+	},
+	{
+		"id": "motordrive",
+		"name": "Motor Drive",
+		"num": 78,
+		"isNonstandard": null
+	},
+	{
+		"id": "mountaineer",
+		"name": "Mountaineer",
+		"num": -1,
+		"isNonstandard": "CAP"
+	},
+	{
+		"id": "moxie",
+		"name": "Moxie",
+		"num": 153,
+		"isNonstandard": null
+	},
+	{
+		"id": "multiscale",
+		"name": "Multiscale",
+		"num": 136,
+		"isNonstandard": null
+	},
+	{
+		"id": "multitype",
+		"name": "Multitype",
+		"num": 121,
+		"isNonstandard": null
+	},
+	{
+		"id": "mummy",
+		"name": "Mummy",
+		"num": 152,
+		"isNonstandard": null
+	},
+	{
+		"id": "myceliummight",
+		"name": "Mycelium Might",
+		"num": 298,
+		"isNonstandard": null
+	},
+	{
+		"id": "naturalcure",
+		"name": "Natural Cure",
+		"num": 30,
+		"isNonstandard": null
+	},
+	{
+		"id": "neuroforce",
+		"name": "Neuroforce",
+		"num": 233,
+		"isNonstandard": null
+	},
+	{
+		"id": "neutralizinggas",
+		"name": "Neutralizing Gas",
+		"num": 256,
+		"isNonstandard": null
+	},
+	{
+		"id": "noability",
+		"name": "No Ability",
+		"num": 0,
+		"isNonstandard": "Past"
+	},
+	{
+		"id": "noguard",
+		"name": "No Guard",
+		"num": 99,
+		"isNonstandard": null
+	},
+	{
+		"id": "normalize",
+		"name": "Normalize",
+		"num": 96,
+		"isNonstandard": null
+	},
+	{
+		"id": "oblivious",
+		"name": "Oblivious",
+		"num": 12,
+		"isNonstandard": null
+	},
+	{
+		"id": "opportunist",
+		"name": "Opportunist",
+		"num": 290,
+		"isNonstandard": null
+	},
+	{
+		"id": "orichalcumpulse",
+		"name": "Orichalcum Pulse",
+		"num": 288,
+		"isNonstandard": null
+	},
+	{
+		"id": "overcoat",
+		"name": "Overcoat",
+		"num": 142,
+		"isNonstandard": null
+	},
+	{
+		"id": "overgrow",
+		"name": "Overgrow",
+		"num": 65,
+		"isNonstandard": null
+	},
+	{
+		"id": "owntempo",
+		"name": "Own Tempo",
+		"num": 20,
+		"isNonstandard": null
+	},
+	{
+		"id": "parentalbond",
+		"name": "Parental Bond",
+		"num": 185,
+		"isNonstandard": null
+	},
+	{
+		"id": "pastelveil",
+		"name": "Pastel Veil",
+		"num": 257,
+		"isNonstandard": null
+	},
+	{
+		"id": "perishbody",
+		"name": "Perish Body",
+		"num": 253,
+		"isNonstandard": null
+	},
+	{
+		"id": "persistent",
+		"name": "Persistent",
+		"num": -3,
+		"isNonstandard": "CAP"
+	},
+	{
+		"id": "pickpocket",
+		"name": "Pickpocket",
+		"num": 124,
+		"isNonstandard": null
+	},
+	{
+		"id": "pickup",
+		"name": "Pickup",
+		"num": 53,
+		"isNonstandard": null
+	},
+	{
+		"id": "piercingdrill",
+		"name": "Piercing Drill",
+		"num": 311,
+		"isNonstandard": "Future"
+	},
+	{
+		"id": "pixilate",
+		"name": "Pixilate",
+		"num": 182,
+		"isNonstandard": null
+	},
+	{
+		"id": "plus",
+		"name": "Plus",
+		"num": 57,
+		"isNonstandard": null
+	},
+	{
+		"id": "poisonheal",
+		"name": "Poison Heal",
+		"num": 90,
+		"isNonstandard": null
+	},
+	{
+		"id": "poisonpoint",
+		"name": "Poison Point",
+		"num": 38,
+		"isNonstandard": null
+	},
+	{
+		"id": "poisonpuppeteer",
+		"name": "Poison Puppeteer",
+		"num": 310,
+		"isNonstandard": null
+	},
+	{
+		"id": "poisontouch",
+		"name": "Poison Touch",
+		"num": 143,
+		"isNonstandard": null
+	},
+	{
+		"id": "powerconstruct",
+		"name": "Power Construct",
+		"num": 211,
+		"isNonstandard": null
+	},
+	{
+		"id": "powerofalchemy",
+		"name": "Power of Alchemy",
+		"num": 223,
+		"isNonstandard": null
+	},
+	{
+		"id": "powerspot",
+		"name": "Power Spot",
+		"num": 249,
+		"isNonstandard": null
+	},
+	{
+		"id": "prankster",
+		"name": "Prankster",
+		"num": 158,
+		"isNonstandard": null
+	},
+	{
+		"id": "pressure",
+		"name": "Pressure",
+		"num": 46,
+		"isNonstandard": null
+	},
+	{
+		"id": "primordialsea",
+		"name": "Primordial Sea",
+		"num": 189,
+		"isNonstandard": null
+	},
+	{
+		"id": "prismarmor",
+		"name": "Prism Armor",
+		"num": 232,
+		"isNonstandard": null
+	},
+	{
+		"id": "propellertail",
+		"name": "Propeller Tail",
+		"num": 239,
+		"isNonstandard": null
+	},
+	{
+		"id": "protean",
+		"name": "Protean",
+		"num": 168,
+		"isNonstandard": null
+	},
+	{
+		"id": "protosynthesis",
+		"name": "Protosynthesis",
+		"num": 281,
+		"isNonstandard": null
+	},
+	{
+		"id": "psychicsurge",
+		"name": "Psychic Surge",
+		"num": 227,
+		"isNonstandard": null
+	},
+	{
+		"id": "punkrock",
+		"name": "Punk Rock",
+		"num": 244,
+		"isNonstandard": null
+	},
+	{
+		"id": "purepower",
+		"name": "Pure Power",
+		"num": 74,
+		"isNonstandard": null
+	},
+	{
+		"id": "purifyingsalt",
+		"name": "Purifying Salt",
+		"num": 272,
+		"isNonstandard": null
+	},
+	{
+		"id": "quarkdrive",
+		"name": "Quark Drive",
+		"num": 282,
+		"isNonstandard": null
+	},
+	{
+		"id": "queenlymajesty",
+		"name": "Queenly Majesty",
+		"num": 214,
+		"isNonstandard": null
+	},
+	{
+		"id": "quickdraw",
+		"name": "Quick Draw",
+		"num": 259,
+		"isNonstandard": null
+	},
+	{
+		"id": "quickfeet",
+		"name": "Quick Feet",
+		"num": 95,
+		"isNonstandard": null
+	},
+	{
+		"id": "raindish",
+		"name": "Rain Dish",
+		"num": 44,
+		"isNonstandard": null
+	},
+	{
+		"id": "rattled",
+		"name": "Rattled",
+		"num": 155,
+		"isNonstandard": null
+	},
+	{
+		"id": "rebound",
+		"name": "Rebound",
+		"num": -2,
+		"isNonstandard": "CAP"
+	},
+	{
+		"id": "receiver",
+		"name": "Receiver",
+		"num": 222,
+		"isNonstandard": null
+	},
+	{
+		"id": "reckless",
+		"name": "Reckless",
+		"num": 120,
+		"isNonstandard": null
+	},
+	{
+		"id": "refrigerate",
+		"name": "Refrigerate",
+		"num": 174,
+		"isNonstandard": null
+	},
+	{
+		"id": "regenerator",
+		"name": "Regenerator",
+		"num": 144,
+		"isNonstandard": null
+	},
+	{
+		"id": "ripen",
+		"name": "Ripen",
+		"num": 247,
+		"isNonstandard": null
+	},
+	{
+		"id": "rivalry",
+		"name": "Rivalry",
+		"num": 79,
+		"isNonstandard": null
+	},
+	{
+		"id": "rkssystem",
+		"name": "RKS System",
+		"num": 225,
+		"isNonstandard": null
+	},
+	{
+		"id": "rockhead",
+		"name": "Rock Head",
+		"num": 69,
+		"isNonstandard": null
+	},
+	{
+		"id": "rockypayload",
+		"name": "Rocky Payload",
+		"num": 276,
+		"isNonstandard": null
+	},
+	{
+		"id": "roughskin",
+		"name": "Rough Skin",
+		"num": 24,
+		"isNonstandard": null
+	},
+	{
+		"id": "runaway",
+		"name": "Run Away",
+		"num": 50,
+		"isNonstandard": null
+	},
+	{
+		"id": "sandforce",
+		"name": "Sand Force",
+		"num": 159,
+		"isNonstandard": null
+	},
+	{
+		"id": "sandrush",
+		"name": "Sand Rush",
+		"num": 146,
+		"isNonstandard": null
+	},
+	{
+		"id": "sandspit",
+		"name": "Sand Spit",
+		"num": 245,
+		"isNonstandard": null
+	},
+	{
+		"id": "sandstream",
+		"name": "Sand Stream",
+		"num": 45,
+		"isNonstandard": null
+	},
+	{
+		"id": "sandveil",
+		"name": "Sand Veil",
+		"num": 8,
+		"isNonstandard": null
+	},
+	{
+		"id": "sapsipper",
+		"name": "Sap Sipper",
+		"num": 157,
+		"isNonstandard": null
+	},
+	{
+		"id": "schooling",
+		"name": "Schooling",
+		"num": 208,
+		"isNonstandard": null
+	},
+	{
+		"id": "scrappy",
+		"name": "Scrappy",
+		"num": 113,
+		"isNonstandard": null
+	},
+	{
+		"id": "screencleaner",
+		"name": "Screen Cleaner",
+		"num": 251,
+		"isNonstandard": null
+	},
+	{
+		"id": "seedsower",
+		"name": "Seed Sower",
+		"num": 269,
+		"isNonstandard": null
+	},
+	{
+		"id": "serenegrace",
+		"name": "Serene Grace",
+		"num": 32,
+		"isNonstandard": null
+	},
+	{
+		"id": "shadowshield",
+		"name": "Shadow Shield",
+		"num": 231,
+		"isNonstandard": null
+	},
+	{
+		"id": "shadowtag",
+		"name": "Shadow Tag",
+		"num": 23,
+		"isNonstandard": null
+	},
+	{
+		"id": "sharpness",
+		"name": "Sharpness",
+		"num": 292,
+		"isNonstandard": null
+	},
+	{
+		"id": "shedskin",
+		"name": "Shed Skin",
+		"num": 61,
+		"isNonstandard": null
+	},
+	{
+		"id": "sheerforce",
+		"name": "Sheer Force",
+		"num": 125,
+		"isNonstandard": null
+	},
+	{
+		"id": "shellarmor",
+		"name": "Shell Armor",
+		"num": 75,
+		"isNonstandard": null
+	},
+	{
+		"id": "shielddust",
+		"name": "Shield Dust",
+		"num": 19,
+		"isNonstandard": null
+	},
+	{
+		"id": "shieldsdown",
+		"name": "Shields Down",
+		"num": 197,
+		"isNonstandard": null
+	},
+	{
+		"id": "simple",
+		"name": "Simple",
+		"num": 86,
+		"isNonstandard": null
+	},
+	{
+		"id": "skilllink",
+		"name": "Skill Link",
+		"num": 92,
+		"isNonstandard": null
+	},
+	{
+		"id": "slowstart",
+		"name": "Slow Start",
+		"num": 112,
+		"isNonstandard": null
+	},
+	{
+		"id": "slushrush",
+		"name": "Slush Rush",
+		"num": 202,
+		"isNonstandard": null
+	},
+	{
+		"id": "sniper",
+		"name": "Sniper",
+		"num": 97,
+		"isNonstandard": null
+	},
+	{
+		"id": "snowcloak",
+		"name": "Snow Cloak",
+		"num": 81,
+		"isNonstandard": null
+	},
+	{
+		"id": "snowwarning",
+		"name": "Snow Warning",
+		"num": 117,
+		"isNonstandard": null
+	},
+	{
+		"id": "solarpower",
+		"name": "Solar Power",
+		"num": 94,
+		"isNonstandard": null
+	},
+	{
+		"id": "solidrock",
+		"name": "Solid Rock",
+		"num": 116,
+		"isNonstandard": null
+	},
+	{
+		"id": "soulheart",
+		"name": "Soul-Heart",
+		"num": 220,
+		"isNonstandard": null
+	},
+	{
+		"id": "soundproof",
+		"name": "Soundproof",
+		"num": 43,
+		"isNonstandard": null
+	},
+	{
+		"id": "speedboost",
+		"name": "Speed Boost",
+		"num": 3,
+		"isNonstandard": null
+	},
+	{
+		"id": "spicyspray",
+		"name": "Spicy Spray",
+		"num": 318,
+		"isNonstandard": "Future"
+	},
+	{
+		"id": "stakeout",
+		"name": "Stakeout",
+		"num": 198,
+		"isNonstandard": null
+	},
+	{
+		"id": "stall",
+		"name": "Stall",
+		"num": 100,
+		"isNonstandard": null
+	},
+	{
+		"id": "stalwart",
+		"name": "Stalwart",
+		"num": 242,
+		"isNonstandard": null
+	},
+	{
+		"id": "stamina",
+		"name": "Stamina",
+		"num": 192,
+		"isNonstandard": null
+	},
+	{
+		"id": "stancechange",
+		"name": "Stance Change",
+		"num": 176,
+		"isNonstandard": null
+	},
+	{
+		"id": "static",
+		"name": "Static",
+		"num": 9,
+		"isNonstandard": null
+	},
+	{
+		"id": "steadfast",
+		"name": "Steadfast",
+		"num": 80,
+		"isNonstandard": null
+	},
+	{
+		"id": "steamengine",
+		"name": "Steam Engine",
+		"num": 243,
+		"isNonstandard": null
+	},
+	{
+		"id": "steelworker",
+		"name": "Steelworker",
+		"num": 200,
+		"isNonstandard": null
+	},
+	{
+		"id": "steelyspirit",
+		"name": "Steely Spirit",
+		"num": 252,
+		"isNonstandard": null
+	},
+	{
+		"id": "stench",
+		"name": "Stench",
+		"num": 1,
+		"isNonstandard": null
+	},
+	{
+		"id": "stickyhold",
+		"name": "Sticky Hold",
+		"num": 60,
+		"isNonstandard": null
+	},
+	{
+		"id": "stormdrain",
+		"name": "Storm Drain",
+		"num": 114,
+		"isNonstandard": null
+	},
+	{
+		"id": "strongjaw",
+		"name": "Strong Jaw",
+		"num": 173,
+		"isNonstandard": null
+	},
+	{
+		"id": "sturdy",
+		"name": "Sturdy",
+		"num": 5,
+		"isNonstandard": null
+	},
+	{
+		"id": "suctioncups",
+		"name": "Suction Cups",
+		"num": 21,
+		"isNonstandard": null
+	},
+	{
+		"id": "superluck",
+		"name": "Super Luck",
+		"num": 105,
+		"isNonstandard": null
+	},
+	{
+		"id": "supersweetsyrup",
+		"name": "Supersweet Syrup",
+		"num": 306,
+		"isNonstandard": null
+	},
+	{
+		"id": "supremeoverlord",
+		"name": "Supreme Overlord",
+		"num": 293,
+		"isNonstandard": null
+	},
+	{
+		"id": "surgesurfer",
+		"name": "Surge Surfer",
+		"num": 207,
+		"isNonstandard": null
+	},
+	{
+		"id": "swarm",
+		"name": "Swarm",
+		"num": 68,
+		"isNonstandard": null
+	},
+	{
+		"id": "sweetveil",
+		"name": "Sweet Veil",
+		"num": 175,
+		"isNonstandard": null
+	},
+	{
+		"id": "swiftswim",
+		"name": "Swift Swim",
+		"num": 33,
+		"isNonstandard": null
+	},
+	{
+		"id": "swordofruin",
+		"name": "Sword of Ruin",
+		"num": 285,
+		"isNonstandard": null
+	},
+	{
+		"id": "symbiosis",
+		"name": "Symbiosis",
+		"num": 180,
+		"isNonstandard": null
+	},
+	{
+		"id": "synchronize",
+		"name": "Synchronize",
+		"num": 28,
+		"isNonstandard": null
+	},
+	{
+		"id": "tabletsofruin",
+		"name": "Tablets of Ruin",
+		"num": 284,
+		"isNonstandard": null
+	},
+	{
+		"id": "tangledfeet",
+		"name": "Tangled Feet",
+		"num": 77,
+		"isNonstandard": null
+	},
+	{
+		"id": "tanglinghair",
+		"name": "Tangling Hair",
+		"num": 221,
+		"isNonstandard": null
+	},
+	{
+		"id": "technician",
+		"name": "Technician",
+		"num": 101,
+		"isNonstandard": null
+	},
+	{
+		"id": "telepathy",
+		"name": "Telepathy",
+		"num": 140,
+		"isNonstandard": null
+	},
+	{
+		"id": "teraformzero",
+		"name": "Teraform Zero",
+		"num": 309,
+		"isNonstandard": null
+	},
+	{
+		"id": "terashell",
+		"name": "Tera Shell",
+		"num": 308,
+		"isNonstandard": null
+	},
+	{
+		"id": "terashift",
+		"name": "Tera Shift",
+		"num": 307,
+		"isNonstandard": null
+	},
+	{
+		"id": "teravolt",
+		"name": "Teravolt",
+		"num": 164,
+		"isNonstandard": null
+	},
+	{
+		"id": "thermalexchange",
+		"name": "Thermal Exchange",
+		"num": 270,
+		"isNonstandard": null
+	},
+	{
+		"id": "thickfat",
+		"name": "Thick Fat",
+		"num": 47,
+		"isNonstandard": null
+	},
+	{
+		"id": "tintedlens",
+		"name": "Tinted Lens",
+		"num": 110,
+		"isNonstandard": null
+	},
+	{
+		"id": "torrent",
+		"name": "Torrent",
+		"num": 67,
+		"isNonstandard": null
+	},
+	{
+		"id": "toughclaws",
+		"name": "Tough Claws",
+		"num": 181,
+		"isNonstandard": null
+	},
+	{
+		"id": "toxicboost",
+		"name": "Toxic Boost",
+		"num": 137,
+		"isNonstandard": null
+	},
+	{
+		"id": "toxicchain",
+		"name": "Toxic Chain",
+		"num": 305,
+		"isNonstandard": null
+	},
+	{
+		"id": "toxicdebris",
+		"name": "Toxic Debris",
+		"num": 295,
+		"isNonstandard": null
+	},
+	{
+		"id": "trace",
+		"name": "Trace",
+		"num": 36,
+		"isNonstandard": null
+	},
+	{
+		"id": "transistor",
+		"name": "Transistor",
+		"num": 262,
+		"isNonstandard": null
+	},
+	{
+		"id": "triage",
+		"name": "Triage",
+		"num": 205,
+		"isNonstandard": null
+	},
+	{
+		"id": "truant",
+		"name": "Truant",
+		"num": 54,
+		"isNonstandard": null
+	},
+	{
+		"id": "turboblaze",
+		"name": "Turboblaze",
+		"num": 163,
+		"isNonstandard": null
+	},
+	{
+		"id": "unaware",
+		"name": "Unaware",
+		"num": 109,
+		"isNonstandard": null
+	},
+	{
+		"id": "unburden",
+		"name": "Unburden",
+		"num": 84,
+		"isNonstandard": null
+	},
+	{
+		"id": "unnerve",
+		"name": "Unnerve",
+		"num": 127,
+		"isNonstandard": null
+	},
+	{
+		"id": "unseenfist",
+		"name": "Unseen Fist",
+		"num": 260,
+		"isNonstandard": null
+	},
+	{
+		"id": "vesselofruin",
+		"name": "Vessel of Ruin",
+		"num": 284,
+		"isNonstandard": null
+	},
+	{
+		"id": "victorystar",
+		"name": "Victory Star",
+		"num": 162,
+		"isNonstandard": null
+	},
+	{
+		"id": "vitalspirit",
+		"name": "Vital Spirit",
+		"num": 72,
+		"isNonstandard": null
+	},
+	{
+		"id": "voltabsorb",
+		"name": "Volt Absorb",
+		"num": 10,
+		"isNonstandard": null
+	},
+	{
+		"id": "wanderingspirit",
+		"name": "Wandering Spirit",
+		"num": 254,
+		"isNonstandard": null
+	},
+	{
+		"id": "waterabsorb",
+		"name": "Water Absorb",
+		"num": 11,
+		"isNonstandard": null
+	},
+	{
+		"id": "waterbubble",
+		"name": "Water Bubble",
+		"num": 199,
+		"isNonstandard": null
+	},
+	{
+		"id": "watercompaction",
+		"name": "Water Compaction",
+		"num": 195,
+		"isNonstandard": null
+	},
+	{
+		"id": "waterveil",
+		"name": "Water Veil",
+		"num": 41,
+		"isNonstandard": null
+	},
+	{
+		"id": "weakarmor",
+		"name": "Weak Armor",
+		"num": 133,
+		"isNonstandard": null
+	},
+	{
+		"id": "wellbakedbody",
+		"name": "Well-Baked Body",
+		"num": 273,
+		"isNonstandard": null
+	},
+	{
+		"id": "whitesmoke",
+		"name": "White Smoke",
+		"num": 73,
+		"isNonstandard": null
+	},
+	{
+		"id": "wimpout",
+		"name": "Wimp Out",
+		"num": 193,
+		"isNonstandard": null
+	},
+	{
+		"id": "windpower",
+		"name": "Wind Power",
+		"num": 277,
+		"isNonstandard": null
+	},
+	{
+		"id": "windrider",
+		"name": "Wind Rider",
+		"num": 274,
+		"isNonstandard": null
+	},
+	{
+		"id": "wonderguard",
+		"name": "Wonder Guard",
+		"num": 25,
+		"isNonstandard": null
+	},
+	{
+		"id": "wonderskin",
+		"name": "Wonder Skin",
+		"num": 147,
+		"isNonstandard": null
+	},
+	{
+		"id": "zenmode",
+		"name": "Zen Mode",
+		"num": 161,
+		"isNonstandard": null
+	},
+	{
+		"id": "zerotohero",
+		"name": "Zero to Hero",
+		"num": 278,
+		"isNonstandard": null
+	}
+]

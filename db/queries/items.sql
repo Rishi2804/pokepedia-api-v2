@@ -20,7 +20,7 @@ GROUP BY text
 ORDER BY min(version);
 
 -- name: GetPokemonHoldingItem :many
-SELECT DISTINCT p.id, p.name, p.gen, p.type1, p.type2, p.species_id
+SELECT DISTINCT p.id, p.name, p.display_name, p.gen, p.type1, p.type2, p.species_id
 FROM itemheldby h
 JOIN pokemon p ON p.id = h.pokemon_id
 WHERE h.item_id = $1
